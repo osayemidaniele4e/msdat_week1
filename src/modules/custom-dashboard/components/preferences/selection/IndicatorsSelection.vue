@@ -261,6 +261,7 @@ export default {
     loadIndicators() {
       this.$store.dispatch('loadIndicators');
     },
+
     async selectIndicator(e, parentValue, childId, childName) {
       this.indicatorSelected = e.target.checked;
       this.showList = e.target.checked;
