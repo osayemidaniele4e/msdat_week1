@@ -61,6 +61,17 @@
           {{ allIndicatorsSelected ? 'Deselect All' : 'Select All' }}
         </button>
       </div>
+      <div class="selection-wrapper d-flex gap-3">
+        <button
+          v-for="option in options"
+          :key="option.value"
+          class="btn btn-selection mr-1"
+          :class="{ active: selected === option.value }"
+          @click="selected = option.value"
+        >
+          {{ option.label }}
+        </button>
+      </div>
 
       <Card class="scroll">
         <TheLoader v-if="loading" />
@@ -172,6 +183,11 @@ export default {
       allIndicatorsSelected: false,
       isContentVisible: true, // New data property for collapse/expand
       allDatasources: [],
+      selected: 'manual',
+      options: [
+        { label: 'Manual Selection', value: 'manual' },
+        { label: 'AI Selection', value: 'ai' },
+      ],
     };
   },
   computed: {
@@ -392,5 +408,33 @@ button.selected {
 
 .header-container:hover {
   background-color: #f1f2f7;
+}
+
+.selection-wrapper {
+  background: #f5f7fa;
+  padding: 4px;
+  border-radius: 20px;
+  display: inline-flex;
+}
+
+.btn-selection {
+  border-radius: 10px;
+  padding: 6px 16px;
+  border: none;
+  font-weight: 500;
+  background: transparent;
+  color: #6c757d;
+  transition: all 0.3s ease;
+}
+
+.btn-selection:hover {
+  background: #e9ecef;
+  color: #000;
+}
+
+.btn-selection.active {
+  background: #3f8994;
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
 }
 </style>
