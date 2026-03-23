@@ -67,7 +67,7 @@
           :key="option.value"
           class="btn btn-selection mr-1"
           :class="{ active: selected === option.value }"
-          @click="selected = option.value"
+          @click="handleSelection(option.value)"
         >
           {{ option.label }}
         </button>
@@ -222,6 +222,22 @@ export default {
     },
     isAllSelected(item) {
       return item.selected;
+    },
+
+    handleSelection(value) {
+      this.selected = value;
+      if (value === 'ai') {
+        this.getAiSuggestions();
+      } else {
+        // If switching back to manual, you might want to clear AI suggestions or reset state
+        // this.$store.dispatch('loadIndicators');
+      }
+    },
+    async getAiSuggestions() {
+      this.selected = 'ai';
+      // const dashboardDetails = this.$store.getters.dashboardDetails;
+      // console.log(dashboardDetails, 'dashboardDetails in getAiSuggestions');
+      this.$store.dispatch('loadAISuggestedIndicators');
     },
     selectAllIndicators() {
       this.allIndicatorsSelected = !this.allIndicatorsSelected;
@@ -413,9 +429,10 @@ button.selected {
 
 .selection-wrapper {
   background: #f5f7fa;
-  padding: 4px;
-  border-radius: 20px;
+  padding: 4px 6px;
+  border-radius: 5px;
   display: inline-flex;
+  margin: 5px 0;
 }
 
 .btn-selection {

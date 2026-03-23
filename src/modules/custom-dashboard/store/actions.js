@@ -94,6 +94,87 @@ export default {
     }
   },
 
+  async loadAISuggestedIndicators({ commit, state, dispatch }) {
+    console.log('Here');
+
+    let loading = true;
+
+    try {
+      commit('setIndiLoading', loading);
+
+      console.log(state, '@@@');
+
+      const payload = {
+        dashboard_name: state.dashboardDetails.name,
+        dashboard_description: state.dashboardDetails.description,
+      };
+
+      const res = await ApiServices.getAiIndicatorsSuggestions(payload);
+      console.log(res, 'All Indicator AI');
+
+      if (res && res && Array.isArray(res)) {
+        const data = res;
+        const array = (data || []).map((pArea) => pArea.program_area || 'Unknown');
+        const distinctArray = [...new Set(array.filter(Boolean))];
+        const composedData = [];
+        const sortedData = data.sort((a, b) => a.id - b.id);
+
+        let filteredData = [];
+        // eslint-disable-next-line no-restricted-syntax
+        for (const pa of distinctArray) {
+          const paData = sortedData.filter((ind) => ind.program_area === pa);
+          filteredData = filteredData.concat(paData);
+        }
+
+        distinctArray.forEach((distItem) => {
+          composedData.push({
+            children: filteredData.filter((x) => {
+              if (x.program_area === distItem) {
+                x.selected = state.allSelected;
+                x.sources = [];
+                x.years = [];
+                x.levels = [];
+                return true;
+              }
+              return false;
+            }),
+            parent: {
+              selected: state.allSelected,
+              isChildSelected: state.allSelected,
+              value: distItem.toUpperCase(),
+            },
+            showList: state.allSelected,
+            showNotes: state.allSelected,
+          });
+        });
+
+        loading = false;
+        commit('setIndiLoading', loading);
+        commit('setPArea', composedData);
+
+        if (state.allSelected) {
+          composedData.forEach((x) => {
+            x.children.forEach((child) => {
+              try {
+                const childs = { id: child.id };
+                dispatch('loadCoverageLevels', childs);
+                dispatch('loadYears', childs);
+              } catch (err) {
+                console.error('Error dispatching child data:', err, child);
+              }
+            });
+          });
+        }
+      } else {
+        throw new Error('Unexpected API response format');
+      }
+    } catch (err) {
+      console.error('Error loading indicators:', err);
+      loading = false;
+      commit('setIndiLoading', loading);
+    }
+  },
+
   // ******** Data Sources ********** //
 
   // Load DataSources From API for the First time.

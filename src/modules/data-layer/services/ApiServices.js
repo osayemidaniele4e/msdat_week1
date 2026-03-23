@@ -98,6 +98,28 @@ const getFunFact = async (payload) => {
   return data;
 };
 
+const getAiIndicatorsSuggestions = async (payload) => {
+  const response = await fetch(
+    'https://n8n.e4eweb.space/webhook/0bd06292-e8c8-433b-9c2d-89ba64006845',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Webhook error ${response.status}: ${text}`);
+  }
+
+  const data = await response.json(); // ✅ await once
+
+  return data;
+};
+
 const getDataWithPeriod = async (obj) => {
   const { indicator, datasource, location, value_type, period } = obj || {};
 
@@ -284,4 +306,5 @@ export default {
   tagIndicator,
   getTags,
   getFunFact,
+  getAiIndicatorsSuggestions,
 };
