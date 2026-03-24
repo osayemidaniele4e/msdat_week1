@@ -326,7 +326,7 @@ export default {
 
      toggleFunFact() {
       localStorage.setItem('funFactDisabled', 'false');
-      this.nugget = this.getFunFact();
+      this.nugget = this.getFunFact;
       this.showFunFact = true;
       // console.log(this.getFunFact(), 'this.getFunFact');
     },
