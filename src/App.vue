@@ -12,8 +12,60 @@
       <ShareSection />
     </div>
 
+    <div class="fun-fact-trigger" aria-label="Show fun fact" @click="toggleFunFact()">
+      <svg class="bulb-svg" viewBox="0 0 512 512">
+        <!-- keep your SVG exactly as is -->
+        <!-- no inline width/height anymore -->
+
+        <path style="fill: #e8edee" d="M185.379,370.759V476.69h141.241v-70.621v-35.31H185.379z" />
+        <path
+          style="fill: #cbd4d8"
+          d="M269.241,512h-26.483c-7.945,0-15.89-3.531-21.186-10.593l-18.538-24.717h105.931l-18.538,24.717C285.131,508.469,277.186,512,269.241,512"
+        />
+
+        <!-- 💡 MAIN BULB (we'll target this) -->
+        <path
+          class="bulb-glow"
+          style="fill: #f0ce49"
+          d="M422.841,152.717C414.014,73.269,350.455,9.71,271.007,0.883C265.71,0.883,261.297,0,256,0
+      c-5.297,0-9.71,0-15.007,0.883C161.545,9.71,97.986,74.152,89.159,152.717c-6.179,56.497,15.007,107.697,52.083,143.007
+      c21.186,20.303,38.841,46.786,44.138,75.034h141.241c5.297-28.248,22.952-54.731,44.138-75.034
+      C407.834,260.414,429.021,209.214,422.841,152.717"
+        />
+
+        <path
+          style="fill: #ffffff"
+          d="M326.621,158.897h-52.966l44.138-79.448h-52.966l-61.793,114.759h44.138l-44.138,114.759L326.621,158.897z"
+        />
+      </svg>
+    </div>
+
+    <!-- // v-if="showFunFact" -->
     <transition name="fun-fact-slide">
-      <div v-if="showFunFact" class="fun-fact">
+      <div v-if="!isFunFactDisabled && showFunFact && nugget" class="fun-fact">
+        <button
+          class="fun-fact-disable text-danger"
+          aria-label="Close fun fact"
+          @click="toggleDisablePrompt"
+        >
+          <svg
+            width="20px"
+            height="20px"
+            viewBox="0 -0.5 25 25"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            stroke="#FF2C2C"
+          >
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+              <path
+                d="M11.75 9.874C11.75 10.2882 12.0858 10.624 12.5 10.624C12.9142 10.624 13.25 10.2882 13.25 9.874H11.75ZM13.25 4C13.25 3.58579 12.9142 3.25 12.5 3.25C12.0858 3.25 11.75 3.58579 11.75 4H13.25ZM9.81082 6.66156C10.1878 6.48991 10.3542 6.04515 10.1826 5.66818C10.0109 5.29121 9.56615 5.12478 9.18918 5.29644L9.81082 6.66156ZM5.5 12.16L4.7499 12.1561L4.75005 12.1687L5.5 12.16ZM12.5 19L12.5086 18.25C12.5029 18.25 12.4971 18.25 12.4914 18.25L12.5 19ZM19.5 12.16L20.2501 12.1687L20.25 12.1561L19.5 12.16ZM15.8108 5.29644C15.4338 5.12478 14.9891 5.29121 14.8174 5.66818C14.6458 6.04515 14.8122 6.48991 15.1892 6.66156L15.8108 5.29644ZM13.25 9.874V4H11.75V9.874H13.25ZM9.18918 5.29644C6.49843 6.52171 4.7655 9.19951 4.75001 12.1561L6.24999 12.1639C6.26242 9.79237 7.65246 7.6444 9.81082 6.66156L9.18918 5.29644ZM4.75005 12.1687C4.79935 16.4046 8.27278 19.7986 12.5086 19.75L12.4914 18.25C9.08384 18.2892 6.28961 15.5588 6.24995 12.1513L4.75005 12.1687ZM12.4914 19.75C16.7272 19.7986 20.2007 16.4046 20.2499 12.1687L18.7501 12.1513C18.7104 15.5588 15.9162 18.2892 12.5086 18.25L12.4914 19.75ZM20.25 12.1561C20.2345 9.19951 18.5016 6.52171 15.8108 5.29644L15.1892 6.66156C17.3475 7.6444 18.7376 9.79237 18.75 12.1639L20.25 12.1561Z"
+                fill="#FF2C2C"
+              ></path>
+            </g>
+          </svg>
+        </button>
         <button class="fun-fact-close" aria-label="Close fun fact" @click="closeFunFact">×</button>
         <div class="fun-fact-icon">
           <!-- Light bulb SVG -->
@@ -50,6 +102,21 @@
         </svg>
       </button>
     </div> -->
+    <transition name="fade-slide">
+      <div v-if="showDisablePrompt" class="funfact-modal">
+        <div class="icon">💡</div>
+
+        <div class="content">
+          <p class="title">Disable Fun Facts?</p>
+          <p class="desc">You can turn it back on anytime by clicking the bulb icon.</p>
+
+          <div class="actions">
+            <button class="cancel" @click="toggleDisablePrompt">Cancel</button>
+            <button class="confirm" @click="disableFunFact">Disable</button>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -90,11 +157,17 @@ export default {
       showInterval: null,
       hideTimeout: null,
       nugget: null,
+      showDisablePrompt: false,
     };
   },
   computed: {
     ...mapGetters('appearance', ['viewMode', 'fontSize', 'theme']),
     ...mapGetters('MSDAT_STORE', ['getConfigObject']),
+
+    // get fun fact disabled state from localStorage
+    isFunFactDisabled() {
+      return localStorage.getItem('funFactDisabled') === 'true';
+    },
   },
   watch: {
     '$store.state.MSDAT_STORE.showDataSourceList': {
@@ -126,6 +199,13 @@ export default {
     },
     theme(newTheme) {
       document.documentElement.setAttribute('data-theme', newTheme);
+    },
+    showDisablePrompt(newVal) {
+      if (newVal === true) {
+        setTimeout(() => {
+          this.showDisablePrompt = false;
+        }, 10000);
+      }
     },
   },
   async mounted() {
@@ -222,9 +302,9 @@ export default {
     document.documentElement.setAttribute('data-theme', this.theme);
   },
   methods: {
-    ...mapGetters('MSDAT_STORE', ['getConfigObject']),
+    ...mapGetters('MSDAT_STORE', ['getConfigObject', 'getFunFact']),
     ...mapActions(['SET_PLUGINS_IMPORTED']),
-    ...mapMutations('MSDAT_STORE', ['toggleShowWhatsNew']),
+    ...mapMutations('MSDAT_STORE', ['toggleShowWhatsNew', 'SET_FUN_FACT']),
 
     async showFunFactTemporarily() {
       if (this.getConfigObject.id === undefined) {
@@ -239,6 +319,8 @@ export default {
 
         // ✅ Only show when webhook responds successfully
         if (!result) return;
+
+        this.SET_FUN_FACT(result.content);
 
         this.nugget = result.content;
 
@@ -257,6 +339,17 @@ export default {
         console.error('Fun fact webhook error:', error);
         this.showFunFact = false;
       }
+    },
+
+    toggleDisablePrompt() {
+      this.showDisablePrompt = !this.showDisablePrompt;
+    },
+
+    toggleFunFact() {
+      localStorage.setItem('funFactDisabled', 'false');
+      this.nugget = this.getFunFact();
+      this.showFunFact = true;
+      // console.log(this.getFunFact(), 'this.getFunFact');
     },
 
     closeFunFact() {
@@ -283,6 +376,12 @@ export default {
     handleAppUnload() {
       console.log('Application is being unloaded.');
       localStorage.removeItem('firstTimeExecution');
+    },
+
+    disableFunFact() {
+      localStorage.setItem('funFactDisabled', 'true');
+      this.showFunFact = false;
+      this.toggleDisablePrompt();
     },
 
     startSixHourInterval() {
@@ -382,7 +481,7 @@ export default {
 .fun-fact {
   position: fixed;
   top: 500px;
-  left: 400px;
+  left: 350px;
   width: 50vw;
   display: flex;
   gap: 14px;
@@ -398,6 +497,129 @@ export default {
   z-index: 9999;
 }
 
+.fun-fact-trigger {
+  position: fixed;
+  top: 200px;
+  left: -28px; /* 👈 hide part of it */
+  z-index: 9999;
+
+  cursor: pointer;
+  background: none;
+  border: none;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: transform 0.35s ease; /* 🔥 key */
+
+  /* subtle float */
+  animation: floaty 5s ease-in-out infinite;
+}
+
+/* 👉 slide OUT on hover */
+.fun-fact-trigger:hover {
+  // transform: translateX(28px);
+  left: 1px; /* 👈 brings it fully into view */
+  transition: transform 0.55s ease; /* 🔥 key */
+}
+
+.bulb-svg {
+  width: 64px; /* 👈 perfect size */
+  height: 64px;
+
+  transition: all 0.3s ease;
+
+  /* base glow */
+  filter: drop-shadow(0 4px 8px rgba(245, 158, 11, 0.3))
+    drop-shadow(0 0 16px rgba(245, 158, 11, 0.25));
+}
+
+/* 💡 glowing bulb part */
+.bulb-glow {
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.6));
+}
+
+/* 🔥 pulse halo */
+.fun-fact-trigger::before {
+  content: '';
+  position: absolute;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.25), transparent 70%);
+
+  animation: pulse 2.5s infinite;
+  z-index: -1;
+}
+
+/* ✨ hover effect */
+.fun-fact-trigger:hover .bulb-svg {
+  transform: scale(1.08) translateY(-3px);
+  left: 20px;
+
+  filter: drop-shadow(0 6px 12px rgba(245, 158, 11, 0.5))
+    drop-shadow(0 0 24px rgba(245, 158, 11, 0.4));
+}
+
+/* 🔥 stronger glow on hover */
+.fun-fact-trigger:hover .bulb-glow {
+  filter: drop-shadow(0 0 18px rgba(245, 158, 11, 0.9));
+}
+
+/* 💡 flicker (feels real) */
+.fun-fact-trigger:hover .bulb-glow {
+  animation: flicker 0.6s ease-in-out;
+}
+
+/* animations */
+@keyframes floaty {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.6;
+  }
+  70% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes flicker {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* subtle float */
+@keyframes floaty {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
 /* Close (X) */
 .fun-fact-close {
   position: absolute;
@@ -410,6 +632,100 @@ export default {
   color: #9ca3af;
   cursor: pointer;
   padding: 4px;
+}
+
+.fun-fact-disable {
+  position: absolute;
+  top: 10px;
+  right: 30px;
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  line-height: 1;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 4px;
+}
+
+// hre
+.funfact-modal {
+  position: fixed;
+  bottom: 100px;
+  right: 24px;
+  z-index: 9999;
+
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+
+  width: 320px;
+  padding: 16px;
+
+  border-radius: 12px;
+
+  /* match your card */
+  background: linear-gradient(135deg, #fff7e6, #ffffff);
+  border-left: 4px solid #f59e0b;
+
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+.funfact-modal .icon {
+  font-size: 22px;
+  color: #f59e0b;
+}
+
+.funfact-modal .title {
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #333;
+}
+
+.funfact-modal .desc {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.funfact-modal .actions {
+  display: flex;
+  gap: 8px;
+}
+
+.funfact-modal button {
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.funfact-modal .cancel {
+  background: #eee;
+  color: #333;
+}
+
+.funfact-modal .confirm {
+  background: #f59e0b;
+  color: white;
+}
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.25s ease;
+}
+
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+button:focus:not(:focus-visible) {
+  outline: none;
 }
 
 .fun-fact-close:hover {

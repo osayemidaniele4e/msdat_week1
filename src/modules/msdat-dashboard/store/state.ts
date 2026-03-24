@@ -56,6 +56,7 @@ const state: State = {
   urlDatasource: 1,
   urlLocation: 1,
   urlPeriod: '2023',
+  funFact: '',
 };
 
 export default state;
