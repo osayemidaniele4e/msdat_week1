@@ -40,13 +40,12 @@
       </svg>
     </div>
 
-    <!-- // v-if="showFunFact" -->
     <transition name="fun-fact-slide">
       <div v-if="!isFunFactDisabled && showFunFact && nugget" class="fun-fact">
         <button
           class="fun-fact-disable text-danger"
           aria-label="Close fun fact"
-          @click="toggleDisablePrompt"
+          @click="disableFunFact"
         >
           <svg
             width="20px"
@@ -91,9 +90,9 @@
     <!-- Global Chatbot - Commented out -->
     <!-- <div class="global-chatbot-wrapper">
       <ChatBot ref="globalChatBot" />
-      <button
-        class="global-chat-trigger"
-        @click="$refs.globalChatBot.toggleChat()"
+      <button 
+        class="global-chat-trigger" 
+        @click="$refs.globalChatBot.toggleChat()" 
         title="Metadata Chatbot"
         aria-label="Open AI Chatbot"
       >
@@ -134,8 +133,8 @@ import customReportBuilder from './modules/plugins/customReportBuilder';
 import indicatorPlugin from './modules/plugins/indicatorPlugin';
 import reviewPlugin from './modules/plugins/reviewPlugin';
 import screenshotManager from './modules/plugins/screenshotManager';
-import testonePlugin from './modules/plugins/testonePlugin';
 import testPlugin from './modules/plugins/testPlugin';
+import testonePlugin from './modules/plugins/testonePlugin';
 
 export default {
   components: {
@@ -162,7 +161,7 @@ export default {
   },
   computed: {
     ...mapGetters('appearance', ['viewMode', 'fontSize', 'theme']),
-    ...mapGetters('MSDAT_STORE', ['getConfigObject']),
+    ...mapGetters('MSDAT_STORE', ['getConfigObject', 'getFunFact']),
 
     // get fun fact disabled state from localStorage
     isFunFactDisabled() {
@@ -278,15 +277,6 @@ export default {
       Vue.use(screenshotManager);
     }
 
-    this.pluginsImported.push('testonePlugin');
-    if (!localStorage.getItem('testonePlugin')) {
-      localStorage.setItem('testonePlugin', 'false');
-    }
-
-    if (localStorage.getItem('testonePlugin') === 'true') {
-      Vue.use(testonePlugin);
-    }
-
     this.pluginsImported.push('testPlugin');
     if (!localStorage.getItem('testPlugin')) {
       localStorage.setItem('testPlugin', 'false');
@@ -294,6 +284,15 @@ export default {
 
     if (localStorage.getItem('testPlugin') === 'true') {
       Vue.use(testPlugin);
+    }
+
+    this.pluginsImported.push('testonePlugin');
+    if (!localStorage.getItem('testonePlugin')) {
+      localStorage.setItem('testonePlugin', 'false');
+    }
+
+    if (localStorage.getItem('testonePlugin') === 'true') {
+      Vue.use(testonePlugin);
     }
 
     await this.SET_PLUGINS_IMPORTED(this.pluginsImported);
@@ -319,7 +318,6 @@ export default {
 
         // ✅ Only show when webhook responds successfully
         if (!result) return;
-
         this.SET_FUN_FACT(result.content);
 
         this.nugget = result.content;
@@ -331,7 +329,7 @@ export default {
           clearTimeout(this.hideTimeout);
         }
 
-        // Hide after 2 minute
+        // Hide after 1 minute
         this.hideTimeout = setTimeout(() => {
           this.showFunFact = false;
         }, 20 * 1000);
@@ -347,9 +345,15 @@ export default {
 
     toggleFunFact() {
       localStorage.setItem('funFactDisabled', 'false');
-      this.nugget = this.getFunFact();
+      this.nugget = this.getFunFact;
       this.showFunFact = true;
       // console.log(this.getFunFact(), 'this.getFunFact');
+    },
+
+    disableFunFact() {
+      localStorage.setItem('funFactDisabled', 'true');
+      this.showFunFact = false;
+      this.toggleDisablePrompt();
     },
 
     closeFunFact() {
@@ -374,14 +378,7 @@ export default {
     },
 
     handleAppUnload() {
-      console.log('Application is being unloaded.');
       localStorage.removeItem('firstTimeExecution');
-    },
-
-    disableFunFact() {
-      localStorage.setItem('funFactDisabled', 'true');
-      this.showFunFact = false;
-      this.toggleDisablePrompt();
     },
 
     startSixHourInterval() {
@@ -415,8 +412,8 @@ export default {
         indicatorPlugin,
         reviewPlugin,
         screenshotManager,
-        testonePlugin,
         testPlugin,
+        testonePlugin,
       };
 
       const pkg = registry[plugin];
@@ -481,7 +478,7 @@ export default {
 .fun-fact {
   position: fixed;
   top: 500px;
-  left: 350px;
+  left: 400px;
   width: 50vw;
   display: flex;
   gap: 14px;
@@ -620,24 +617,10 @@ export default {
   }
 }
 
-/* Close (X) */
-.fun-fact-close {
-  position: absolute;
-  top: 10px;
-  right: 12px;
-  background: transparent;
-  border: none;
-  font-size: 18px;
-  line-height: 1;
-  color: #9ca3af;
-  cursor: pointer;
-  padding: 4px;
-}
-
 .fun-fact-disable {
   position: absolute;
   top: 10px;
-  right: 30px;
+  right: 28px;
   background: transparent;
   border: none;
   font-size: 18px;
@@ -726,6 +709,20 @@ export default {
 
 button:focus:not(:focus-visible) {
   outline: none;
+}
+
+/* Close (X) */
+.fun-fact-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  line-height: 1;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 4px;
 }
 
 .fun-fact-close:hover {

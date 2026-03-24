@@ -138,9 +138,7 @@
 
 <script>
 import BaseModal from '@/components/ui-components/_base-modal.vue'; // Adjust path if necessary
-import {
-  ref, computed, onMounted, onBeforeUnmount,
-} from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 
 export default {
   name: 'VoiceControlModal',
@@ -184,7 +182,7 @@ export default {
 
     // Add this function to log debug information
     const addDebugInfo = (message) => {
-      console.log(message);
+      // console.log(message);
       debugInfo.value.push(`${new Date().toLocaleTimeString()}: ${message}`);
     };
 
@@ -237,7 +235,7 @@ export default {
             headers: { 'Content-Type': 'application/json' },
             body: payload,
             signal: abortController.value.signal,
-          },
+          }
         );
 
         const responseText = await response.text();
@@ -249,7 +247,7 @@ export default {
 
         if (!response.ok) {
           throw new Error(
-            `API request failed with status ${response.status}. Response: ${responseText}`,
+            `API request failed with status ${response.status}. Response: ${responseText}`
           );
         }
 
@@ -262,7 +260,7 @@ export default {
           throw new Error(`Failed to parse response: ${err.message}`);
         }
 
-        console.log(data, '@@@ NAVigation');
+        // console.log(data, '@@@ NAVigation');
 
         // ✅ Handle navigation type
         if (data?.type === 'Navigation' && data?.route) {
@@ -309,7 +307,7 @@ export default {
           return;
         }
         const errorMessage = error instanceof Error ? error.message : String(error);
-        console.error('Error in sendCommandToAPI:', errorMessage);
+        // console.error('Error in sendCommandToAPI:', errorMessage);
         addDebugInfo(`API call failed: ${errorMessage}`);
         status.value = 'idle';
       } finally {
@@ -353,9 +351,10 @@ export default {
                 if (result.length > 1) {
                   const alternatives = Array.from(result)
                     .map(
-                      (alt, idx) => `Alt ${idx + 1}: "${alt.transcript}" (${(alt.confidence * 100).toFixed(
-                        1,
-                      )}%)`,
+                      (alt, idx) =>
+                        `Alt ${idx + 1}: "${alt.transcript}" (${(alt.confidence * 100).toFixed(
+                          1
+                        )}%)`
                     )
                     .join(', ');
                   addDebugInfo(`Alternatives: ${alternatives}`);
@@ -364,8 +363,8 @@ export default {
                 final += `${transcriptText} `;
                 addDebugInfo(
                   `Final result: "${transcriptText}" (confidence: ${(confidence * 100).toFixed(
-                    1,
-                  )}%)`,
+                    1
+                  )}%)`
                 );
               } else {
                 interim += transcriptText;
@@ -409,7 +408,7 @@ export default {
 
           recognitionRef.value.onend = () => {
             addDebugInfo(
-              `Speech recognition ended. Manual stop: ${manualStop.value}, isListening: ${isListening.value}`,
+              `Speech recognition ended. Manual stop: ${manualStop.value}, isListening: ${isListening.value}`
             );
 
             // If user manually stopped, process the transcript
