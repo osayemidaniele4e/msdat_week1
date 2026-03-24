@@ -5,7 +5,7 @@
       v-if="Object.keys(controlPanelProps).length"
       @dropdownTypeSelected="
         downLoadType($event, {
-          indicator: controlPanelProps.indicator.short_name,
+          indicator: indicatorLabel,
           datasource: '',
           year: '',
         })
@@ -14,10 +14,10 @@
       <template #title>
         <p class="work-sans mb-0 line-height">
           Distribution of
-          <span class="font-weight-bold">{{ controlPanelProps.indicator.full_name }} </span>across
-          <span class="font-weight-bold"> {{ controlPanelProps.location.name }}.</span> Source:
-          <span class="font-weight-bold"> {{ controlPanelProps.datasource.datasource }}</span>
-          {{ controlPanelProps.year }}
+          <span class="font-weight-bold">{{ indicatorLabel }} </span>across
+          <span class="font-weight-bold"> {{ locationLabel }}.</span> Source:
+          <span class="font-weight-bold"> {{ datasourceLabel }}</span>
+          {{ yearLabel }}
         </p>
       </template>
       <BarChart ref="BaseChart" :title="title"  :categoryLabel="'Location'" :chartOptions="chart" class="barchart" />
@@ -64,7 +64,44 @@ export default {
     },
   },
 
+  computed: {
+    indicatorLabel() {
+      return this.resolveDisplayText(this.controlPanelProps?.indicator, [
+        'full_name',
+        'short_name',
+        'name',
+      ]);
+    },
+    locationLabel() {
+      return this.resolveDisplayText(this.controlPanelProps?.location, ['name']);
+    },
+    datasourceLabel() {
+      return this.resolveDisplayText(this.controlPanelProps?.datasource, [
+        'datasource',
+        'name',
+        'item',
+      ]);
+    },
+    yearLabel() {
+      return this.resolveDisplayText(this.controlPanelProps?.year);
+    },
+  },
+
   methods: {
+    resolveDisplayText(value, preferredKeys = []) {
+      if (value == null) return '';
+      if (typeof value === 'string' || typeof value === 'number') return String(value);
+      if (Array.isArray(value)) return '';
+      if (typeof value === 'object') {
+        for (let i = 0; i < preferredKeys.length; i += 1) {
+          const key = preferredKeys[i];
+          if (typeof value[key] === 'string' || typeof value[key] === 'number') {
+            return String(value[key]);
+          }
+        }
+      }
+      return '';
+    },
     /**
      * @method computeChartPlotLines is from the
      * @mixin formatter
@@ -276,7 +313,7 @@ export default {
           period: val.year,
         });
         const data = zonalResponse.data.results;
-        
+
         // const data = await this.dlQuery({
         //   indicator: val.indicator.id,
         //   datasource: val.datasource.id,
@@ -400,7 +437,7 @@ export default {
   },
 
   mounted() {
-    this.title = ` Distribution of ${this.controlPanelProps.indicator.full_name} ccross the zones in the country. Source: ${this.controlPanelProps.datasource.datasource} ${this.controlPanelProps.year}`;
+    this.title = ` Distribution of ${this.indicatorLabel} across the zones in the country. Source: ${this.datasourceLabel} ${this.yearLabel}`;
   },
 };
 </script>
