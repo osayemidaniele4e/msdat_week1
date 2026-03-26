@@ -497,7 +497,7 @@ export default {
 .fun-fact-trigger {
   position: fixed;
   top: 200px;
-  left: -28px; /* 👈 hide part of it */
+  left: -15px; /* 👈 hide part of it */
   z-index: 9999;
 
   cursor: pointer;
@@ -522,8 +522,8 @@ export default {
 }
 
 .bulb-svg {
-  width: 64px; /* 👈 perfect size */
-  height: 64px;
+  width: 40px; /* 👈 perfect size */
+  height: 40px;
 
   transition: all 0.3s ease;
 
