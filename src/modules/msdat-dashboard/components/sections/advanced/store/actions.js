@@ -26,8 +26,8 @@ export default {
   async getPredictiveAnalysisData({ commit }, payload) {
     try {
       const response = await axios.post(
-        'https://cloud.activepieces.com/api/v1/webhooks/Qegsj29iWOADcj9qgGWXz/sync',
-        payload,
+        'https://n8n.e4eweb.space/webhook/aa428806-7e11-4c09-ab3e-8a813b53eeed',
+        payload
       );
 
       const previous = response.data.Actual.map((item) => [item.period, parseFloat(item.value)]);

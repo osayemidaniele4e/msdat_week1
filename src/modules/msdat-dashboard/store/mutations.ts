@@ -150,7 +150,6 @@ const mutations: MutationTree<State> = {
   //   }
   // },
   SET_DATASET_DATASOURCE_PAYLOAD: (state, obj: setPayload) => {
-
     const item = state.controlConfig?.[3];
     if (item && item.payload) {
       // eslint-disable-next-line no-param-reassign
@@ -167,6 +166,10 @@ const mutations: MutationTree<State> = {
 
   SET_SECTION: (state, text) => {
     state.selectedSection = text;
+  },
+
+  SET_FUN_FACT: (state, text) => {
+    state.funFact = text;
   },
 
   SET_DASHBOARD: (state, dashboards) => {
@@ -341,15 +344,11 @@ const mutations: MutationTree<State> = {
   },
 
   UPDATE_IDC_DATASOURCEs: (state, payload) => {
-    console.log(payload, '@@@Payload');
-
-   state.controlConfig[2].setup[1].options = payload
+    state.controlConfig[2].setup[1].options = payload;
   },
 
-   UPDATE_IDC_INDICATORS: (state, payload) => {
-    console.log(payload, '@@@Payload');
-
-   state.controlConfig[2].setup[5].options = payload
+  UPDATE_IDC_INDICATORS: (state, payload) => {
+    state.controlConfig[2].setup[5].options = payload;
   },
 
   SET_CONFIGURATIONS: (state, payload) => {

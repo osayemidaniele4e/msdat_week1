@@ -176,13 +176,27 @@ export default class DataLayer {
       let filteredIndicatorIDArray = [];
 
       if (this.dashboardID) {
-        const dashboardIndicators = await apiServices.getDashboardIndicators(this.dashboardID);
+        try {
+          const dashboardIndicators = await apiServices.getDashboardIndicators(this.dashboardID);
 
-        const dashboardIndicatorIDs = dashboardIndicators.data.indicators.map((item) => item.id);
+          const dashboardIndicatorIDs = (dashboardIndicators?.data?.indicators || []).map(
+            (item) => item.id,
+          );
 
-        filteredIndicatorIDArray = dashboardIndicatorIDs.filter(
-          (value) => value !== undefined && !Number.isNaN(value),
-        );
+          filteredIndicatorIDArray = [...new Set(
+            dashboardIndicatorIDs.filter((value) => Number.isInteger(value)),
+          )];
+
+          // Keep expected indicator list aligned with dashboard metadata from the API
+          // without shrinking when the API endpoint is server-capped.
+          const configuredIndicatorIDs = Array.isArray(this.indicatorList)
+            ? this.indicatorList.filter((item) => Number.isInteger(item))
+            : [];
+
+          this.indicatorList = [...new Set([...configuredIndicatorIDs, ...filteredIndicatorIDArray])];
+        } catch (error) {
+          console.warn('Failed to fetch live dashboard indicators, falling back to configured list.');
+        }
 
         if (filteredIndicatorIDArray.length !== 0) {
           // debugger;
@@ -339,10 +353,35 @@ export default class DataLayer {
    */
   async setAvailableDashboardIndicator() {
     // Use the indicators already fetched and cached in the DL store
-    const allIndicators = this.store.state.DL.indicators;
-    const dashboardIndicatorIDs = allIndicators.map((item) => item.id);
+    let allIndicators = this.store.state.DL.indicators;
+    let dashboardIndicatorIDs = allIndicators.map((item) => item.id);
 
-    const dashboardIndicators = dashboardIndicatorIDs.filter((item) => this.indicatorList.includes(item));
+    let dashboardIndicators = dashboardIndicatorIDs.filter((item) => this.indicatorList.includes(item));
+
+    const expectedIndicators = Array.isArray(this.indicatorList)
+      ? [...new Set(this.indicatorList.filter((item) => Number.isInteger(item)))]
+      : [];
+
+    // Auto-heal stale indicator cache when loaded indicators are fewer than expected.
+    if (expectedIndicators.length > 0 && dashboardIndicators.length < expectedIndicators.length) {
+      try {
+        dataCache.removeFromCache(`dl_${INDICATORS}`);
+
+        const response = await apiServices.fetchAllIndicators();
+        const freshIndicators = response?.data?.results || [];
+
+        if (freshIndicators.length > 0) {
+          this.setDataInStore(freshIndicators, INDICATORS);
+          dataCache.setInCache(`dl_${INDICATORS}`, freshIndicators);
+
+          allIndicators = freshIndicators;
+          dashboardIndicatorIDs = allIndicators.map((item) => item.id);
+          dashboardIndicators = dashboardIndicatorIDs.filter((item) => this.indicatorList.includes(item));
+        }
+      } catch (error) {
+        console.warn('Indicator cache auto-heal failed; proceeding with current indicator snapshot.');
+      }
+    }
 
     const dashboardDataSource = this.dataSourceList;
     this.setDataInStore(dashboardIndicators, AVAILABLE_DASHBOARD_INDICATOR);

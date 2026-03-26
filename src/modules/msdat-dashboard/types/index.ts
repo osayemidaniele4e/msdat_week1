@@ -54,7 +54,7 @@ export interface State {
   multisourceComparison: boolean;
   datasetComperision: boolean;
   dynamicDashboard: boolean;
-  selectedState: any,
+  selectedState: any;
   default: Defaults;
   controlConfig: ControlPanelConfig[];
   selectedConfigurations: {
@@ -72,21 +72,22 @@ export interface State {
   conversationHistory: Conversation[];
   selectedSection: string;
   selectedSectionIndex: string;
-  location:string;
+  location: string;
   showDataSourceList: boolean;
   showWhatsNew: boolean;
   showShareSection: boolean;
-  dashboards: DashboardEntry[]
+  dashboards: DashboardEntry[];
   indicatorDatasources: any[];
   urlDatasource: number;
   urlLocation: number;
   urlPeriod: string;
+  funFact: string | null;
 }
 
 export type Conversation = {
   user: boolean;
-  message: string
-}
+  message: string;
+};
 
 export interface SetupObject {
   /**
