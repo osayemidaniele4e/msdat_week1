@@ -4,6 +4,7 @@ services:
   - docker:27-dind
 
 stages:
+  - test
   - build
   - deploy
 
@@ -11,8 +12,30 @@ variables:
   DOCKER_TLS_CERTDIR: ''
   IMAGE_NAME: registry.gitlab.com/e4e-webdev/msdat
 
+cache:
+  key:
+    files:
+      - package-lock.json
+  paths:
+    - .npm/
+
 before_script:
   - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u "$CI_REGISTRY_USER" --password-stdin
+
+# --------------------
+# TEST (develop)
+# --------------------
+test_develop:
+  image: cypress/browsers:node-20.9.0-chrome-118.0.5993.88-1-ff-118.0.2-edge-118.0.2088.46-1
+  stage: test
+  only:
+    - develop
+  script:
+    - cp "$staging_env" .env
+    - npm ci --cache .npm --prefer-offline
+    - npm run serve &
+    - npx wait-on http://localhost:8080
+    - npx cypress run --browser chrome
 
 # --------------------
 # BUILD IMAGE (develop)
@@ -60,9 +83,24 @@ deploy_develop:
         docker-compose -f /srv/msdat-develop/docker-compose.yml up -d --remove-orphans
       "
 
-# ====================
+# --------------------
+# TEST (master)
+# --------------------
+test_master:
+  image: cypress/browsers:node-20.9.0-chrome-118.0.5993.88-1-ff-118.0.2-edge-118.0.2088.46-1
+  stage: test
+  only:
+    - master
+  script:
+    - cp "$master_env" .env
+    - npm ci --cache .npm --prefer-offline
+    - npm run serve &
+    - npx wait-on http://localhost:8080
+    - npx cypress run --browser chrome
+
+# --------------------
 # BUILD IMAGE (master)
-# ====================
+# --------------------
 build_master:
   stage: build
   only:
@@ -84,9 +122,9 @@ build_master:
 
     - docker push $IMAGE_NAME:$IMAGE_TAG
 
-# ====================
+# --------------------
 # DEPLOY (master)
-# ====================
+# --------------------
 deploy_master:
   stage: deploy
   only:
