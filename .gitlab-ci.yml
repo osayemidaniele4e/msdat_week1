@@ -19,9 +19,6 @@ cache:
   paths:
     - .npm/
 
-before_script:
-  - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u "$CI_REGISTRY_USER" --password-stdin
-
 # --------------------
 # TEST (develop)
 # --------------------
@@ -46,6 +43,8 @@ build_develop:
     - develop
   variables:
     IMAGE_TAG: develop
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u "$CI_REGISTRY_USER" --password-stdin
   script:
     - cp "$staging_env" .env
     - export $(grep -v '^#' .env | xargs)
@@ -107,6 +106,8 @@ build_master:
     - master
   variables:
     IMAGE_TAG: latest
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u "$CI_REGISTRY_USER" --password-stdin
   script:
     - cp "$master_env" .env
     - export $(grep -v '^#' .env | xargs)
