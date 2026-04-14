@@ -1,14 +1,15 @@
 {
- "pageLoadTimeout": 200000,
- "baseUrl": "https://msdat.fmohconnect.gov.ng/",
- "fixturesFolder": "tests/e2e/fixtures",
- "integrationFolder": "tests/e2e/specs",
- "screenshotsFolder": "tests/e2e/screenshots",
- "videosFolder": "tests/e2e/videos",
- "supportFile": "tests/e2e/support/index.js",
- "pluginsFile": "tests/e2e/plugins/index.js",
- "testFiles": "**/*.cy.{js,jsx,ts,tsx}",
- "chromeWebSecurity": false,
- "modifyObstructiveCode": false,
- "experimentalSessionAndOrigin": true
+  "pageLoadTimeout": 200000,
+  "baseUrl": "https://msdat.fmohconnect.gov.ng/",
+  "fixturesFolder": "tests/e2e/fixtures",
+  "integrationFolder": "tests/e2e/specs",
+  "screenshotsFolder": "tests/e2e/screenshots",
+  "videosFolder": "tests/e2e/videos",
+  "supportFile": "tests/e2e/support/index.js",
+  "pluginsFile": "tests/e2e/plugins/index.js",
+  "testFiles": "**/*.cy.{js,jsx,ts,tsx}",
+  "chromeWebSecurity": false,
+  "modifyObstructiveCode": false,
+  "experimentalSessionAndOrigin": true,
+  "projectId": "m1gfa4"
 }
