@@ -649,15 +649,6 @@ export default {
       location: this.defaultLocation,
     };
 
-    console.log(
-      {
-        controlIndex: this.controlIndex,
-        totalControls: this.$store.state.MSDAT_STORE.controlConfig.length,
-        values: temp,
-      },
-      'OBO Main'
-    );
-
     this.checkNHMISDHIS2();
 
     if (this.defaultIndicator) {

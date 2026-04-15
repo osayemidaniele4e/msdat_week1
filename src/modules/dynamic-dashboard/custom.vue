@@ -162,7 +162,7 @@ export default {
   },
   async mounted() {
     const { name, id } = this.$route.params;
-    
+
     console.log('<@@><@@> mounted');
     // Check if user has already provided location before
   },
@@ -170,18 +170,16 @@ export default {
     const { name, id } = this.$route.params;
 
     setTimeout(async () => {
-    const { name, id } = this.$route.params;
-    console.log('<@@><@@> mounted after 30s delay');
-    // your mounted logic here...
-  }, 30000);
-
-    
+      const { name, id } = this.$route.params;
+      console.log('<@@><@@> mounted after 30s delay');
+      // your mounted logic here...
+    }, 30000);
 
     const composed = sessionStorage.getItem('composedData');
     console.log(composed, '@composed@');
 
     // const response = await apiServices.getSingleCustomDashboard(id);
-    // console.log(dashbaord, '@@@><@@@');
+
     // const customDashboard = response.data.data;
     // const config = JSON.parse(customDashboard.config);
     // const { dashboardDetails, composedData, surveyArray, sectionsArray } = config;

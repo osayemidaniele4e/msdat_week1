@@ -2,7 +2,10 @@
   <div class="container-fluid">
     <h4 class="text-center my-4">Your Private Dashboards</h4>
 
-    <div v-if="privateDashboards.length === 0" class="border border-primary rounded mx-3 mb-1 pb-1 text-center">
+    <div
+      v-if="privateDashboards.length === 0"
+      class="border border-primary rounded mx-3 mb-1 pb-1 text-center"
+    >
       <small>You have no existing private dashboards. Click the button below to create one!</small>
     </div>
 
@@ -46,9 +49,7 @@
           <div @click="copy(`${dashboard.link}${dashboard.id}`, $event)" class="mb-1">
             <strong class="text-primary mr-2">{{ dashboard.name_of_dashboard }}</strong>
             <b-button-group size="xs">
-              <b-button  class="py-1" variant="info"
-                >Copy Link</b-button
-              >
+              <b-button class="py-1" variant="info">Copy Link</b-button>
             </b-button-group>
           </div>
           <small>{{
@@ -80,7 +81,7 @@ export default {
   data() {
     return {
       customDashboardsList: JSON.parse(
-        localStorage.getItem('customDashboardsList') || JSON.stringify({}),
+        localStorage.getItem('customDashboardsList') || JSON.stringify({})
       ),
       publicDashboards: [],
       privateDashboards: [],
@@ -105,9 +106,7 @@ export default {
       this.$swal.fire('URL copied to clipboard!');
     },
     load(dashboard) {
-      const {
-        dashboardDetails, composedData, surveyArray, sectionsArray,
-      } = dashboard.config;
+      const { dashboardDetails, composedData, surveyArray, sectionsArray } = dashboard.config;
 
       this.$store.dispatch('resetState');
       this.$store.dispatch('dashboardConfiguration', dashboardDetails);
@@ -155,26 +154,28 @@ export default {
     },
   },
   async mounted() {
-    this.$store.dispatch('getDashboards').then(({ result }) => {
-      console.log(result, '@@@@TY@@@@@ 2');
-      this.privateDashboards = result
-        .filter((req) => req.email === this.getUser.email && req.is_private === true)
-        .map((req) => ({
-          ...req,
-          config: { ...JSON.parse(req.config) },
-        }));
-      this.publicDashboards = result
-        .filter((req) => req.email === this.getUser.email && req.is_private === false)
-        .map((req) => ({
-          ...req,
-          config: { ...JSON.parse(req.config) },
-        }));
-      this.loading = false;
-    }).catch((err) => {
-      console.log(err);
-      this.loading = false;
-      this.$swal.fire('Could not retrieve your public dashboards');
-    });
+    this.$store
+      .dispatch('getDashboards')
+      .then(({ result }) => {
+        this.privateDashboards = result
+          .filter((req) => req.email === this.getUser.email && req.is_private === true)
+          .map((req) => ({
+            ...req,
+            config: { ...JSON.parse(req.config) },
+          }));
+        this.publicDashboards = result
+          .filter((req) => req.email === this.getUser.email && req.is_private === false)
+          .map((req) => ({
+            ...req,
+            config: { ...JSON.parse(req.config) },
+          }));
+        this.loading = false;
+      })
+      .catch((err) => {
+        console.log(err);
+        this.loading = false;
+        this.$swal.fire('Could not retrieve your public dashboards');
+      });
     // const { data } = await ApiServices.getCustomDashboard();
     // console.log(data, 'Custom Dashboards');
     // this.publicDashboards = data.data.results

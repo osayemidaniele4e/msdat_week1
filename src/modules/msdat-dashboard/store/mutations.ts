@@ -401,8 +401,6 @@ const mutations: MutationTree<State> = {
   },
 
   SET_ALL_CONFIG_RESOURCE(state, { entity, value }) {
-    console.log(entity, '@MAX');
-
     state.controlConfig = state.controlConfig.map((item) => {
       if (!item.payload) return item;
 

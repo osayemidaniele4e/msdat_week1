@@ -4,58 +4,58 @@
       <div class="col mb-3">
         <a class="sub-item" href="https://msdat.fmohconnect.gov.ng/"><b>Home</b></a>
         <router-link class="sub-item" to="/faq"><b>Help & FAQ</b></router-link>
-        <a class="sub-item" href="https://msdat.old.fmohconnect.gov.ng/" target="_blank"><b>Go back to MSDAT 1.5</b></a>
+        <a class="sub-item" href="https://msdat.old.fmohconnect.gov.ng/" target="_blank"
+          ><b>Go back to MSDAT 1.5</b></a
+        >
       </div>
       <div class="col mb-3">
         <b-list-group>
           <h5 class="text-underline main-item">Population</h5>
-          <router-link to="/dashboard/Demographics" target="_blank"
-           class="sub-item" >Demographics</router-link
+          <router-link to="/dashboard/Demographics" target="_blank" class="sub-item"
+            >Demographics</router-link
           >
-          <router-link to="/dashboard/GIS_Mapping_Dashboard" target="_blank"
-             class="sub-item">GIS Mapping</router-link
+          <router-link to="/dashboard/GIS_Mapping_Dashboard" target="_blank" class="sub-item"
+            >GIS Mapping</router-link
           >
         </b-list-group>
       </div>
       <div class="col mb-3">
         <b-list-group>
           <h5 class="text-underline main-item">Health Inputs</h5>
-          <router-link to="/dashboard/Health_Facility" target="_blank"
-             class="sub-item">Health Facilities</router-link
+          <router-link to="/dashboard/Health_Facility" target="_blank" class="sub-item"
+            >Health Facilities</router-link
           >
-          <router-link to="/dashboard/Health_Financing" target="_blank"
-             class="sub-item">Health Financing</router-link
+          <router-link to="/dashboard/Health_Financing" target="_blank" class="sub-item"
+            >Health Financing</router-link
           >
-          <router-link to="/dashboard/Health_Workforce" target="_blank"
-            class="sub-item" >Health Workforce</router-link
+          <router-link to="/dashboard/Health_Workforce" target="_blank" class="sub-item"
+            >Health Workforce</router-link
           >
-          <router-link to="/health-facilities-profile" target="_blank"
-            class="sub-item" >Health Facilities Finder(GIS)- work in progress</router-link
+          <router-link to="/health-facilities-profile" target="_blank" class="sub-item"
+            >Health Facilities Finder(GIS)- work in progress</router-link
           >
         </b-list-group>
       </div>
       <div class="col mb-3">
         <b-list-group>
           <h5 class="text-underline main-item">Health Outputs</h5>
-          <router-link to="/dashboard/Health_Service_Access" target="_blank"
-             class="sub-item">Health Service Access</router-link
+          <router-link to="/dashboard/Health_Service_Access" target="_blank" class="sub-item"
+            >Health Service Access</router-link
           >
           <a
             href="https://msdat.fmohconnect.gov.ng/covid19_health_service_uptake/index.html"
             target="_blank"
-             class="sub-item"
+            class="sub-item"
           >
             Health Service Uptake (NHMIS-Monthly)
           </a>
-          <router-link to="/health-service-uptake" target="_blank"
-             class="sub-item"
-          >
+          <router-link to="/health-service-uptake" target="_blank" class="sub-item">
             Health Service Uptake (NHMIS-Quarterly)
           </router-link>
           <a
             href="https://monthly-nhmis-analysis.fmohconnect.gov.ng/"
             target="_blank"
-             class="sub-item"
+            class="sub-item"
           >
             Monthly NHMIS Insights
           </a>
@@ -64,10 +64,16 @@
       <div class="col mb-3">
         <b-list-group>
           <h5 class="text-underline main-item">Health Outcomes</h5>
-          <router-link to="/dashboard/Health_Outcomes_and_Service_Coverage" target="_blank"  class="sub-item"
+          <router-link
+            to="/dashboard/Health_Outcomes_and_Service_Coverage"
+            target="_blank"
+            class="sub-item"
             >Health Outcomes and Service Coverage</router-link
           >
-          <router-link to="/dashboard/Quarterly_Performance_Assessment_Dashboard" target="_blank"  class="sub-item"
+          <router-link
+            to="/dashboard/Quarterly_Performance_Assessment_Dashboard"
+            target="_blank"
+            class="sub-item"
             >Quarterly Performance Assessment</router-link
           >
           <router-link to="/dashboard/Disease_Surveillance" target="_blank" class="sub-item">
@@ -83,10 +89,9 @@
             :key="section.label"
             @click="openAdvancedAnalytics(index, section.label)"
             class="sub-item cursor-pointer"
-            >
-              {{ section.label }}
-            </div
           >
+            {{ section.label }}
+          </div>
           <router-link to="/advanced-triangulation-dashboard" target="_blank" class="sub-item">
             Advanced Triangulation
           </router-link>
@@ -115,21 +120,16 @@
       <div class="col mb-3">
         <b-list-group>
           <h5 class="text-underline main-item">Other Dashboards</h5>
-          <router-link to="/custom" target="_blank"
-           class="sub-item"
-            >
-              Create Your Dashboard
-            </router-link
-          >
-          <router-link to="/health-profiles" target="_blank"
-           class="sub-item"
+          <router-link to="/custom" target="_blank" class="sub-item">
+            Create Your Dashboard
+          </router-link>
+          <router-link to="/health-profiles" target="_blank" class="sub-item"
             >Health Profiles</router-link
           >
-          <a href="https://ngf.fmohconnect.gov.ng/" target="_blank"
-           class="sub-item"
+          <a href="https://ngf.fmohconnect.gov.ng/" target="_blank" class="sub-item"
             >Governors' Dashboard</a
           >
-          <router-link to="/presidential-bond-scorecard" target="_blank"  class="sub-item"
+          <router-link to="/presidential-bond-scorecard" target="_blank" class="sub-item"
             >Scorecard Dashboard of Presidential Bond Indicators</router-link
           >
         </b-list-group>
@@ -137,10 +137,10 @@
       <div class="col mb-3" v-if="isAuthenticated">
         <b-list-group>
           <h5 class="text-underline main-item">Custom Dashboards</h5>
-          <router-link 
-            v-for="dashboard in userDashboards" 
+          <router-link
+            v-for="dashboard in userDashboards"
             :key="dashboard.id"
-            :to="'/custom/public/' + dashboard.id" 
+            :to="'/custom/public/' + dashboard.id"
             target="_blank"
             class="sub-item"
           >
@@ -151,9 +151,9 @@
       <div class="col mb-3 d-md-none">
         <b-list-group>
           <h5 class="text-underline main-item">User Profile</h5>
-            <div @click="handleLoginClick" class="text-dark sub-item cursor-pointer">
-               Login/Register
-              </div>
+          <div @click="handleLoginClick" class="text-dark sub-item cursor-pointer">
+            Login/Register
+          </div>
         </b-list-group>
       </div>
     </div>
@@ -233,7 +233,7 @@ export default {
 
     // prevent excess request in dev mode
     const { data } = await this.SAVE_DASHBOARDS();
-    console.log(data.results, '@@@');
+
     this.userDashboards = data.results.filter((item) => item.is_private === false);
     this.loading = false;
   },
@@ -268,9 +268,8 @@ div {
       color: inherit;
     }
   }
-  div.list-group{
-
-    h5.text-underline{
+  div.list-group {
+    h5.text-underline {
       font-size: 1rem !important;
     }
   }
@@ -297,20 +296,20 @@ h5.text-underline {
 }
 
 // to check this
-.main-item{
-   display: flex;
-   justify-content: left;
-    padding: 0.2rem 0;
-    margin: 0.7rem 1.3rem;
-    letter-spacing: var(--unnamed-character-spacing-0);
-    text-align: left;
-    font: normal normal bold 20px/24px Work Sans;
-    letter-spacing: 0px;
-    color: #404040;
-    opacity: 1;
+.main-item {
+  display: flex;
+  justify-content: left;
+  padding: 0.2rem 0;
+  margin: 0.7rem 1.3rem;
+  letter-spacing: var(--unnamed-character-spacing-0);
+  text-align: left;
+  font: normal normal bold 20px/24px Work Sans;
+  letter-spacing: 0px;
+  color: #404040;
+  opacity: 1;
 }
 
-.sub-item{
+.sub-item {
   display: flex;
   justify-content: left;
   margin-left: 1.3rem;
@@ -320,10 +319,9 @@ h5.text-underline {
   letter-spacing: 0px;
   color: #404040;
   opacity: 1;
+}
 
-  }
-
-  .sub-item-bold{
+.sub-item-bold {
   display: flex;
   justify-content: left;
   margin-left: 1.3rem;
@@ -333,12 +331,11 @@ h5.text-underline {
   color: #404040;
   opacity: 1;
   font-size: 14px;
+}
 
-  }
-
-  .cursor-pointer {
-    cursor: pointer;
-  }
+.cursor-pointer {
+  cursor: pointer;
+}
 </style>
 <!--
 <script>
