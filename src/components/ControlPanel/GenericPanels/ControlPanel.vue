@@ -229,22 +229,7 @@ console.warn('Report builder plugin not available'); } },
     </div>
 
     <!-- Voice Control Button -->
-    <div v-if="isIndicatorOverviewPanel" class="col-auto d-flex align-items-start">
-      <!-- <b-button
-        variant="outline-info"
-        size="md"
-        pill
-        @click="isVoiceModalVisible = true"
-        class="voice-btn-custom p-0"
-        title="Voice Control"
-      >
-        <div class="d-flex align-items-center px-4">
-          <b-icon icon="mic-fill" class=""></b-icon>
-          <span class="font-weight-bold">voice</span>
-        </div>
-
-        <small class="">(experimental)</small>
-      </b-button> -->
+    <div class="col-auto d-flex align-items-start">
       <div @click="isVoiceModalVisible = true" class="voice-wrapper">
         <div class="d-flex align-items-center voice-item">
           <b-icon icon="mic-fill" class=""></b-icon>
@@ -388,9 +373,7 @@ export default {
      * checks if the array has NHMIS-DHIS2 with id of 6
      */
     saveNewActivity(newValue) {
-      const {
-        indicator, datasource, location, year,
-      } = newValue;
+      const { indicator, datasource, location, year } = newValue;
       // eslint-disable-next-line camelcase
       const ind = Array.isArray(indicator)
         ? // eslint-disable-next-line operator-linebreak
@@ -404,8 +387,8 @@ export default {
       const dat = Array.isArray(datasource)
         ? datasource[datasource.length - 1]?.item
         : datasource.datasource
-          ? datasource.datasource
-          : datasource?.item;
+        ? datasource.datasource
+        : datasource?.item;
       const loc = location?.name === 'Nigeria' ? 'National' : location?.name;
       if (ind && dat && this.getUser.id) {
         const activityObject = {
@@ -417,10 +400,10 @@ export default {
         };
         const lastActivity = JSON.parse(localStorage.getItem('lastActivity') || '{}');
         const hold = (Date.now() - lastActivity.datetime || 0) >= 5000;
-        const diff
-          = lastActivity.page !== activityObject.page
-          || lastActivity.section !== activityObject.section
-          || lastActivity.parameters !== activityObject.parameters;
+        const diff =
+          lastActivity.page !== activityObject.page ||
+          lastActivity.section !== activityObject.section ||
+          lastActivity.parameters !== activityObject.parameters;
         if (hold && diff) {
           // send activity post request to backend
           // console.log('activity', activityObject);
@@ -469,8 +452,8 @@ export default {
 
       const { name } = this.$route.params;
       if (
-        name === 'Advanced_Analytics'
-        && this.$store.getters.getSectionTitle === 'Multisource Inidcator Comparison'
+        name === 'Advanced_Analytics' &&
+        this.$store.getters.getSectionTitle === 'Multisource Inidcator Comparison'
       ) {
         return data?.filter((item) => item.program_area === this.indicatorList);
       }
@@ -512,10 +495,18 @@ export default {
           entity: 'indicator',
           payload: value,
         });
+        this.$store.commit('MSDAT_STORE/SET_ALL_CONFIG_RESOURCE', {
+          entity: 'indicator',
+          value: value,
+        });
       } else {
         this.$store.commit('MSDAT_STORE/SET_SELECTED_CONFIG', {
           entity: 'indicator',
           payload: value,
+        });
+        this.$store.commit('MSDAT_STORE/SET_ALL_CONFIG_RESOURCE', {
+          entity: 'indicator',
+          value: value,
         });
       }
       // this.controlIndexSub = this.controlIndex;
@@ -531,10 +522,19 @@ export default {
           entity: 'dataSource',
           payload: value,
         });
+
+        this.$store.commit('MSDAT_STORE/SET_ALL_CONFIG_RESOURCE', {
+          entity: 'datasource',
+          value: value,
+        });
       } else {
         this.$store.commit('MSDAT_STORE/SET_SELECTED_CONFIG', {
           entity: 'dataSource',
           payload: value,
+        });
+        this.$store.commit('MSDAT_STORE/SET_ALL_CONFIG_RESOURCE', {
+          entity: 'datasource',
+          value: value,
         });
       }
       // this.controlIndexSub = this.controlIndex;
@@ -550,10 +550,19 @@ export default {
           entity: 'period',
           payload: value,
         });
+
+        this.$store.commit('MSDAT_STORE/SET_ALL_CONFIG_RESOURCE', {
+          entity: 'year',
+          value: value,
+        });
       } else {
         this.$store.commit('MSDAT_STORE/SET_SELECTED_CONFIG', {
           entity: 'period',
           payload: value,
+        });
+        this.$store.commit('MSDAT_STORE/SET_ALL_CONFIG_RESOURCE', {
+          entity: 'year',
+          value: value,
         });
       }
       // this.controlIndexSub = this.controlIndex;
@@ -573,8 +582,8 @@ export default {
 
       // normal search
       return (
-        option.full_name.toLowerCase().includes(search.toLowerCase())
-        || option.short_name.toLowerCase().includes(search.toLowerCase())
+        option.full_name.toLowerCase().includes(search.toLowerCase()) ||
+        option.short_name.toLowerCase().includes(search.toLowerCase())
       );
     },
   },
@@ -593,10 +602,10 @@ export default {
     },
     disableTarget() {
       if (
-        this.$route.path === '/dashboard/Health_Outcomes_and_Service_Coverage'
-        || this.$route.path === '/dashboard/Health_Financing'
-        || this.$route.path === '/dashboard/Health_Service_Access'
-        || this.$route.path === '/dashboard/Demographics'
+        this.$route.path === '/dashboard/Health_Outcomes_and_Service_Coverage' ||
+        this.$route.path === '/dashboard/Health_Financing' ||
+        this.$route.path === '/dashboard/Health_Service_Access' ||
+        this.$route.path === '/dashboard/Demographics'
       ) {
         return true;
       }
@@ -635,6 +644,13 @@ export default {
         this.defaultYearDropdown = newArr;
       }
     });
+    const temp = {
+      datasource: this.defaultDataSource,
+      indicator: this.defaultIndicator,
+      location: this.defaultLocation,
+    };
+
+    console.log(temp, 'OBO Main');
 
     if (this.defaultIndicator) {
       this.updatePayload(this.defaultIndicator, 'indicator');

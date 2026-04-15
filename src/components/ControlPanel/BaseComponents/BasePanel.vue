@@ -103,7 +103,26 @@ export default {
         (item) => item?.title === this.$store.state.MSDAT_STORE.selectedSection,
       );
 
-      this.changeControl(section[0].index, section[0].title);
+      if (section.length > 0) {
+        this.changeControl(section[0].index, section[0].title);
+      }
+    },
+
+    switchToSection(title) {
+      if (!title || this.modifiedControls.length === 0) return;
+
+      const normalizedTitle = title.trim().toLowerCase();
+      const targetSection = this.modifiedControls.find(
+        (item) => item?.title?.trim().toLowerCase() === normalizedTitle
+      );
+
+      if (!targetSection) return;
+
+      if (targetSection.index === this.selectedIndex) {
+        return;
+      }
+
+      this.changeControl(targetSection.index, targetSection.title);
     },
 
     async changeControl(index, title) {
@@ -298,6 +317,9 @@ export default {
           this.title = 'Disaggregation';
         }
       }
+    },
+    '$store.state.MSDAT_STORE.selectedSection'(newValue) {
+      this.switchToSection(newValue);
     },
   },
   computed: {
