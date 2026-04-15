@@ -72,7 +72,6 @@ console.warn('Report builder plugin not available'); } },
         :placeholder="'Select indicator'"
         :customFilter="customFilter"
       />
-      {{ checkNHMISDHIS2() }}
       <!-- MSDAT SUB-DASHBOARDS -->
       <selectWrapper
         v-if="values.type === 'dropdown' && values.key === 'compareBy'"
@@ -650,7 +649,16 @@ export default {
       location: this.defaultLocation,
     };
 
-    console.log(temp, 'OBO Main');
+    console.log(
+      {
+        controlIndex: this.controlIndex,
+        totalControls: this.$store.state.MSDAT_STORE.controlConfig.length,
+        values: temp,
+      },
+      'OBO Main'
+    );
+
+    this.checkNHMISDHIS2();
 
     if (this.defaultIndicator) {
       this.updatePayload(this.defaultIndicator, 'indicator');
