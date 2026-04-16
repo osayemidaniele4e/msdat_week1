@@ -1,5 +1,5 @@
 <template>
-  <div id="header-option" class="work-sans">
+  <div id="header-option" class="work-sans" @mouseleave="$emit('closeoptions')">
     <base-modal
       :showModal="modal"
       :size="'md'"
@@ -12,45 +12,44 @@
       </div>
       <contact :submitForm="submit"> </contact>
     </base-modal>
-    <ul class="list-unstyled">
-      <li>
-        <router-link to="/about">
-          <img src="@/assets/caution.png" alt="" />
-          <span>About Dashboard</span>
-        </router-link>
-      </li>
-      <li v-if="isAllowedEmail">
-        <router-link to="/admin">
-          <img src="@/assets/caution.png" alt="" />
-          <span>Admin Dashboard</span>
-        </router-link>
-      </li>
+    <div class="header-option-shell">
+      <div class="header-option-head">
+        <span class="header-option-kicker">Quick actions</span>
+      </div>
+      <ul class="list-unstyled header-option-list">
+        <li>
+          <router-link to="/about">
+            <img src="@/assets/caution.png" alt="" />
+            <span>About Dashboard</span>
+          </router-link>
+        </li>
+        <li v-if="isAllowedEmail">
+          <router-link to="/admin">
+            <img src="@/assets/caution.png" alt="" />
+            <span>Admin Dashboard</span>
+          </router-link>
+        </li>
 
-      <li>
-        <b-button class="external-dashboards-btn mb-2 d-flex" block @click="showPluginModal">
-          <img
-            src="@/assets/plugin.png"
-            alt=""
-            class="align-self-center"
-            style="height: 16px; margin-left: 0.2rem"
-          />
-          <span class="ml-2" style="font-size: small">View Plugins</span>
-        </b-button>
-      </li>
-      <li>
-        <!-- <router-link to="/external-dashboards">
+        <li>
+          <b-button class="external-dashboards-btn mb-2 d-flex" block @click="showPluginModal">
+            <img src="@/assets/plugin.png" alt="" class="align-self-center option-icon" />
+            <span class="ml-2">View Plugins</span>
+          </b-button>
+        </li>
+        <li>
+          <!-- <router-link to="/external-dashboards">
           <img src="@/assets/img/icons/ic_info.svg" alt="" />
           <span>External Dashboards</span>
         </router-link> -->
-        <!-- <b-card no-body class="external-dropdown px-2">
+          <!-- <b-card no-body class="external-dropdown px-2">
       <b-card-header header-tag="header" class="external-dropdown p-1" role="tab">
         <li v-b-toggle.accordion-1>
           <img src="@/assets/img/icons/ic_info.svg" style="height: 15px; margin-left: 0.2rem;"  alt="" />
           <span class="ml-2" style="font-size: small;">External Dashboards</span>
       </li> -->
-        <!-- <b-button class="external-dashboards-btn mb-2" block >
+          <!-- <b-button class="external-dashboards-btn mb-2" block >
         </b-button> -->
-        <!-- </b-card-header>
+          <!-- </b-card-header>
       <b-collapse id="accordion-1" accordion="my-accordion" role="tabpanel">
         <div class="my-2 mx-3">
           <router-link to="/external-ndr1">
@@ -64,110 +63,111 @@
         </div>
       </b-collapse>
     </b-card> -->
-      </li>
-      <li @click="$emit('tour')">
-        <router-link to="/">
-          <img src="@/assets/play.png" alt="" />
-          <span>Play Tour Guide</span>
-        </router-link>
-      </li>
-      <div class="divider"></div>
-      <li>
-        <a @click.prevent="socialModal = !socialModal" href="#">
-          <img src="@/assets/share.png" alt="" />
-          <span>Share</span>
-        </a>
-      </li>
-      <li>
-        <a href="#" @click.prevent="$emit('print')">
-          <img src="@/assets/print.png" alt="" />
-          <span>Print</span>
-        </a>
-      </li>
-      <!-- <li>
+        </li>
+        <li @click="$emit('tour')">
+          <router-link to="/">
+            <img src="@/assets/play.png" alt="" />
+            <span>Play Tour Guide</span>
+          </router-link>
+        </li>
+        <div class="divider"></div>
+        <li>
+          <a @click.prevent="socialModal = !socialModal" href="#">
+            <img src="@/assets/share.png" alt="" />
+            <span>Share</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" @click.prevent="$emit('print')">
+            <img src="@/assets/print.png" alt="" />
+            <span>Print</span>
+          </a>
+        </li>
+        <!-- <li>
         <router-link to="/">
           <img src="@/assets/img/icons/ic_download.svg" alt="" />
           <span>Download Data</span>
         </router-link>
       </li> -->
-      <li>
-        <!-- Don't forget to add the # so it does reload the page -->
-        <a href="#" @click.prevent="toggleFullScreen()">
-          <img src="@/assets/full.png" alt="" />
-          <span>View Fullscreen</span>
-        </a>
-      </li>
-      <div class="divider"></div>
-      <li>
-        <a href="https://mapping.fmohconnect.gov.ng/inventory/submit-dataset" target="_blank">
-          <img src="@/assets/submit.png" alt="" />
-          <span>Submit New Dataset</span>
-        </a>
-      </li>
-      <li>
-        <router-link to="/data-partnership">
-          <img src="@/assets/request.png" alt="" />
-          <span>Request Data Partnership</span>
-        </router-link>
-      </li>
-      <!-- <li>
+        <li>
+          <!-- Don't forget to add the # so it does reload the page -->
+          <a href="#" @click.prevent="toggleFullScreen()">
+            <img src="@/assets/full.png" alt="" />
+            <span>View Fullscreen</span>
+          </a>
+        </li>
+        <div class="divider"></div>
+        <li>
+          <a href="https://mapping.fmohconnect.gov.ng/inventory/submit-dataset" target="_blank">
+            <img src="@/assets/submit.png" alt="" />
+            <span>Submit New Dataset</span>
+          </a>
+        </li>
+        <li>
+          <router-link to="/data-partnership">
+            <img src="@/assets/request.png" alt="" />
+            <span>Request Data Partnership</span>
+          </router-link>
+        </li>
+        <!-- <li>
         <router-link to="/">
           <img src="@/assets/img/icons/ic_recommendation.svg" alt="" />
           <span>Suggest Indicator/Data Source</span>
         </router-link>
       </li> -->
-      <div class="divider"></div>
-      <li class="d-none">
-        <router-link to="/update_log">
-          <img src="@/assets/img/icons/ic_update.svg" alt="" />
-          <span>See Updates</span>
-        </router-link>
-      </li>
-      <li @click.prevent="activateUserHelp">
-        <a href="#">
-          <img src="@/assets/feedback.png" alt="" />
-          <span>Feedback</span>
-        </a>
-      </li>
-      <li @click="togglemodal">
-        <a href="#">
-          <img src="@/assets/contact.png" alt="" />
-          <span>Contact Us</span>
-        </a>
-      </li>
-      <li>
-        <router-link to="/faq">
-          <img src="@/assets/faq.png" alt="" />
-          <span>Help and FAQs</span>
-        </router-link>
-      </li>
-      <!-- <li>
+        <div class="divider"></div>
+        <li class="d-none">
+          <router-link to="/update_log">
+            <img src="@/assets/img/icons/ic_update.svg" alt="" />
+            <span>See Updates</span>
+          </router-link>
+        </li>
+        <li @click.prevent="activateUserHelp">
+          <a href="#">
+            <img src="@/assets/feedback.png" alt="" />
+            <span>Feedback</span>
+          </a>
+        </li>
+        <li @click="togglemodal">
+          <a href="#">
+            <img src="@/assets/contact.png" alt="" />
+            <span>Contact Us</span>
+          </a>
+        </li>
+        <li>
+          <router-link to="/faq">
+            <img src="@/assets/faq.png" alt="" />
+            <span>Help and FAQs</span>
+          </router-link>
+        </li>
+        <!-- <li>
         <router-link to="/data-entry">
           <img src="@/assets/img/icons/ic_upload.svg" alt="" />
           <span>Data Entry</span>
         </router-link>
       </li> -->
-      <li>
-        <a href="#" @click.prevent="showModal" ref="btnShow">
-          <img src="@/assets/subscribe.png" alt="" />
-          <span>Subscribe to our newsletter</span>
-        </a>
-      </li>
-    </ul>
+        <li>
+          <a href="#" @click.prevent="showModal" ref="btnShow">
+            <img src="@/assets/subscribe.png" alt="" />
+            <span>Subscribe to our newsletter</span>
+          </a>
+        </li>
+      </ul>
+    </div>
     <base-modal :showModal="socialModal" :size="'xl'">
       <template #title><h6 class="mb-0 font-weight-bold work-sans">Share Dashboard</h6> </template>
       <Socials />
     </base-modal>
     <NewsLetter />
     <!-- plugin modal -->
-    <b-modal id="plugin-modal" title="MSDAT Apps Plugins" dialog-class="plugin-modal-size"">
+    <b-modal id="plugin-modal" title="MSDAT Apps Plugins" dialog-class="plugin-modal-size">
       <div class="plugin-modal-body">
         <div v-if="(getPluginsImported || []).length === 0" class="text-center text-muted py-4">
           No plugins found
         </div>
 
         <div
-          v-for="plugin in (getPluginsImported || [])"
+          v-for="plugin in getPluginsImported || []"
           :key="plugin"
           class="plugin-card d-flex justify-content-between align-items-center"
         >
@@ -188,7 +188,9 @@
       </div>
       <template #modal-footer>
         <div class="w-100 text-right">
-          <b-button class="close-plugin-btn px-4" @click="$bvModal.hide('plugin-modal')">Close</b-button>
+          <b-button class="close-plugin-btn px-4" @click="$bvModal.hide('plugin-modal')"
+            >Close</b-button
+          >
         </div>
       </template>
     </b-modal>
@@ -204,6 +206,7 @@
 import { mapGetters } from 'vuex';
 import NewsLetter from '@/modules/msdat-dashboard/modules/newsletters/index.vue';
 import Socials from '@/modules/msdat-dashboard/components/social_media/SocialMediaModal.vue';
+import pluginIcon from '@/assets/plugin.png';
 import contact from '../../../../../components/contact/contact.vue';
 import ClearDBCacheModal from './ClearDBCache.vue';
 
@@ -220,7 +223,7 @@ export default {
       submit: false,
       socialModal: false,
       showClearDataModal: false,
-  // pluginSearch removed
+      // pluginSearch removed
     };
 
     // Fetch the list of available plugins from the store
@@ -245,9 +248,10 @@ export default {
     isAllowedEmail() {
       // Check if user has specified email or admin role
       return (
-      this.getUser?.email?.endsWith('@e4email.net')
-      || this.getUser?.role?.value === 'admin'
-      ) || false;
+        this.getUser?.email?.endsWith('@e4email.net') ||
+        this.getUser?.role?.value === 'admin' ||
+        false
+      );
       // console log get user
     },
 
@@ -255,7 +259,7 @@ export default {
     getDynamicProperty() {
       return (propertyName) => this[`is${this.capitalizeFirstLetter(propertyName)}Active`];
     },
-  // filteredPlugins removed (search functionality disabled)
+    // filteredPlugins removed (search functionality disabled)
   },
 
   mounted() {
@@ -304,18 +308,8 @@ export default {
     showPluginModal() {
       this.$bvModal.show('plugin-modal');
     },
-    getPluginLogo(plugin) {
-      // Attempt to map plugin names to existing asset icons.
-      // Fallback to generic plugin icon.
-      try {
-        // simple heuristic: look for an asset matching plugin name
-        const cleaned = plugin.replace(/Plugin$/i, '').toLowerCase();
-        const possible = require(`@/assets/${cleaned}.png`);
-        if (possible) return possible;
-      } catch (e) {
-        // ignore resolution errors
-      }
-      return require('@/assets/plugin.png');
+    getPluginLogo() {
+      return pluginIcon;
     },
     formatPluginName(name) {
       // Convert camelCase or snake_case to spaced Title Case for display
@@ -329,15 +323,15 @@ export default {
     },
     // Dynamically generated methods for plugin activation
     pluginActive(plugin, data) {
-  // Persist new desired state
-  localStorage.setItem(plugin, data);
+      // Persist new desired state
+      localStorage.setItem(plugin, data);
 
-  // Update this component's reactive flag: is{Plugin}Active -> 'true' | 'false'
-  const capitalized = plugin.charAt(0).toUpperCase() + plugin.slice(1);
-  this.$set(this, `is${capitalized}Active`, data);
+      // Update this component's reactive flag: is{Plugin}Active -> 'true' | 'false'
+      const capitalized = plugin.charAt(0).toUpperCase() + plugin.slice(1);
+      this.$set(this, `is${capitalized}Active`, data);
 
-  // Notify the app to (de)activate plugin runtime without a full reload
-  this.$root.$emit('plugins:changed', { plugin, value: data === 'true' });
+      // Notify the app to (de)activate plugin runtime without a full reload
+      this.$root.$emit('plugins:changed', { plugin, value: data === 'true' });
     },
     //
 
@@ -373,10 +367,10 @@ export default {
   border: none !important;
   background-color: transparent;
   box-shadow: none;
-  color: black;
+  color: #173a33;
 }
 .external-dashboards-btn:hover {
-  color: black;
+  color: #007d53;
 }
 
 .send {
@@ -406,58 +400,96 @@ export default {
 }
 
 #header-option {
-  height: 90vh;
   top: 3rem;
   position: absolute;
-  // right: -11px;
   right: 0.5rem;
-  overflow: auto;
-  transition: display 0.5s;
-  z-index: 5;
+  z-index: 20;
   transition: all 0.5s ease-in-out;
-  width: 15rem;
+  width: 18rem;
+}
 
-  ul {
-    border: 1px solid #dbdbdb;
-    background-color: #ffffff;
-    margin: 0;
+.header-option-shell {
+  max-height: min(82vh, 760px);
+  overflow-y: auto;
+  border: 1px solid rgba(23, 58, 51, 0.08);
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(246, 250, 248, 0.96));
+  box-shadow: 0 22px 50px rgba(10, 29, 24, 0.18);
+  backdrop-filter: blur(14px);
+}
 
-    li {
-      margin: 3% 0;
-      a {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        padding: 5px 15px;
-        text-decoration: none;
-        color: #000000;
-        transition: all 0.5s;
+.header-option-head {
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid rgba(23, 58, 51, 0.08);
+  background: linear-gradient(135deg, rgba(240, 248, 245, 0.98), rgba(255, 255, 255, 0.98));
+}
 
-        &:hover {
-          background-color: #fbfbfb;
-          color: #007d53;
-        }
+.header-option-kicker {
+  display: inline-flex;
+  color: #007d53;
+  font: 700 0.7rem/1 'work-sans', sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
 
-        // icons
-        & > :first-child {
-          margin-right: 8px;
-          width: 15px;
-          height: 15px;
+.header-option-head strong {
+  display: block;
+  margin-top: 8px;
+  color: #173a33;
+  font: 700 1rem/1.2 'work-sans', sans-serif;
+}
 
-          // options
-          & ~ * {
-            font-size: 14px;
-          }
-        }
-      }
+.header-option-list {
+  margin: 0;
+  padding: 10px;
+}
 
-      // divider
-      & ~ div.divider {
-        border-top: 1px solid #ededed;
-        margin: 2% 0;
-      }
-    }
-  }
+.header-option-list li {
+  margin: 0;
+}
+
+.header-option-list li a,
+.external-dashboards-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 12px;
+  border-radius: 14px;
+  text-decoration: none;
+  color: #173a33;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.header-option-list li a:hover,
+.external-dashboards-btn:hover {
+  background: rgba(0, 125, 83, 0.08);
+  color: #007d53;
+  transform: translateX(2px);
+}
+
+.header-option-list li a > :first-child,
+.external-dashboards-btn > :first-child {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.header-option-list li a span,
+.external-dashboards-btn span {
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.option-icon {
+  margin-left: 0.2rem;
+}
+
+.divider {
+  height: 1px;
+  margin: 8px 4px;
+  background: rgba(23, 58, 51, 0.08);
 }
 
 // MEDIA QUERY
@@ -465,95 +497,35 @@ export default {
 /* EXTRA EXTRA SMALL */
 @media (max-width: 576px) {
   #header-option {
-    height: 78vh;
+    width: min(18rem, calc(100vw - 20px));
+    right: 0;
+  }
 
-    ul {
-      li {
-        a {
-          // icons
-          & > :first-child {
-            width: 14px;
-            height: 14px;
+  .header-option-shell {
+    max-height: 74vh;
+  }
 
-            // options
-            & ~ * {
-              font-size: 13px;
-            }
-          }
-        }
-
-        // divider
-        & ~ div.divider {
-          margin: 1.5% 0;
-        }
-      }
-    }
+  .header-option-list li a span,
+  .external-dashboards-btn span {
+    font-size: 0.84rem;
   }
 }
 
 /* SMALL */
 @media (min-width: 576px) and (max-width: 768px) {
   #header-option {
-    height: 80vh;
     right: 0;
+  }
 
-    ul {
-      li {
-        a {
-          // icons
-          & > :first-child {
-            margin-right: 8px;
-            width: 14px;
-            height: 14px;
-
-            // options
-            & ~ * {
-              font-size: 13px;
-            }
-          }
-        }
-
-        // divider
-        & ~ div.divider {
-          margin: 2% 0;
-        }
-      }
-    }
+  .header-option-shell {
+    max-height: 76vh;
   }
 }
 
 /* MEDIUM */
 @media (min-width: 768px) and (max-width: 992px) {
   #header-option {
-    height: 80vh;
-
-    &.open {
-      right: -10px;
-    }
-
-    ul {
-      li {
-        a {
-          // icons
-          & > :first-child {
-            margin-right: 8px;
-            width: 14px;
-            height: 14px;
-
-            // options
-            & ~ * {
-              font-size: 14px;
-            }
-          }
-        }
-
-        // divider
-        & ~ div.divider {
-          border-top: 1px solid #ededed;
-          margin: 2% 0;
-        }
-      }
-    }
+    width: 17rem;
   }
 }
 
@@ -621,12 +593,13 @@ export default {
   letter-spacing: 0.3px;
   box-shadow: 0 2px 4px rgba(0, 125, 83, 0.3);
 }
-.close-plugin-btn:hover, .close-plugin-btn:focus {
+.close-plugin-btn:hover,
+.close-plugin-btn:focus {
   background-color: #009f69;
   color: #fff;
 }
 
-.plugin-toggle .custom-control-label::before, 
+.plugin-toggle .custom-control-label::before,
 .plugin-toggle .custom-control-label::after {
   cursor: pointer;
 }

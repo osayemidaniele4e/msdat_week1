@@ -240,6 +240,7 @@
                       class="profile-picture mr-1"
                       width="48"
                       height="48"
+                      @error="setUserAvatarPlaceholder"
                     />
                     Hi,&nbsp;{{ getUser.username !== undefined ? getUser.username : getUser.email }}
                   </div>
@@ -292,6 +293,7 @@
                 class="dropcard-avatar"
                 width="60"
                 height="60"
+                @error="setUserAvatarPlaceholder"
               />
               <div class="dropcard-copy">
                 <span class="dropcard-kicker">Signed in as</span>
@@ -345,13 +347,26 @@
 import { mapGetters } from 'vuex';
 import Socials from '@/modules/msdat-dashboard/components/social_media/SocialMediaModal.vue';
 import defaultDashboardLogo from '@/assets/img/Logo.svg';
-import defaultUserAvatar from '@/assets/img/Logo-mob.svg';
 import HeaderOption from '../components/HeaderOption.vue';
 import DropCard from '../components/DropCard.vue';
 import Sidebar from '../components/Sidebar.vue';
 import shareDashboard from '../components/shareDashboard.vue';
 import LoginSidebar from '../components/Login.vue';
 import SignUp from '../components/SignUp.vue';
+
+const defaultUserAvatar = `data:image/svg+xml;utf8,${encodeURIComponent(`
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+    <defs>
+      <linearGradient id="avatarBg" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#edf7f3"/>
+        <stop offset="100%" stop-color="#d8eee6"/>
+      </linearGradient>
+    </defs>
+    <rect width="64" height="64" rx="32" fill="url(#avatarBg)"/>
+    <circle cx="32" cy="24" r="11" fill="#0f766e"/>
+    <path d="M14 53c2.6-10.2 10.2-16 18-16s15.4 5.8 18 16" fill="#0f766e"/>
+  </svg>
+`)}`;
 
 export default {
   name: 'theHeader',
@@ -394,6 +409,7 @@ export default {
       socialModal: false,
       showClearDBModal: false,
       dashboardImageFailed: false,
+      userAvatarFailed: false,
       selectedVersion: { version: 'MSDAT 2.7', link: 'https://msdat.fmohconnect.gov.ng/' },
       versions: [
         { version: 'MSDAT 1.5', link: 'https://msdat.old.fmohconnect.gov.ng' },
@@ -424,8 +440,12 @@ export default {
       return this.$store.state.CUSTOM_DASHBOARD_STORE.customDashboard;
     },
     resolvedUserAvatar() {
-      if (this.getUser?.avatar) {
-        return `https://msdat-api.fmohconnect.gov.ng${this.getUser.avatar}`;
+      if (this.userAvatarFailed || !this.getUser?.avatar) {
+        return defaultUserAvatar;
+      }
+
+      if (/^https?:\/\//i.test(this.getUser.avatar)) {
+        return this.getUser.avatar;
       }
 
       return defaultUserAvatar;
@@ -514,6 +534,9 @@ export default {
     },
     setDashboardPlaceholder() {
       this.dashboardImageFailed = true;
+    },
+    setUserAvatarPlaceholder() {
+      this.userAvatarFailed = true;
     },
   },
   watch: {
@@ -1226,14 +1249,18 @@ div {
   position: absolute;
   top: 14px;
   right: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 32px;
   height: 32px;
+  padding: 0;
   border: none;
   border-radius: 50%;
   background: rgba(21, 71, 54, 0.08);
   color: #173a33;
   font-size: 22px;
-  line-height: 1;
+  line-height: 0.9;
   cursor: pointer;
 }
 
