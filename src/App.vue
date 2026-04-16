@@ -42,10 +42,10 @@
 
      <transition name="fun-fact-slide">
       <div v-if="!isFunFactDisabled && showFunFact && nugget"  class="fun-fact">
-      <button
+        <button
           class="fun-fact-disable text-danger"
           aria-label="Close fun fact"
-          @click="disableFunFact"
+          @click="toggleDisablePrompt"
         >
           <svg
             width="20px"
@@ -155,9 +155,11 @@ export default {
       showFunFact: false,
       showInterval: null,
       hideTimeout: null,
+      funFactReadyTimeout: null,
       nugget: null,
       showDisablePrompt: false,
       whatsNewReadyTimeout: null,
+      funFactDisabled: false,
     };
   },
   computed: {
@@ -166,7 +168,7 @@ export default {
 
     // get fun fact disabled state from localStorage
     isFunFactDisabled() {
-      return localStorage.getItem('funFactDisabled') === 'true';
+      return this.funFactDisabled;
     },
     dashboardConfigId() {
       return this.getConfigObject && this.getConfigObject.id ? this.getConfigObject.id : null;
@@ -217,6 +219,7 @@ export default {
     isDashboardInitializationComplete(newVal, oldVal) {
       if (newVal && newVal !== oldVal) {
         this.scheduleWhatsNewCheck('dashboard-initialized');
+        this.scheduleFunFactDisplay('dashboard-initialized');
       }
     },
     showDisablePrompt(newVal) {
@@ -228,16 +231,16 @@ export default {
     },
   },
   async mounted() {
+    this.initializeFunFactPreference();
     this.scheduleWhatsNewCheck('app-mounted');
     window.addEventListener('focus', this.handleWhatsNewRecheckTrigger);
     document.addEventListener('visibilitychange', this.handleVisibilityChange);
 
-    // Show immediately (optional)
-    this.showFunFactTemporarily();
-
     // Repeat every 2 minutes
     this.showInterval = setInterval(() => {
-      this.showFunFactTemporarily();
+      if (this.isDashboardInitializationComplete && !this.isFunFactDisabled) {
+        this.showFunFactTemporarily();
+      }
     }, 2 * 60 * 1000);
 
     // eslint-disable-next-line
@@ -494,6 +497,11 @@ export default {
     },
 
     async showFunFactTemporarily() {
+      if (this.isFunFactDisabled) {
+        this.showFunFact = false;
+        return;
+      }
+
       if (this.getConfigObject.id === undefined) {
         return;
       }
@@ -530,18 +538,49 @@ export default {
     toggleDisablePrompt() {
       this.showDisablePrompt = !this.showDisablePrompt;
     },
+    initializeFunFactPreference() {
+      this.funFactDisabled = localStorage.getItem('funFactDisabled') === 'true';
+    },
+    scheduleFunFactDisplay() {
+      if (!this.isDashboardInitializationComplete || this.isFunFactDisabled) {
+        return;
+      }
+
+      if (this.funFactReadyTimeout) {
+        clearTimeout(this.funFactReadyTimeout);
+      }
+
+      this.funFactReadyTimeout = setTimeout(() => {
+        this.showFunFactTemporarily();
+      }, 30 * 1000);
+    },
 
     toggleFunFact() {
       localStorage.setItem('funFactDisabled', 'false');
+      this.funFactDisabled = false;
       this.nugget = this.getFunFact;
-      this.showFunFact = true;
-      // console.log(this.getFunFact(), 'this.getFunFact');
+      this.showFunFact = Boolean(this.nugget);
+
+      if (!this.nugget && this.isDashboardInitializationComplete) {
+        this.showFunFactTemporarily();
+      }
     },
 
     disableFunFact() {
       localStorage.setItem('funFactDisabled', 'true');
+      this.funFactDisabled = true;
       this.showFunFact = false;
-      this.toggleDisablePrompt();
+      this.showDisablePrompt = false;
+
+      if (this.hideTimeout) {
+        clearTimeout(this.hideTimeout);
+        this.hideTimeout = null;
+      }
+
+      if (this.funFactReadyTimeout) {
+        clearTimeout(this.funFactReadyTimeout);
+        this.funFactReadyTimeout = null;
+      }
     },
 
     closeFunFact() {
@@ -609,6 +648,7 @@ export default {
     // Cleanup timers
     if (this.showInterval) clearInterval(this.showInterval);
     if (this.hideTimeout) clearTimeout(this.hideTimeout);
+    if (this.funFactReadyTimeout) clearTimeout(this.funFactReadyTimeout);
     if (this.whatsNewReadyTimeout) clearTimeout(this.whatsNewReadyTimeout);
     window.removeEventListener('focus', this.handleWhatsNewRecheckTrigger);
     document.removeEventListener('visibilitychange', this.handleVisibilityChange);
