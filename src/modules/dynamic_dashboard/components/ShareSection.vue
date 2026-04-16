@@ -1,65 +1,129 @@
 <template>
-  <div class="datasource-container">
-    <div class="whats-new-content">
-      <div @click="closeComponent" class="close-btn">
-        <img src="../../../assets/close-icon.png" alt="" />
-      </div>
-      <div class="d-flex w-100 justify-content-start mt-2 title">
-        <h1>Share Section</h1>
-      </div>
-      <div class="m-5">
-        <div class="mb-4">
-          <label class="form-label fw-bold">Send by Email</label>
-          <div class="input-group">
-            <input
-              type="email"
-              class="form-control email-input"
-              placeholder="email address"
-              v-model="email"
-            />
-            <button class="btn btn-outline-success send-button" @click="shareViaEmail">Send</button>
+  <div class="share-overlay">
+    <div class="share-modal">
+      <button type="button" class="close-btn" aria-label="Close share panel" @click="closeComponent">
+        <span>×</span>
+      </button>
+
+      <section class="share-hero">
+        <div class="hero-copy">
+          <span class="hero-kicker">Share section</span>
+          <h2>Share this view with a more refined, faster workflow.</h2>
+          <p>Email a teammate, copy the active section link, or continue in a social channel.</p>
+        </div>
+
+        <div class="hero-metrics">
+          <div class="metric-card">
+            <span class="metric-label">Current state</span>
+            <strong>Ready to share</strong>
+            <small>Built from the active dashboard context</small>
+          </div>
+          <div class="metric-card subtle">
+            <span class="metric-label">Specific link</span>
+            <strong>{{ shareLink ? 'Prepared' : 'Loading' }}</strong>
+            <small>Includes year and section selections where available</small>
           </div>
         </div>
-        <div class="mb-3">
-          <label class="form-label fw-bold">Share Link</label>
-          <div class="input-group">
-            <input
-              type="text"
-              class="form-control email-input"
-              placeholder="email address"
-              v-model="shareLink"
-              readonly
-              ref="sharedInput"
-            />
-            <button class="btn btn-outline-success send-button" @click="copy_shared_text">
-              {{ copy_shared }}
+      </section>
 
-              <b-icon class="" style="color: #007d53" icon="bookmarks" />
+      <section class="share-grid">
+        <article class="share-card">
+          <div class="card-header">
+            <div class="card-icon card-icon--email">
+              <b-icon icon="envelope-fill" />
+            </div>
+            <div>
+              <h3>Email a teammate</h3>
+              <p>Open a prefilled email with the current dashboard share link.</p>
+            </div>
+          </div>
+
+          <label class="field-label" for="share-email">Recipient email</label>
+          <div class="input-shell">
+            <input
+              id="share-email"
+              v-model.trim="email"
+              type="email"
+              class="field-input"
+              placeholder="name@organization.org"
+              @keyup.enter="shareViaEmail"
+            />
+          </div>
+
+          <button type="button" class="action-btn action-btn--primary" @click="shareViaEmail">
+            Send invite
+            <b-icon icon="arrow-up-right" class="action-icon" />
+          </button>
+        </article>
+
+        <article class="share-card">
+          <div class="card-header">
+            <div class="card-icon card-icon--link">
+              <b-icon icon="link-45deg" />
+            </div>
+            <div>
+              <h3>Copy share link</h3>
+              <p>Use the generated section link in messages, briefs, or reports.</p>
+            </div>
+          </div>
+
+          <label class="field-label" for="share-link">Section-specific link</label>
+          <div class="inline-action">
+            <div class="input-shell">
+              <input
+                id="share-link"
+                ref="sharedInput"
+                v-model="shareLink"
+                type="text"
+                class="field-input"
+                readonly
+              />
+            </div>
+            <button type="button" class="action-btn action-btn--secondary" @click="copy_shared_text">
+              {{ copy_shared }}
             </button>
           </div>
-        </div>
-        <div class="mb-3">
-          <label class="form-label fw-bold">Share Via</label>
-          <div class="d-flex align-items-center">
-            <div @click="share('whatsapp')" class="icon-wrap">
-              <img src="@/assets/whatapp.png" alt="" />
-              <span>Whatsapp</span>
-            </div>
-            <div @click="share('x')" class="icon-wrap-2">
-              <img src="@/assets/twitter.png" alt="" />
-              <span class="mt-4">Twitter</span>
-            </div>
-            <div @click="share('facebook')" class="icon-wrap-2">
-              <img src="@/assets/facebook.png" alt="" />
-              <span class="mt-4">Facebook</span>
-            </div>
-            <div @click="share('linkedin')" class="icon-wrap-3">
-              <img src="@/assets/linkedin.png" alt="" />
-              <span class="mt-4">Linkedin</span>
-            </div>
+        </article>
+      </section>
+
+      <section class="social-panel">
+        <div class="social-panel__header">
+          <div>
+            <span class="hero-kicker hero-kicker--muted">Continue on social</span>
+            <h3>Open a channel and keep sharing</h3>
           </div>
+          <p>Choose the platform that best fits your audience.</p>
         </div>
-      </div>
+
+        <div class="social-grid">
+          <button
+            v-for="platform in socialPlatforms"
+            :key="platform.key"
+            type="button"
+            class="social-card"
+            :class="platform.cardClass"
+            @click="share(platform.key)"
+          >
+            <span class="social-card__icon" :class="platform.iconClass">
+              <b-icon v-if="platform.icon" :icon="platform.icon" />
+              <svg
+                v-else
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 512 512"
+                aria-hidden="true"
+              >
+                <path
+                  d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8L200.7 275.5 26.8 48H172.4L272.9 180.9 389.2 48zM364.4 421.8h39.1L151.1 88h-42L364.4 421.8z"
+                />
+              </svg>
+            </span>
+            <span class="social-card__copy">
+              <strong>{{ platform.label }}</strong>
+              <small>{{ platform.description }}</small>
+            </span>
+          </button>
+        </div>
+      </section>
     </div>
   </div>
 </template>
@@ -73,15 +137,61 @@ export default {
       shareURL: window.location.href,
       shareDesc:
         'Take a look at this health indicator on the Multi-Source Data and Triangulation (MSDAT) platform',
-      copy_text: 'Copy',
       shareText: 'MSDAT Platform',
       email: '',
-      twitterUser: '@eHealth4every1',
-      hashtags:
-        'HealthTech,HealthData,DataAnalytics,HealthDataAnalytics,BigData,DataSources,Data,DataScientist,DataAnalyst,HealthIndicators',
       shareLink: '',
-      copy_shared: 'Copy',
+      copy_shared: 'Copy link',
+      socialPlatforms: [
+        {
+          key: 'whatsapp',
+          label: 'WhatsApp',
+          description: 'Drop it into team chats',
+          icon: 'whatsapp',
+          iconClass: 'social-card__icon--whatsapp',
+          cardClass: 'social-card--whatsapp',
+        },
+        {
+          key: 'x',
+          label: 'X',
+          description: 'Post a public snapshot',
+          icon: '',
+          iconClass: 'social-card__icon--x',
+          cardClass: 'social-card--x',
+        },
+        {
+          key: 'facebook',
+          label: 'Facebook',
+          description: 'Share with a wider network',
+          icon: 'facebook',
+          iconClass: 'social-card__icon--facebook',
+          cardClass: 'social-card--facebook',
+        },
+        {
+          key: 'linkedin',
+          label: 'LinkedIn',
+          description: 'Share professionally',
+          icon: 'linkedin',
+          iconClass: 'social-card__icon--linkedin',
+          cardClass: 'social-card--linkedin',
+        },
+      ],
     };
+  },
+  mounted() {
+    const { name } = this.$route.params;
+
+    if (name === 'Advanced_Analytics') {
+      const advancedUrl = localStorage.getItem('advanced_url');
+      this.shareLink = advancedUrl || this.shareURL;
+    } else if (name === undefined) {
+      this.shareLink = `${window.location.origin}${window.location.pathname}`;
+    } else {
+      const params = new URLSearchParams(window.location.search);
+      params.set('year', this.$store.state.MSDAT_STORE.selectedConfigurations.period);
+      params.set('section', this.$store.state.MSDAT_STORE.selectedSection);
+      this.shareLink = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+      window.history.pushState({}, '', this.shareLink);
+    }
   },
   methods: {
     ...mapMutations('MSDAT_STORE', ['closeShowShareSection']),
@@ -90,10 +200,24 @@ export default {
       this.closeShowShareSection();
     },
 
-    copy_shared_text() {
-      this.$refs.sharedInput.select();
-      document.execCommand('copy');
-      this.copy_shared = 'Copied';
+    async copy_shared_text() {
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(this.shareLink);
+        } else if (this.$refs.sharedInput) {
+          this.$refs.sharedInput.select();
+          document.execCommand('copy');
+        }
+
+        this.copy_shared = 'Copied';
+        window.setTimeout(() => {
+          this.copy_shared = 'Copy link';
+        }, 1800);
+      } catch (error) {
+        if (this.$refs.sharedInput) {
+          this.$refs.sharedInput.select();
+        }
+      }
     },
 
     shareViaEmail() {
@@ -104,14 +228,11 @@ export default {
       }
 
       const subject = encodeURIComponent(this.shareText);
-      const body = encodeURIComponent(`${this.shareDesc}: ${this.shareURL}`);
+      const body = encodeURIComponent(`${this.shareDesc}: ${this.shareLink || this.shareURL}`);
       const recipient = encodeURIComponent(this.email);
-
-      const mailtoURL = `mailto:${recipient}?subject=${subject}&body=${body}`;
-
-      // This line MUST be triggered by a user click event
-      window.location.href = mailtoURL;
+      window.location.href = `mailto:${recipient}?subject=${subject}&body=${body}`;
     },
+
     share(platform) {
       const encodedLink = encodeURIComponent(this.shareLink);
       let url = '';
@@ -138,192 +259,454 @@ export default {
       window.open(url, '_blank');
     },
   },
-  mounted() {
-    const { name } = this.$route.params;
-
-    if (name === 'Advanced_Analytics') {
-      const advancedUrl = localStorage.getItem('advanced_url');
-      this.shareLink = advancedUrl;
-    } else if (name === undefined) {
-      this.shareLink = `${window.location.origin}${window.location.pathname}`;
-      // logic for 'Other_Section'
-    } else {
-      const params = new URLSearchParams(window.location.search);
-      params.set('year', this.$store.state.MSDAT_STORE.selectedConfigurations.period);
-      params.set('section', this.$store.state.MSDAT_STORE.selectedSection);
-      this.shareLink = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
-      window.history.pushState({}, '', this.shareLink);
-    }
-  },
 };
 </script>
 
 <style lang="scss" scoped>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
-
-.email-input {
-  height: 40px; /* increased height */
-  font-size: 16px;
-  padding: 10px 14px;
-}
-
-.icon-wrap {
-  // padding: 5px;
-  // border: 1px solid red;
+.share-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  margin-right: 5px;
-  cursor: pointer;
-}
-
-.icon-wrap-2 {
-  // padding: 5px;
-  // border: 1px solid red;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-right: 8px;
-  padding: 10px 0;
-  cursor: pointer;
-}
-
-.icon-wrap-3 {
-  // padding: 5px;
-  // border: 1px solid red;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-right: 5px;
-  cursor: pointer;
-  margin-top: 6px;
-}
-.icon-wrap img {
-  width: 99px;
-  height: 91px;
-}
-
-.icon-wrap-2 img {
-  width: 65px;
-  height: 65px;
-  object-fit: contain;
-  margin-top: 5px;
-}
-
-.icon-wrap-3 img {
-  width: 58px;
-  height: 58px;
-  margin-top: 8px;
-}
-
-.send-button {
-  height: 40px; /* match input height */
-  font-size: 16px;
-  padding: 0 24px; /* wider button */
-}
-
-.datasource-container {
-  position: relative;
-  border: 1px solid #c3c3c3;
-  background-color: rgba(0, 0, 0, 0.4); // Adjust opacity only for the background
-  height: 100%;
-  width: 100%;
-  //padding: 20px;
-  display: flex;
   justify-content: center;
-  align-items: center;
-  h1 {
-    font-size: 16px;
-  }
-  h2 {
-    font-size: 14px;
-    font-weight: bold;
-  }
+  padding: 24px;
+  background:
+    radial-gradient(circle at top left, rgba(15, 123, 100, 0.2), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(21, 92, 176, 0.14), transparent 28%),
+    rgba(6, 18, 15, 0.38);
+  backdrop-filter: blur(8px);
+}
+
+.share-modal {
+  position: relative;
+  width: min(960px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 28px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(246, 250, 248, 0.96)),
+    #ffffff;
+  box-shadow: 0 32px 80px rgba(8, 27, 22, 0.18);
 }
 
 .close-btn {
   position: absolute;
-  top: 20px;
-  right: 30px;
-}
-
-.close-btn img {
-  width: 32px;
-  height: 32px;
+  top: 18px;
+  right: 18px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid rgba(16, 54, 45, 0.12);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: #173a33;
   cursor: pointer;
-}
-.whats-new-content {
-  position: relative;
-  //   right: 20px;
-  min-height: 400px;
-  width: 800px;
-  // top: 5rem;
-  background-color: white;
-  // padding: 30px 0;
-  border-radius: 50px;
-}
-.title {
-  margin-top: 30px;
-  padding: 20px 40px;
-  border-bottom: 1px solid #dfdada;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
-.title h1 {
-  font-size: 24px;
-  color: #212121;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 400;
-  line-height: 23px;
+.close-btn:hover,
+.action-btn:hover,
+.social-card:hover {
+  transform: translateY(-1px);
 }
-.new-item {
-  margin: 10px 0;
+
+.close-btn span {
+  display: block;
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.close-btn:hover {
+  background: #ffffff;
+  box-shadow: 0 16px 32px rgba(23, 58, 51, 0.14);
+}
+
+.share-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(260px, 0.9fr);
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.18), transparent 28%),
+    linear-gradient(135deg, #0f7b64, #105345 62%, #0b4036);
+  color: #f4fbf8;
+}
+
+.hero-kicker {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.hero-kicker--muted {
+  border-color: rgba(15, 123, 100, 0.14);
+  background: rgba(15, 123, 100, 0.08);
+  color: #0f7b64;
+}
+
+.hero-copy h2 {
+  margin: 8px 0;
+  font-size: clamp(1.4rem, 2.4vw, 2rem);
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.hero-copy p {
+  max-width: 440px;
+  margin: 0;
+  color: rgba(244, 251, 248, 0.82);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.hero-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.metric-card {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(6px);
+}
+
+.metric-card.subtle {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.metric-label {
+  color: rgba(244, 251, 248, 0.68);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.metric-card strong {
+  font-size: 0.98rem;
+  font-weight: 800;
+}
+
+.metric-card small {
+  color: rgba(244, 251, 248, 0.78);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.share-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.share-card,
+.social-panel {
+  padding: 18px;
+  border: 1px solid rgba(18, 72, 57, 0.1);
+  border-radius: 20px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 249, 247, 0.96)),
+    #ffffff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 18px 40px rgba(15, 57, 47, 0.06);
+}
+
+.card-header {
   display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 14px;
 }
-.icon img {
-  height: 35px;
-  width: 35px;
+
+.card-header h3,
+.social-panel__header h3 {
+  margin: 0;
+  color: #153b32;
+  font-size: 1rem;
+  font-weight: 800;
 }
-.info {
+
+.card-header p,
+.social-panel__header p {
+  margin: 4px 0 0;
+  color: #647873;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  font-size: 1rem;
+}
+
+.card-icon--email {
+  background: rgba(15, 123, 100, 0.12);
+  color: #0f7b64;
+}
+
+.card-icon--link {
+  background: rgba(21, 92, 176, 0.1);
+  color: #155cb0;
+}
+
+.field-label {
+  display: inline-block;
+  margin-bottom: 6px;
+  color: #36524b;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.input-shell {
+  display: flex;
+  align-items: center;
+  min-height: 46px;
+  padding: 0 12px;
+  border: 1px solid rgba(20, 60, 50, 0.1);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.94);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-shell:focus-within {
+  border-color: rgba(15, 123, 100, 0.24);
+  box-shadow: 0 0 0 4px rgba(15, 123, 100, 0.08);
+}
+
+.field-input {
   width: 100%;
-  margin: 0 10px;
-}
-.info h2 {
-  margin: 0;
-  font-size: 16px;
-  font-family: 'DM Sans', sans-serif;
+  border: none;
+  background: transparent;
+  color: #153b32;
+  font-size: 0.89rem;
   font-weight: 600;
-  line-height: 18px;
-  color: #202020;
+  line-height: 1.4;
+  outline: none;
 }
 
-.info h3 {
-  margin: 0;
-  font-size: 14px;
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 600;
-  line-height: 18px;
-  color: #202020;
-}
-.info p {
-  font-size: 14px;
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 400;
-  line-height: 20px;
-  color: #202020;
+.field-input::placeholder {
+  color: #8aa099;
 }
 
-.link {
-  font-size: 14px;
-  color: #348461;
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 400;
-  line-height: 20px;
-  color: #202020;
-  cursor: pointer;
+.inline-action {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
 }
-.link:hover {
-  text-decoration: underline;
-  color: #0e3a27;
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 15px;
+  border-radius: 12px;
+  border: none;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.action-btn--primary {
+  margin-top: 12px;
+  background: linear-gradient(135deg, #0f7b64, #105345);
+  color: #ffffff;
+  box-shadow: 0 18px 30px rgba(15, 123, 100, 0.18);
+}
+
+.action-btn--secondary {
+  min-width: 104px;
+  background: #eef7f3;
+  color: #0c5f48;
+  border: 1px solid rgba(0, 125, 83, 0.12);
+}
+
+.action-icon {
+  font-size: 0.95rem;
+}
+
+.social-panel {
+  display: grid;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.social-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.social-panel__header p {
+  max-width: 240px;
+  margin: 0;
+}
+
+.social-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.social-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(20, 60, 50, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.94);
+  color: inherit;
+  text-align: left;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.social-card:hover {
+  border-color: rgba(15, 123, 100, 0.22);
+  box-shadow: 0 18px 30px rgba(15, 57, 47, 0.08);
+}
+
+.social-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  font-size: 1rem;
+  flex: 0 0 auto;
+}
+
+.social-card__icon svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.social-card__icon--whatsapp {
+  background: rgba(34, 197, 94, 0.12);
+  color: #15803d;
+}
+
+.social-card__icon--x {
+  background: rgba(17, 24, 39, 0.08);
+  color: #111827;
+}
+
+.social-card__icon--facebook {
+  background: rgba(37, 99, 235, 0.12);
+  color: #1d4ed8;
+}
+
+.social-card__icon--linkedin {
+  background: rgba(8, 145, 178, 0.12);
+  color: #0e7490;
+}
+
+.social-card__copy {
+  display: grid;
+  gap: 2px;
+}
+
+.social-card__copy strong {
+  color: #173a33;
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.social-card__copy small {
+  color: #6a7f79;
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+@media (max-width: 991px) {
+  .share-hero,
+  .share-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-metrics,
+  .social-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .social-panel__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .social-panel__header p {
+    max-width: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .share-overlay {
+    padding: 12px;
+  }
+
+  .share-modal {
+    max-height: calc(100vh - 24px);
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .share-hero,
+  .share-card,
+  .social-panel {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .hero-metrics,
+  .social-grid,
+  .inline-action {
+    grid-template-columns: 1fr;
+  }
+
+  .action-btn--secondary,
+  .action-btn--primary {
+    width: 100%;
+  }
 }
 </style>

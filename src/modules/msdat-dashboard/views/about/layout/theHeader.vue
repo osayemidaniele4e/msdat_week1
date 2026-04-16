@@ -11,7 +11,13 @@
             </div>
             <div v-if="dashboardName != 'MSDAT PLATFORM'" style="cursor: pointer; display: flex; align-items: center;" @click="goToHome">
               <b-icon icon="house" font-scale="1.5" class="home-icon mr-1" v-b-tooltip.hover="'Home'"></b-icon>
-              <img :src="dashboardImage" alt="FMOH Logo" class="img-fluid" v-b-tooltip.hover="'Home'" />
+              <img
+                :src="resolvedDashboardImage"
+                alt="Dashboard logo"
+                class="img-fluid"
+                v-b-tooltip.hover="'Home'"
+                @error="setDashboardPlaceholder"
+              />
             </div>
           </b-col>
           <b-col
@@ -151,7 +157,7 @@
                   >Share <img src="@/assets/share.png" alt="Share" class="share-nav-icon ml-1" /></a
                 >
                 <div @click="showExpandedDropdown = !showExpandedDropdown">
-                  <button class="btn btn-outline-primary border-light rounded-0">
+                  <button class="btn btn-outline-primary border-light rounded-0 header-action-btn">
                     Select&nbsp;Dashboard&nbsp;<b-icon
                       icon="triangle-fill"
                       font-scale="0.5"
@@ -179,7 +185,7 @@
                 >
 
                 <div @click="showVersionsDropdown = !showVersionsDropdown" class="">
-                  <button class="btn btn-2 btn-outline-primary border-light rounded-0">
+                  <button class="btn btn-2 btn-outline-primary border-light rounded-0 header-action-btn">
                     MSDAT Old Versions&nbsp;<b-icon
                       icon="triangle-fill"
                       font-scale="0.5"
@@ -227,17 +233,14 @@
                   <b-icon-person-circle style="width: 18px; height: 18px"></b-icon-person-circle>
                   &nbsp;<span class="d-none d-md-inline">Login/Register</span>
                 </div>
-                <div v-else @click="showCard = true">
+                <div v-else @click="showCard = !showCard">
                   <div class="ml-2 profile d-flex align-items-center">
                     <img
-                      :src="
-                        getUser.avatar !== undefined
-                          ? 'https://msdat-api.fmohconnect.gov.ng' + getUser.avatar
-                          : 'https://w7.pngwing.com/pngs/754/2/png-transparent-samsung-galaxy-a8-a8-user-login-telephone-avatar-pawn-blue-angle-sphere-thumbnail.png'
-                      "
+                      :src="resolvedUserAvatar"
                       class="profile-picture mr-1"
                       width="48"
                       height="48"
+                      @error="setUserAvatarPlaceholder"
                     />
                     Hi,&nbsp;{{ getUser.username !== undefined ? getUser.username : getUser.email }}
                   </div>
@@ -279,37 +282,42 @@
 
       <!-- <DropCard v-show="showExpandedDropdown" /> -->
       <div v-if="isAuthenticated === true">
-        <div class="container card shadow dropCard work-sans" v-if="showCard">
-          <div class="row p-3 d-flex user-details">
-            <div class="col-3">
+        <div class="dropCard work-sans" v-if="showCard" @mouseleave="showCard = false">
+          <div class="dropcard-shell">
+            <button type="button" class="dropcard-close" @click.prevent="showCard = false">
+              ×
+            </button>
+            <div class="dropcard-top">
               <img
-                :src="
-                  getUser.avatar !== undefined
-                    ? 'https://msdat-api.fmohconnect.gov.ng' + getUser.avatar
-                    : 'https://w7.pngwing.com/pngs/754/2/png-transparent-samsung-galaxy-a8-a8-user-login-telephone-avatar-pawn-blue-angle-sphere-thumbnail.png'
-                "
-                class="profile-picture mr-1"
-                width="48"
-                height="48"
+                :src="resolvedUserAvatar"
+                class="dropcard-avatar"
+                width="60"
+                height="60"
+                @error="setUserAvatarPlaceholder"
               />
+              <div class="dropcard-copy">
+                <span class="dropcard-kicker">Signed in as</span>
+                <h3>{{ getUser.username || 'MSDAT User' }}</h3>
+                <h4>{{ getUser.email }}</h4>
+              </div>
             </div>
-            <div class="col-8 name">
-              <h3>{{ getUser.username }}</h3>
-              <h4>{{ getUser.email }}</h4>
-            </div>
-            <div class="close mr-2" @click.prevent="showCard = false">
-              <img src="@/assets/close.png" alt="" />
-            </div>
-          </div>
-          <div class="d-flex py-2">
-            <router-link to="/account"><a href="#" class="ml-2">View Account</a></router-link>
-            <div class="logout">
-              <a href="#" class="mr-2" @click.prevent="logout">Log Out</a>
+            <div class="dropcard-divider"></div>
+            <div class="dropcard-actions">
+              <router-link to="/account" class="dropcard-link" @click.native="showCard = false">
+                View Account
+              </router-link>
+              <button type="button" class="dropcard-logout" @click.prevent="logout">
+                Log Out
+              </button>
             </div>
           </div>
         </div>
       </div>
-      <div class="container card shadow versionsDropCard work-sans" v-if="showVersionsDropdown">
+      <div
+        class="container card shadow versionsDropCard work-sans"
+        v-if="showVersionsDropdown"
+        @mouseleave="showVersionsDropdown = false"
+      >
         <div class="p-1 user-details">
           <b-list-group>
             <div class="tooltip-wrapper">
@@ -326,7 +334,7 @@
         </div>
       </div>
     </header>
-    <base-modal :showModal="socialModal" :size="'md'" @hide="handleModalHide">
+    <base-modal :showModal="socialModal" :size="'xl'" @hide="handleModalHide">
       <template #title>
         <h6 class="mb-0 font-weight-bold work-sans">Share Dashboard</h6>
       </template>
@@ -338,12 +346,27 @@
 <script>
 import { mapGetters } from 'vuex';
 import Socials from '@/modules/msdat-dashboard/components/social_media/SocialMediaModal.vue';
+import defaultDashboardLogo from '@/assets/img/Logo.svg';
 import HeaderOption from '../components/HeaderOption.vue';
 import DropCard from '../components/DropCard.vue';
 import Sidebar from '../components/Sidebar.vue';
 import shareDashboard from '../components/shareDashboard.vue';
 import LoginSidebar from '../components/Login.vue';
 import SignUp from '../components/SignUp.vue';
+
+const defaultUserAvatar = `data:image/svg+xml;utf8,${encodeURIComponent(`
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+    <defs>
+      <linearGradient id="avatarBg" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#edf7f3"/>
+        <stop offset="100%" stop-color="#d8eee6"/>
+      </linearGradient>
+    </defs>
+    <rect width="64" height="64" rx="32" fill="url(#avatarBg)"/>
+    <circle cx="32" cy="24" r="11" fill="#0f766e"/>
+    <path d="M14 53c2.6-10.2 10.2-16 18-16s15.4 5.8 18 16" fill="#0f766e"/>
+  </svg>
+`)}`;
 
 export default {
   name: 'theHeader',
@@ -385,6 +408,8 @@ export default {
       showClearDataModal: false,
       socialModal: false,
       showClearDBModal: false,
+      dashboardImageFailed: false,
+      userAvatarFailed: false,
       selectedVersion: { version: 'MSDAT 2.7', link: 'https://msdat.fmohconnect.gov.ng/' },
       versions: [
         { version: 'MSDAT 1.5', link: 'https://msdat.old.fmohconnect.gov.ng' },
@@ -413,6 +438,24 @@ export default {
     },
     customDashboard() {
       return this.$store.state.CUSTOM_DASHBOARD_STORE.customDashboard;
+    },
+    resolvedUserAvatar() {
+      if (this.userAvatarFailed || !this.getUser?.avatar) {
+        return defaultUserAvatar;
+      }
+
+      if (/^https?:\/\//i.test(this.getUser.avatar)) {
+        return this.getUser.avatar;
+      }
+
+      return defaultUserAvatar;
+    },
+    resolvedDashboardImage() {
+      if (!this.dashboardImage || this.dashboardImageFailed) {
+        return defaultDashboardLogo;
+      }
+
+      return this.dashboardImage;
     },
   },
   created() {
@@ -489,6 +532,12 @@ export default {
     goToHome() {
       this.$router.push('/');
     },
+    setDashboardPlaceholder() {
+      this.dashboardImageFailed = true;
+    },
+    setUserAvatarPlaceholder() {
+      this.userAvatarFailed = true;
+    },
   },
   watch: {
     $route: {
@@ -517,7 +566,8 @@ export default {
       default: 'MSDAT PLATFORM',
     },
     dashboardImage: {
-      type: File,
+      type: [String, File],
+      default: '',
     },
   },
   mounted() {
@@ -646,6 +696,20 @@ button {
 }
 
 header#the-header {
+  .header-action-btn {
+    color: #ffffff;
+    background-color: transparent;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+
+    &:hover,
+    &:focus,
+    &:active {
+      color: #ffffff;
+      background-color: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.8);
+      box-shadow: none;
+    }
+  }
   .btn-icon {
     margin-bottom: 0.35rem;
     margin-left: 0.5rem;
@@ -1105,12 +1169,10 @@ header#the-header {
 div {
   &.dropCard {
     position: absolute;
-    width: 26vw;
-    z-index: 5;
+    width: 320px;
+    z-index: 8;
     right: 1rem;
-    color: black;
-    max-height: 30rem;
-    overflow-y: auto;
+    top: 72px;
     a {
       color: inherit;
     }
@@ -1131,19 +1193,124 @@ div {
     }
   }
 }
-.user-details {
-  background: #fafafa;
+.dropcard-shell {
+  position: relative;
+  overflow: hidden;
+  padding: 22px 20px 18px;
+  border: 1px solid rgba(21, 71, 54, 0.08);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top right, rgba(0, 125, 83, 0.12), transparent 32%),
+    linear-gradient(180deg, #ffffff, #f5faf8);
+  box-shadow: 0 24px 50px rgba(16, 44, 35, 0.16);
 }
-.logout {
+
+.dropcard-top {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding-right: 28px;
+}
+
+.dropcard-avatar {
+  flex-shrink: 0;
+  border-radius: 18px;
+  object-fit: cover;
+  background: #edf4f1;
+  box-shadow: 0 12px 24px rgba(0, 125, 83, 0.12);
+}
+
+.dropcard-copy {
+  min-width: 0;
+
+  h3 {
+    margin: 4px 0 6px;
+    color: #173a33;
+    font: 700 1rem/1.2 'Work Sans', sans-serif;
+    word-break: break-word;
+  }
+
+  h4 {
+    margin: 0;
+    color: #5d746d;
+    font: 500 0.86rem/1.5 'Work Sans', sans-serif;
+    word-break: break-word;
+  }
+}
+
+.dropcard-kicker {
+  color: #007d53;
+  font: 700 0.72rem/1 'Work Sans', sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dropcard-close {
   position: absolute;
-  right: 0;
+  top: 14px;
+  right: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(21, 71, 54, 0.08);
+  color: #173a33;
+  font-size: 22px;
+  line-height: 0.9;
+  cursor: pointer;
 }
-.close {
-  position: absolute;
-  right: 0;
+
+.dropcard-divider {
+  height: 1px;
+  margin: 16px 0 14px;
+  background: rgba(21, 71, 54, 0.1);
 }
+
+.dropcard-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.dropcard-link,
+.dropcard-logout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border-radius: 12px;
+  font: 700 0.84rem/1 'Work Sans', sans-serif;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.dropcard-link {
+  border: 1px solid rgba(0, 125, 83, 0.16);
+  background: #eef7f3;
+  color: #0c5f48;
+}
+
+.dropcard-logout {
+  border: none;
+  background: linear-gradient(135deg, #0f7b64, #125a4a);
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.dropcard-link:hover,
+.dropcard-logout:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 24px rgba(15, 123, 100, 0.16);
+}
+
 .profile-picture {
   border-radius: 48px;
+  object-fit: cover;
+  background: #edf4f1;
 }
 .profile {
   cursor: pointer;
@@ -1153,6 +1320,19 @@ div {
 .auth {
   font: normal normal 600 12px/20px Muli;
   color: white;
+}
+
+@media (max-width: 767px) {
+  div {
+    &.dropCard {
+      width: min(320px, calc(100vw - 24px));
+      right: 12px;
+    }
+  }
+
+  .dropcard-actions {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
 

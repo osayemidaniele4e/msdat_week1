@@ -1,76 +1,151 @@
 <template>
-  <div class="datasource-container">
-    <div class="whats-new-content">
-      <div @click="closeComponent" class="close-btn">
-        <img src="../../../../assets/close-icon.png" alt="" />
-      </div>
-      <div class="d-flex w-100 justify-content-center mt-2 title">
-        <h1>What's New!</h1>
-      </div>
-      <div class="w-100">
-        <span class="label">Name</span>
-        <input
-          :class="[errors.title ? 'styled-input-error' : 'styled-input']"
-          v-model="title"
-          @input="validateField('title', title)"
-          type="text"
-        />
-      </div>
-      <div class="w-100 my-4">
-        <span class="label">Type</span>
-        <select
-          :class="[errors.category ? 'styled-select-error' : 'styled-select']"
-          v-model="type"
-          @change="validateField('category', type)"
-        >
-          <option value="" disabled>Select an option</option>
-          <option value="Dataset">Dataset</option>
-          <option value="Dashboard">Dashboard</option>
-          <option value="Feature">Feature</option>
-        </select>
-      </div>
-      <div class="my-2">
-        <span class="label">Description</span>
-        <textarea
-          placeholder="Enter your message"
-          :class="[errors.content ? 'styled-textarea-error' : 'styled-textarea']"
-          v-model="description"
-          @input="validateField('content', description)"
-        ></textarea>
-      </div>
-      <div class="d-flex w-100 justify-content-between">
-        <button class="add-btn">Add More Update</button>
-        <button @click="submit" class="submit-btn">Submit Update</button>
-      </div>
+  <div class="create-whats-new-overlay">
+    <div class="create-whats-new-modal">
+      <button type="button" class="close-btn" aria-label="Close create update" @click="closeComponent">
+        <span>×</span>
+      </button>
+
+      <section class="hero-section">
+        <div class="hero-copy">
+          <span class="eyebrow">Admin updates</span>
+          <h1>Create What&apos;s New entry</h1>
+          <p>
+            Publish a polished product update for datasets, dashboards, or platform features.
+          </p>
+        </div>
+
+        <div class="hero-summary">
+          <div class="summary-card">
+            <span>Selected type</span>
+            <strong>{{ type || 'Not chosen' }}</strong>
+          </div>
+          <div class="summary-card subtle">
+            <span>Ready to publish</span>
+            <strong>{{ isFormComplete ? 'Yes' : 'Pending' }}</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="form-shell">
+        <div class="form-grid">
+          <label class="form-field field-wide">
+            <span class="field-label">Name</span>
+            <input
+              v-model="title"
+              type="text"
+              placeholder="Enter update title"
+              :class="['field-control', { error: errors.title }]"
+              @input="validateField('title', title)"
+            />
+            <small v-if="errors.title" class="field-error">{{ errors.title }}</small>
+          </label>
+
+          <label class="form-field">
+            <span class="field-label">Type</span>
+            <select
+              v-model="type"
+              :class="['field-control', 'field-select', { error: errors.category }]"
+              @change="validateField('category', type)"
+            >
+              <option value="" disabled>Select an option</option>
+              <option value="Dataset">Dataset</option>
+              <option value="Dashboard">Dashboard</option>
+              <option value="Feature">Feature</option>
+            </select>
+            <small v-if="errors.category" class="field-error">{{ errors.category }}</small>
+          </label>
+
+          <label v-if="type === 'Dashboard'" class="form-field">
+            <span class="field-label">Dashboard name</span>
+            <input
+              v-model="dashboardName"
+              type="text"
+              placeholder="Enter dashboard route or dashboard name"
+              :class="['field-control', { error: errors.dashboard_name }]"
+              @input="validateField('dashboard_name', dashboardName)"
+            />
+            <small v-if="errors.dashboard_name" class="field-error">{{ errors.dashboard_name }}</small>
+          </label>
+
+          <div class="form-field preview-card">
+            <span class="field-label">Publishing note</span>
+            <p>
+              For dashboard updates, the dashboard name is used for opening the published page,
+              while the name field remains the visible update heading.
+            </p>
+          </div>
+
+          <label class="form-field field-wide">
+            <span class="field-label">Description</span>
+            <textarea
+              v-model="description"
+              rows="5"
+              placeholder="Describe what changed and why it matters."
+              :class="['field-control', 'field-textarea', { error: errors.content }]"
+              @input="validateField('content', description)"
+            ></textarea>
+            <small v-if="errors.content" class="field-error">{{ errors.content }}</small>
+          </label>
+        </div>
+
+        <div class="action-row">
+          <button type="button" class="secondary-btn" @click="clearForm">
+            Clear form
+          </button>
+          <button type="button" class="primary-btn" :disabled="submitting" @click="submit">
+            {{ submitting ? 'Publishing update...' : 'Submit update' }}
+          </button>
+        </div>
+      </section>
     </div>
   </div>
 </template>
 
 <script>
-import { mapMutations } from 'vuex';
 import ApiServices from '@/modules/data-layer/services/ApiServices';
 
 export default {
   data() {
     return {
-      whatsNew: [],
-      title: null,
-      type: null,
-      description: null,
+      title: '',
+      type: '',
+      dashboardName: '',
+      description: '',
+      submitting: false,
       errors: {
         title: null,
         content: null,
         category: null,
-      }, // To store errors for each field
+        dashboard_name: null,
+      },
     };
   },
+  computed: {
+    isFormComplete() {
+      return Boolean(
+        this.title.trim()
+          && this.type
+          && (this.type !== 'Dashboard' || this.dashboardName.trim())
+          && this.description.trim(),
+      );
+    },
+  },
   methods: {
-    ...mapMutations('MSDAT_STORE', ['toggleShowWhatsNew', 'closeShowWhatsNew']),
-
     closeComponent() {
       this.$emit('closeModal');
     },
-
+    clearForm() {
+      this.title = '';
+      this.type = '';
+      this.dashboardName = '';
+      this.description = '';
+      this.errors = {
+        title: null,
+        content: null,
+        category: null,
+        dashboard_name: null,
+      };
+    },
     validateField(field, value) {
       if (typeof value === 'string' && value.trim() === '') {
         this.$set(this.errors, field, 'This field is required');
@@ -80,18 +155,13 @@ export default {
         this.$set(this.errors, field, null);
       }
     },
-
     validateObject(obj) {
-      // Reset errors object
-      console.log(obj);
       Object.entries(obj).forEach(([key, value]) => {
         this.validateField(key, value);
       });
 
-      // Return true if no errors exist
       return !Object.values(this.errors).some((error) => error);
     },
-
     async submit() {
       const categoryMap = {
         Dashboard: 2,
@@ -105,21 +175,29 @@ export default {
         category: categoryMap[this.type],
       };
 
-      const isValid = this.validateObject(data);
+      if (this.type === 'Dashboard') {
+        data.dashboard_name = this.dashboardName;
+      }
 
+      const isValid = this.validateObject({
+        title: this.title,
+        content: this.description,
+        category: this.type,
+        dashboard_name: this.type === 'Dashboard' ? this.dashboardName : 'not-required',
+      });
       if (!isValid) {
-        console.log('Validation failed:', this.errors);
         return;
       }
 
+      this.submitting = true;
+
       try {
-        // Example API call (uncomment in actual use)
-        const response = await ApiServices.saveWhatsNew(data);
+        await ApiServices.saveWhatsNew(data);
         this.$emit('closeModal');
-        // console.log('Data submitted:', data);
-        console.log(response);
       } catch (error) {
         console.error('Error submitting data:', error);
+      } finally {
+        this.submitting = false;
       }
     },
   },
@@ -127,258 +205,282 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap');
 
-.datasource-container {
+.create-whats-new-overlay {
   position: relative;
-  border: 1px solid #c3c3c3;
-  background-color: rgba(0, 0, 0, 0.4); // Adjust opacity only for the background
-  height: 100%;
-  width: 100%;
-  padding: 20px;
   display: flex;
-  justify-content: center;
   align-items: center;
-  h1 {
-    font-size: 16px;
-  }
-  h2 {
-    font-size: 14px;
-    font-weight: bold;
-  }
+  justify-content: center;
+  width: 100%;
+  min-height: 100%;
+  padding: 24px;
+  background:
+    radial-gradient(circle at top left, rgba(43, 124, 109, 0.18), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(203, 164, 92, 0.14), transparent 30%),
+    rgba(7, 17, 15, 0.34);
+  backdrop-filter: blur(8px);
+}
+
+.create-whats-new-modal {
+  position: relative;
+  width: min(760px, 100%);
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 28px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.97), rgba(245, 249, 247, 0.95)),
+    #ffffff;
+  box-shadow: 0 30px 80px rgba(4, 25, 21, 0.22);
 }
 
 .close-btn {
   position: absolute;
-  top: 5px;
-  right: 5px;
-}
-
-.close-btn img {
-  width: 32px;
-  height: 32px;
+  top: 18px;
+  right: 18px;
+  z-index: 2;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(18, 59, 49, 0.12);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.94);
+  color: #173a33;
   cursor: pointer;
-}
-.whats-new-content {
-  position: relative;
-  //   right: 20px;
-  min-height: 300px;
-  width: 600px;
-  // top: 5rem;
-  background-color: white;
-  padding: 30px;
-  border-radius: 10px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  span {
+    display: inline-block;
+    font-size: 1.7rem;
+    line-height: 1;
+    transform: translateY(-1px);
+  }
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 16px 32px rgba(23, 58, 51, 0.14);
+  }
 }
 
-.title h1 {
-  font-size: 24px;
-  color: #348481;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 600;
-  line-height: 24px;
-  line-height: 28px;
+.hero-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(220px, 0.9fr);
+  gap: 18px;
+  padding: 18px;
+  border-radius: 24px;
+  background:
+    linear-gradient(135deg, rgba(12, 62, 53, 0.98), rgba(24, 111, 95, 0.94)),
+    #0f4d42;
+  color: #f8fcfb;
 }
-.new-item {
-  margin: 10px 0;
-  display: flex;
+
+.eyebrow {
+  display: inline-flex;
+  width: fit-content;
+  padding: 7px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  font: 700 0.72rem/1 'Manrope', sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
-.icon img {
-  height: 35px;
-  width: 35px;
+
+.hero-copy h1 {
+  margin: 12px 0 10px;
+  font: 700 clamp(1.9rem, 3vw, 2.7rem) / 1.04 'Playfair Display', serif;
+  letter-spacing: -0.03em;
 }
-.info {
-  width: 100%;
-  margin: 0 10px;
-}
-.info h2 {
+
+.hero-copy p {
   margin: 0;
-  font-size: 16px;
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 600;
-  line-height: 18px;
-  color: #202020;
+  max-width: 520px;
+  color: rgba(248, 252, 251, 0.84);
+  font: 500 0.95rem/1.65 'Manrope', sans-serif;
 }
 
-.info h3 {
-  margin: 0;
-  font-size: 14px;
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 600;
-  line-height: 18px;
-  color: #202020;
-}
-.info p {
-  font-size: 14px;
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 400;
-  line-height: 20px;
-  color: #202020;
+.hero-summary {
+  display: grid;
+  gap: 12px;
+  align-content: end;
 }
 
-.link {
-  font-size: 14px;
-  color: #348461;
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 400;
-  line-height: 20px;
-  color: #202020;
-  cursor: pointer;
-}
-.link:hover {
-  text-decoration: underline;
-  color: #0e3a27;
-  cursor: pointer;
-}
-.styled-input {
-  width: 100%; /* Make it responsive */
-  padding: 10px; /* Add padding inside the input */
-  border: 2px solid #ccc; /* Light gray border */
-  border-radius: 5px; /* Rounded corners */
-  font-size: 16px; /* Make text larger */
-  outline: none; /* Remove default outline */
-  transition: border-color 0.3s ease; /* Smooth transition for border color */
+.summary-card {
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06));
+  backdrop-filter: blur(12px);
+
+  span {
+    display: block;
+    color: rgba(248, 252, 251, 0.72);
+    font: 600 0.78rem/1.4 'Manrope', sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  strong {
+    display: block;
+    margin-top: 6px;
+    font: 800 1.2rem/1.2 'Manrope', sans-serif;
+  }
 }
 
-.styled-input-error {
-  width: 100%; /* Make it responsive */
-  padding: 10px; /* Add padding inside the input */
-  border: 2px solid red; /* Light gray border */
-  border-radius: 5px; /* Rounded corners */
-  font-size: 16px; /* Make text larger */
-  outline: none; /* Remove default outline */
-  transition: border-color 0.3s ease; /* Smooth transition for border color */
+.summary-card.subtle {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
 }
 
-/* Input field on focus */
-.styled-input:focus {
-  border-color: #a1b6cc; /* Change border to blue on focus */
-  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Add a glowing shadow effect */
-}
-.styled-input-error:focus {
-  border-color: red; /* Change border to blue on focus */
-  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Add a glowing shadow effect */
+.form-shell {
+  margin-top: 18px;
+  padding: 20px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 250, 248, 0.94));
+  border: 1px solid rgba(18, 59, 49, 0.08);
 }
 
-/* Placeholder styling */
-.styled-input::placeholder {
-  color: #888; /* Light gray placeholder text */
-  font-style: italic; /* Italicize placeholder text */
-}
-.styled-input-error::placeholder {
-  color: red; /* Light gray placeholder text */
-  font-style: italic; /* Italicize placeholder text */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
 }
 
-/* Styling for the select dropdown */
-.styled-select {
-  width: 100%; /* Full width */
-  padding: 10px; /* Inner spacing */
-  border: 2px solid #ccc; /* Light gray border */
-  border-radius: 5px; /* Rounded corners */
-  font-size: 16px; /* Font size */
-  outline: none; /* Remove default outline */
-  appearance: none; /* Remove default OS dropdown styles */
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E")
-    no-repeat right 10px center; /* Custom dropdown arrow */
-  background-color: #fff; /* Background color */
-  background-size: 15px; /* Adjust arrow size */
-  margin-bottom: 15px; /* Space below the select */
-  transition: border-color 0.3s ease; /* Smooth transition for focus */
-  cursor: pointer; /* Pointer cursor */
-}
-.styled-select-error {
-  width: 100%; /* Full width */
-  padding: 10px; /* Inner spacing */
-  border: 2px solid red; /* Light gray border */
-  border-radius: 5px; /* Rounded corners */
-  font-size: 16px; /* Font size */
-  outline: none; /* Remove default outline */
-  appearance: none; /* Remove default OS dropdown styles */
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='gray'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E")
-    no-repeat right 10px center; /* Custom dropdown arrow */
-  background-color: #fff; /* Background color */
-  background-size: 15px; /* Adjust arrow size */
-  margin-bottom: 15px; /* Space below the select */
-  transition: border-color 0.3s ease; /* Smooth transition for focus */
-  cursor: pointer; /* Pointer cursor */
+.form-field {
+  display: grid;
+  gap: 8px;
 }
 
-/* Select dropdown on focus */
-.styled-select:focus {
-  border-color: #a1b6cc; /* Blue border on focus */
-  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Glow effect */
+.field-wide {
+  grid-column: 1 / -1;
 }
-.styled-select-error:focus {
-  border-color: red; /* Blue border on focus */
-  box-shadow: 0 0 5px red; /* Glow effect */
+
+.field-label {
+  color: #20463f;
+  font: 700 0.8rem/1.3 'Manrope', sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
-/* Styling for the textarea */
-.styled-textarea {
+
+.field-control {
   width: 100%;
-  padding: 10px;
-  border: 2px solid #ccc;
-  border-radius: 5px;
-  font-size: 16px;
+  padding: 13px 14px;
+  border: 1px solid rgba(134, 151, 145, 0.26);
+  border-radius: 16px;
+  background: #ffffff;
+  color: #173a33;
+  font: 600 0.96rem/1.4 'Manrope', sans-serif;
   outline: none;
-  resize: vertical; /* Allow vertical resizing only */
-  min-height: 100px; /* Set a minimum height */
-  max-height: 300px; /* Optional: Limit the maximum height */
-  margin-bottom: 15px;
-  transition: border-color 0.3s ease;
-}
-.styled-textarea-error {
-  width: 100%;
-  padding: 10px;
-  border: 2px solid red;
-  border-radius: 5px;
-  font-size: 16px;
-  outline: none;
-  resize: vertical; /* Allow vertical resizing only */
-  min-height: 100px; /* Set a minimum height */
-  max-height: 300px; /* Optional: Limit the maximum height */
-  margin-bottom: 15px;
-  transition: border-color 0.3s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+
+  &:focus {
+    border-color: rgba(43, 124, 109, 0.44);
+    box-shadow: 0 0 0 4px rgba(43, 124, 109, 0.08);
+  }
 }
 
-.styled-textarea:focus {
-  border-color: #a1b6cc;
-  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-}
-.styled-textarea-error:focus {
-  border-color: red;
-  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+.field-control.error {
+  border-color: rgba(220, 38, 38, 0.48);
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.06);
 }
 
-/* Placeholder styling for textarea */
-.styled-textarea::placeholder {
-  color: #888;
-  font-style: italic;
+.field-select {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #46635c 50%),
+    linear-gradient(135deg, #46635c 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) calc(50% - 3px),
+    calc(100% - 12px) calc(50% - 3px);
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
 }
 
-.submit-btn {
-  width: 240px;
-  height: 44px;
-  background-color: #007d53;
-  border-radius: 4px;
-  color: white;
-  font-size: 20px;
-  font-weight: 500;
-  border: none;
+.field-textarea {
+  min-height: 138px;
+  resize: vertical;
+}
+
+.field-error {
+  color: #c2410c;
+  font: 600 0.78rem/1.4 'Manrope', sans-serif;
+}
+
+.preview-card {
+  padding: 14px 16px;
+  border: 1px solid rgba(18, 59, 49, 0.08);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(244, 248, 247, 0.96), rgba(255, 255, 255, 0.96));
+
+  p {
+    margin: 0;
+    color: #5d6f69;
+    font: 500 0.9rem/1.6 'Manrope', sans-serif;
+  }
+}
+
+.action-row {
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
 }
-.add-btn {
-  width: 240px;
-  height: 44px;
-  background-color: #d4d4d4;
-  border-radius: 4px;
-  color: #007d53;
-  font-size: 20px;
-  font-weight: 500;
-  border: none;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+
+.secondary-btn,
+.primary-btn {
+  border: 0;
+  border-radius: 14px;
+  padding: 12px 18px;
+  font: 800 0.85rem/1.1 'Manrope', sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.secondary-btn {
+  background: #eef4f2;
+  color: #20463f;
+  border: 1px solid rgba(18, 59, 49, 0.08);
+}
+
+.primary-btn {
+  background: linear-gradient(135deg, #0f7b64, #125a4a);
+  color: #f5fbf8;
+  box-shadow: 0 14px 28px rgba(15, 123, 100, 0.18);
+}
+
+.secondary-btn:hover,
+.primary-btn:hover {
+  transform: translateY(-1px);
+}
+
+.primary-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+@media (max-width: 767px) {
+  .create-whats-new-overlay {
+    padding: 14px;
+  }
+
+  .create-whats-new-modal {
+    padding: 18px;
+    border-radius: 24px;
+  }
+
+  .hero-section,
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-shell {
+    padding: 16px;
+  }
+
+  .action-row {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
 }
 </style>
