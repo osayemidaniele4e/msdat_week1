@@ -12,8 +12,8 @@
         <div class="hero-copy">
           <h1>What&apos;s New</h1>
           <p>
-            Fresh improvements across your workspace, curated to help you spot new datasets,
-            dashboards, and platform features at a glance.
+            Fresh improvements across MSDAT Platform, curated to help spot new datasets, dashboards,
+            and platform features at a glance.
           </p>
           <div class="hero-inline-note">
             <span class="hero-inline-dot"></span>

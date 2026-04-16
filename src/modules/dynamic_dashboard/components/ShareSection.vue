@@ -294,16 +294,21 @@ export default {
 
 .close-btn {
   position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 42px;
-  height: 42px;
+  top: 18px;
+  right: 18px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
   border: 1px solid rgba(16, 54, 45, 0.12);
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.92);
   color: #173a33;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
 .close-btn:hover,
@@ -313,8 +318,14 @@ export default {
 }
 
 .close-btn span {
+  display: block;
   font-size: 1.75rem;
   line-height: 1;
+}
+
+.close-btn:hover {
+  background: #ffffff;
+  box-shadow: 0 16px 32px rgba(23, 58, 51, 0.14);
 }
 
 .share-hero {
