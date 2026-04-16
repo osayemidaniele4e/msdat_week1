@@ -70,7 +70,7 @@ export default {
     };
   },
   methods: {
-    ...mapMutations('MSDAT_STORE', ['ADD_CONTROL_PANEL', 'CLEAR_CONTROL_PANEL']),
+    ...mapMutations('MSDAT_STORE', ['ADD_CONTROL_PANEL', 'CLEAR_CONTROL_PANEL', 'UPDATE_LOADING_STATUS']),
     /**
      * @author davidbenard
      * @function ClearDataFromDexie
@@ -190,6 +190,15 @@ export default {
       this.isAdvanced = true;
       //   this.ADD_CONTROL_PANEL(configObj);
       // }
+    }
+
+    // Dynamic dashboards do not pass through the legacy footer flow that flips the
+    // global loading flag, so mark the app as initialized once the dashboard config
+    // has been resolved and the dashboard shell is ready to render.
+    if (this.configObject && Object.keys(this.configObject).length) {
+      this.$nextTick(() => {
+        this.UPDATE_LOADING_STATUS();
+      });
     }
   },
   watch: {

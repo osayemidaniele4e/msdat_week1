@@ -1,18 +1,18 @@
 <template>
-  <div class="position-relative" id="app">
+ <div class="position-relative" id="app">
     <router-view />
     <feedback />
     <div v-if="showDataSourceListComponent" class="position-fixed datasource-list">
       <ShowDataSourcesList />
     </div>
-    <div v-if="showWhatsNewComponent && whatsNewContent.length" class="position-fixed whats-new">
+      <div v-if="showWhatsNewComponent && whatsNewContent.length" class="position-fixed whats-new">
       <WhatsNew />
     </div>
     <div v-if="showShareSectionComponent" class="position-fixed whats-new">
       <ShareSection />
     </div>
 
-    <div class="fun-fact-trigger" aria-label="Show fun fact" @click="toggleFunFact()">
+     <div class="fun-fact-trigger" aria-label="Show fun fact" @click="toggleFunFact()">
       <svg class="bulb-svg" viewBox="0 0 512 512">
         <!-- keep your SVG exactly as is -->
         <!-- no inline width/height anymore -->
@@ -40,9 +40,9 @@
       </svg>
     </div>
 
-    <transition name="fun-fact-slide">
-      <div v-if="!isFunFactDisabled && showFunFact && nugget" class="fun-fact">
-        <button
+     <transition name="fun-fact-slide">
+      <div v-if="!isFunFactDisabled && showFunFact && nugget"  class="fun-fact">
+      <button
           class="fun-fact-disable text-danger"
           aria-label="Close fun fact"
           @click="disableFunFact"
@@ -90,9 +90,9 @@
     <!-- Global Chatbot - Commented out -->
     <!-- <div class="global-chatbot-wrapper">
       <ChatBot ref="globalChatBot" />
-      <button 
-        class="global-chat-trigger" 
-        @click="$refs.globalChatBot.toggleChat()" 
+      <button
+        class="global-chat-trigger"
+        @click="$refs.globalChatBot.toggleChat()"
         title="Metadata Chatbot"
         aria-label="Open AI Chatbot"
       >
@@ -101,7 +101,7 @@
         </svg>
       </button>
     </div> -->
-    <transition name="fade-slide">
+     <transition name="fade-slide">
       <div v-if="showDisablePrompt" class="funfact-modal">
         <div class="icon">💡</div>
 
@@ -117,6 +117,7 @@
       </div>
     </transition>
   </div>
+
 </template>
 
 <script>
@@ -125,7 +126,7 @@ import { mapActions, mapGetters, mapMutations } from 'vuex';
 import feedback from './views/feedback.vue';
 import ShowDataSourcesList from './modules/dynamic_dashboard/components/ShowDataSourcesList.vue';
 import WhatsNew from './modules/dynamic_dashboard/components/WhatsNew.vue';
-import ShareSection from './modules/dynamic_dashboard/components/ShareSection.vue'; // import ChatBot from './modules/msdat-dashboard/components/ChatBot.vue';
+import ShareSection from './modules/dynamic_dashboard/components/ShareSection.vue';// import ChatBot from './modules/msdat-dashboard/components/ChatBot.vue';
 import ApiServices from './modules/data-layer/services/ApiServices';
 import accessibilityPlugin from './modules/plugins/accessibilityPlugin';
 import contextPlugin from './modules/plugins/contextPlugin';
@@ -149,7 +150,6 @@ export default {
       pluginsImported: [], // Explicitly specify the type as an array of strings
       showDataSourceListComponent: false, // Replace with your actual state variable
       showWhatsNewComponent: false,
-      lastExecutionTime: null,
       whatsNewContent: [],
       showShareSectionComponent: false,
       showFunFact: false,
@@ -157,15 +157,22 @@ export default {
       hideTimeout: null,
       nugget: null,
       showDisablePrompt: false,
+      whatsNewReadyTimeout: null,
     };
   },
   computed: {
     ...mapGetters('appearance', ['viewMode', 'fontSize', 'theme']),
-    ...mapGetters('MSDAT_STORE', ['getConfigObject', 'getFunFact']),
+    ...mapGetters('MSDAT_STORE', ['getConfigObject', 'getFunFact', 'getLoadingStatus']),
 
     // get fun fact disabled state from localStorage
     isFunFactDisabled() {
       return localStorage.getItem('funFactDisabled') === 'true';
+    },
+    dashboardConfigId() {
+      return this.getConfigObject && this.getConfigObject.id ? this.getConfigObject.id : null;
+    },
+    isDashboardInitializationComplete() {
+      return Boolean(this.dashboardConfigId) && this.getLoadingStatus === false;
     },
   },
   watch: {
@@ -199,6 +206,19 @@ export default {
     theme(newTheme) {
       document.documentElement.setAttribute('data-theme', newTheme);
     },
+    dashboardConfigId: {
+      handler(newVal, oldVal) {
+        if (newVal && newVal !== oldVal) {
+          this.scheduleWhatsNewCheck('dashboard-ready');
+        }
+      },
+      immediate: true,
+    },
+    isDashboardInitializationComplete(newVal, oldVal) {
+      if (newVal && newVal !== oldVal) {
+        this.scheduleWhatsNewCheck('dashboard-initialized');
+      }
+    },
     showDisablePrompt(newVal) {
       if (newVal === true) {
         setTimeout(() => {
@@ -208,9 +228,9 @@ export default {
     },
   },
   async mounted() {
-    await this.getWhatsNew();
-
-    this.firstTimeExecution();
+    this.scheduleWhatsNewCheck('app-mounted');
+    window.addEventListener('focus', this.handleWhatsNewRecheckTrigger);
+    document.addEventListener('visibilitychange', this.handleVisibilityChange);
 
     // Show immediately (optional)
     this.showFunFactTemporarily();
@@ -304,6 +324,174 @@ export default {
     ...mapGetters('MSDAT_STORE', ['getConfigObject', 'getFunFact']),
     ...mapActions(['SET_PLUGINS_IMPORTED']),
     ...mapMutations('MSDAT_STORE', ['toggleShowWhatsNew', 'SET_FUN_FACT']),
+    getWhatsNewStorageKey(key) {
+      return `msdat_whats_new_${key}`;
+    },
+    getStoredWhatsNewTimestamp(key) {
+      const value = Number(localStorage.getItem(this.getWhatsNewStorageKey(key)));
+      return Number.isFinite(value) ? value : 0;
+    },
+    setStoredWhatsNewTimestamp(key, value) {
+      localStorage.setItem(this.getWhatsNewStorageKey(key), String(value));
+    },
+    getStoredWhatsNewSignature() {
+      return localStorage.getItem(this.getWhatsNewStorageKey('last_seen_signature')) || '';
+    },
+    setStoredWhatsNewSignature(signature) {
+      localStorage.setItem(this.getWhatsNewStorageKey('last_seen_signature'), signature);
+    },
+    buildWhatsNewSignature(items = []) {
+      return items
+        .map((item) => [
+          item.id,
+          item.updated_at || item.created_at || '',
+          item.category_name || '',
+          item.title || '',
+          item.content || '',
+          item.dashboard_name || '',
+        ].join(':'))
+        .join('|');
+    },
+    shouldDebugWhatsNew() {
+      return localStorage.getItem(this.getWhatsNewStorageKey('debug')) === 'true';
+    },
+    logWhatsNewDebug(stage, details = {}) {
+      if (!this.shouldDebugWhatsNew()) return;
+
+      console.log('[WhatsNew Debug]', stage, {
+        dashboardConfigId: this.dashboardConfigId,
+        getLoadingStatus: this.getLoadingStatus,
+        isDashboardInitializationComplete: this.isDashboardInitializationComplete,
+        showDataSourceListComponent: this.showDataSourceListComponent,
+        showShareSectionComponent: this.showShareSectionComponent,
+        showWhatsNewComponent: this.showWhatsNewComponent,
+        storedLastSeenAt: this.getStoredWhatsNewTimestamp('last_seen_at'),
+        storedLastCheckedAt: this.getStoredWhatsNewTimestamp('last_checked_at'),
+        storedLastSeenSignature: this.getStoredWhatsNewSignature(),
+        ...details,
+      });
+    },
+    canOpenWhatsNewModal() {
+      return !this.showDataSourceListComponent && !this.showShareSectionComponent;
+    },
+    async openWhatsNewModal(signature) {
+      if (!this.canOpenWhatsNewModal()) {
+        this.logWhatsNewDebug('open-blocked', {
+          reason: 'blocking-modal-open',
+        });
+        return;
+      }
+
+      this.setStoredWhatsNewSignature(signature);
+      this.setStoredWhatsNewTimestamp('last_seen_at', Date.now());
+      this.logWhatsNewDebug('open-modal', {
+        nextSignature: signature,
+      });
+      this.toggleShowWhatsNew();
+    },
+    shouldRecheckWhatsNew() {
+      const sixHours = 6 * 60 * 60 * 1000;
+      const lastCheckedAt = this.getStoredWhatsNewTimestamp('last_checked_at');
+      return !lastCheckedAt || Date.now() - lastCheckedAt >= sixHours;
+    },
+    scheduleWhatsNewCheck(reason = 'manual') {
+      if (!this.isDashboardInitializationComplete) {
+        this.logWhatsNewDebug('schedule-skipped', { reason });
+        return;
+      }
+
+      if (this.whatsNewReadyTimeout) {
+        clearTimeout(this.whatsNewReadyTimeout);
+      }
+
+      this.logWhatsNewDebug('schedule-queued', { reason });
+      this.whatsNewReadyTimeout = setTimeout(() => {
+        this.checkWhatsNew(reason);
+      }, 60 * 1000);
+    },
+    async checkWhatsNew(reason = 'manual') {
+      if (!this.isDashboardInitializationComplete) {
+        this.logWhatsNewDebug('check-skipped', { reason });
+        return;
+      }
+
+      try {
+        const hasCheckedBefore = this.getStoredWhatsNewTimestamp('last_checked_at') > 0;
+        const response = await ApiServices.getWhatsNew();
+        const results = Array.isArray(response?.data?.results) ? response.data.results : [];
+        const signature = this.buildWhatsNewSignature(results);
+        const lastSeenSignature = this.getStoredWhatsNewSignature();
+        const lastSeenAt = this.getStoredWhatsNewTimestamp('last_seen_at');
+        const oneDay = 24 * 60 * 60 * 1000;
+        const shouldShowForDailyView = !lastSeenAt || Date.now() - lastSeenAt >= oneDay;
+        const shouldShowForChange = Boolean(signature) && signature !== lastSeenSignature;
+        const shouldShowForFirstLoad = Boolean(signature) && !hasCheckedBefore;
+        const canOpen = this.canOpenWhatsNewModal();
+
+        this.whatsNewContent = results;
+        this.setStoredWhatsNewTimestamp('last_checked_at', Date.now());
+        this.logWhatsNewDebug('check-results', {
+          reason,
+          resultsLength: results.length,
+          latestSignature: signature,
+          hasCheckedBefore,
+          shouldShowForDailyView,
+          shouldShowForChange,
+          shouldShowForFirstLoad,
+          canOpen,
+        });
+
+        if (!results.length || !canOpen) {
+          this.logWhatsNewDebug('check-no-open', {
+            reason,
+            resultsLength: results.length,
+            canOpen,
+          });
+          return;
+        }
+
+        if (shouldShowForFirstLoad || shouldShowForChange || shouldShowForDailyView) {
+          await this.openWhatsNewModal(signature);
+        } else {
+          this.logWhatsNewDebug('check-no-open', {
+            reason,
+            resultsLength: results.length,
+            canOpen,
+            shouldShowForDailyView,
+            shouldShowForChange,
+            shouldShowForFirstLoad,
+          });
+        }
+      } catch (error) {
+        this.logWhatsNewDebug('check-error', {
+          reason,
+          error: error?.message || error,
+        });
+        console.error('Failed to fetch Whats New content:', error);
+      }
+    },
+    handleWhatsNewRecheckTrigger() {
+      if (document.hidden || !this.isDashboardInitializationComplete || !this.shouldRecheckWhatsNew()) {
+        this.logWhatsNewDebug('focus-skip', {
+          documentHidden: document.hidden,
+          shouldRecheck: this.shouldRecheckWhatsNew(),
+        });
+        return;
+      }
+
+      this.checkWhatsNew('focus');
+    },
+    handleVisibilityChange() {
+      if (document.hidden || !this.shouldRecheckWhatsNew()) {
+        this.logWhatsNewDebug('visibility-skip', {
+          documentHidden: document.hidden,
+          shouldRecheck: this.shouldRecheckWhatsNew(),
+        });
+        return;
+      }
+
+      this.checkWhatsNew('visibility');
+    },
 
     async showFunFactTemporarily() {
       if (this.getConfigObject.id === undefined) {
@@ -366,43 +554,6 @@ export default {
       }
     },
 
-    executeTask() {
-      const now = new Date();
-      this.lastExecutionTime = now.toLocaleTimeString();
-      this.toggleShowWhatsNew();
-    },
-
-    async getWhatsNew() {
-      const { data } = await ApiServices.getWhatsNew();
-      this.whatsNewContent = data.results;
-    },
-
-    handleAppUnload() {
-      localStorage.removeItem('firstTimeExecution');
-    },
-
-    startSixHourInterval() {
-      const checkAndExecute = () => {
-        const now = new Date();
-        const hours = now.getHours();
-        const minutes = now.getMinutes();
-        if (hours % 6 === 0 && minutes === 0) {
-          this.executeTask();
-        }
-      };
-      setInterval(checkAndExecute, 60 * 1000);
-    },
-
-    firstTimeExecution() {
-      setTimeout(() => {
-        const alreadyExecuted = localStorage.getItem('firstTimeExecution');
-        if (alreadyExecuted === null) {
-          localStorage.setItem('firstTimeExecution', 'true');
-          this.toggleShowWhatsNew();
-        }
-      }, 60 * 1000);
-    },
-
     // Live plugin toggling without reload
     onPluginsChanged({ plugin, value }) {
       const registry = {
@@ -458,6 +609,9 @@ export default {
     // Cleanup timers
     if (this.showInterval) clearInterval(this.showInterval);
     if (this.hideTimeout) clearTimeout(this.hideTimeout);
+    if (this.whatsNewReadyTimeout) clearTimeout(this.whatsNewReadyTimeout);
+    window.removeEventListener('focus', this.handleWhatsNewRecheckTrigger);
+    document.removeEventListener('visibilitychange', this.handleVisibilityChange);
   },
 };
 </script>
@@ -836,7 +990,7 @@ button:focus:not(:focus-visible) {
   height: 28px;
 }
 
-.light {
+  .light {
   background-color: #ffffff;
   color: #000000;
 }
@@ -877,9 +1031,9 @@ html.large {
 }
 
 [data-theme='neutral'] {
-  --primary-color: #ea4700;
-  --secondary-color: #ee6c33;
-  --background-color: #fbdacc;
+  --primary-color: #EA4700;
+  --secondary-color: #EE6C33;
+  --background-color: #FBDACC;
 }
 
 /* Dark Mode Styles */
@@ -964,9 +1118,9 @@ html.large {
   color: var(--text-muted);
 }
 
-[data-theme='dark'] input[type='text'],
-[data-theme='dark'] input[type='email'],
-[data-theme='dark'] input[type='password'],
+[data-theme='dark'] input[type="text"],
+[data-theme='dark'] input[type="email"],
+[data-theme='dark'] input[type="password"],
 [data-theme='dark'] textarea,
 [data-theme='dark'] select {
   background-color: var(--input-bg);
@@ -1352,4 +1506,5 @@ html.large {
     background: white !important;
   }
 }
+
 </style>

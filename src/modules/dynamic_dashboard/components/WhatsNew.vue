@@ -6,6 +6,8 @@
       </button>
 
       <section class="hero-section">
+        <div class="hero-orb hero-orb-one"></div>
+        <div class="hero-orb hero-orb-two"></div>
         <div class="eyebrow">Product updates</div>
         <div class="hero-copy">
           <h1>What&apos;s New</h1>
@@ -13,6 +15,10 @@
             Fresh improvements across your workspace, curated to help you spot new datasets,
             dashboards, and platform features at a glance.
           </p>
+          <div class="hero-inline-note">
+            <span class="hero-inline-dot"></span>
+            <span>Fresh signals for your next dashboard session</span>
+          </div>
         </div>
         <div class="hero-metrics">
           <div class="metric-card">
@@ -33,6 +39,7 @@
           class="update-section"
           :class="section.theme"
         >
+          <div class="section-accent"></div>
           <div class="section-header">
             <div class="section-icon">
               <img :src="section.icon" :alt="section.label" />
@@ -51,11 +58,12 @@
               <div class="item-marker"></div>
               <div class="item-content">
                 <h3>{{ item.content }}</h3>
+                <span class="item-meta">{{ section.label }} highlight</span>
                 <div v-if="section.key === 'Dashboard'" class="item-action-row">
                   <button
                     type="button"
                     class="link-btn"
-                    @click="navigateToDashboard(item.title)"
+                    @click="navigateToDashboard(item.dashboard_name || item.title)"
                   >
                     View
                   </button>
@@ -182,7 +190,7 @@ export default {
   width: min(980px, 100%);
   max-height: calc(100vh - 64px);
   overflow-y: auto;
-  padding: 28px;
+  padding: 24px;
   border: 1px solid rgba(255, 255, 255, 0.45);
   border-radius: 28px;
   background:
@@ -220,18 +228,45 @@ export default {
 }
 
 .hero-section {
+  position: relative;
+  overflow: hidden;
   display: grid;
   grid-template-columns: minmax(0, 1.8fr) minmax(220px, 0.9fr);
-  gap: 24px;
-  padding: 18px;
+  gap: 20px;
+  padding: 18px 18px 16px;
   border-radius: 24px;
   background:
-    linear-gradient(135deg, rgba(14, 74, 62, 0.96), rgba(35, 124, 109, 0.9)),
+    linear-gradient(135deg, rgba(12, 62, 53, 0.98), rgba(24, 111, 95, 0.94)),
     #0f4d42;
   color: #f8fcfb;
 }
 
+.hero-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(2px);
+}
+
+.hero-orb-one {
+  top: -54px;
+  right: -12px;
+  width: 168px;
+  height: 168px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0));
+}
+
+.hero-orb-two {
+  bottom: -72px;
+  left: 34%;
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(circle, rgba(217, 177, 95, 0.22), rgba(217, 177, 95, 0));
+}
+
 .eyebrow {
+  position: relative;
+  z-index: 1;
   grid-column: 1 / -1;
   width: fit-content;
   padding: 7px 12px;
@@ -249,35 +284,59 @@ export default {
   letter-spacing: -0.03em;
 }
 
+.hero-copy,
+.hero-metrics {
+  position: relative;
+  z-index: 1;
+}
+
 .hero-copy p {
   max-width: 560px;
   margin: 0;
-  font: 500 0.98rem/1.7 'Manrope', sans-serif;
+  font: 500 0.95rem/1.65 'Manrope', sans-serif;
   color: rgba(248, 252, 251, 0.84);
+}
+
+.hero-inline-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  color: rgba(248, 252, 251, 0.86);
+  font: 600 0.82rem/1.2 'Manrope', sans-serif;
+}
+
+.hero-inline-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f8d58d, #ffffff);
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.08);
 }
 
 .hero-metrics {
   display: grid;
-  gap: 14px;
+  gap: 12px;
   align-content: end;
 }
 
 .metric-card {
-  padding: 16px 18px;
+  padding: 14px 16px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06));
   backdrop-filter: blur(12px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 
   strong {
     display: block;
-    margin-top: 8px;
-    font: 800 2rem/1 'Manrope', sans-serif;
+    margin-top: 6px;
+    font: 800 1.85rem/1 'Manrope', sans-serif;
   }
 }
 
 .metric-card.subtle {
-  background: rgba(255, 255, 255, 0.06);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
 }
 
 .metric-label {
@@ -290,16 +349,27 @@ export default {
 .updates-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
-  margin-top: 22px;
+  gap: 16px;
+  margin-top: 18px;
 }
 
 .update-section {
+  position: relative;
   padding: 18px;
   border: 1px solid rgba(18, 59, 49, 0.08);
   border-radius: 24px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(246, 249, 247, 0.9));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  overflow: hidden;
+}
+
+.section-accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, rgba(12, 141, 111, 0.95), rgba(215, 178, 103, 0.8));
 }
 
 .dataset-theme {
@@ -328,7 +398,7 @@ export default {
   height: 52px;
   flex-shrink: 0;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.86);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 251, 250, 0.88));
   box-shadow: 0 14px 24px rgba(24, 63, 54, 0.08);
 
   img {
@@ -344,13 +414,13 @@ export default {
   h2 {
     margin: 0;
     color: #173a33;
-    font: 800 1.05rem/1.2 'Manrope', sans-serif;
+    font: 800 1rem/1.2 'Manrope', sans-serif;
   }
 
   p {
-    margin: 8px 0 0;
+    margin: 6px 0 0;
     color: #5d6f69;
-    font: 500 0.89rem/1.6 'Manrope', sans-serif;
+    font: 500 0.85rem/1.55 'Manrope', sans-serif;
   }
 }
 
@@ -373,7 +443,7 @@ export default {
 }
 
 .update-list {
-  margin: 18px 0 0;
+  margin: 16px 0 0;
   padding: 0;
   list-style: none;
 }
@@ -381,7 +451,7 @@ export default {
 .update-item {
   display: flex;
   gap: 12px;
-  padding: 14px 0;
+  padding: 12px 0;
   border-top: 1px solid rgba(28, 77, 66, 0.08);
 }
 
@@ -401,20 +471,29 @@ export default {
   h3 {
     margin: 0;
     color: #1b2b28;
-    font: 700 0.95rem/1.55 'Manrope', sans-serif;
+    font: 700 0.92rem/1.5 'Manrope', sans-serif;
   }
+}
+
+.item-meta {
+  display: inline-flex;
+  margin-top: 8px;
+  color: #6b7e78;
+  font: 700 0.68rem/1 'Manrope', sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .item-action-row {
   display: flex;
   justify-content: flex-start;
-  margin-top: 12px;
+  margin-top: 10px;
 }
 
 .link-btn {
   min-width: 96px;
   border: 1px solid rgba(12, 109, 88, 0.14);
-  padding: 10px 14px;
+  padding: 9px 14px;
   border-radius: 12px;
   background: linear-gradient(135deg, #0f7b64, #125a4a);
   color: #f5fbf8;
@@ -493,6 +572,10 @@ export default {
 
   .hero-copy p {
     font-size: 0.92rem;
+  }
+
+  .hero-inline-note {
+    flex-wrap: wrap;
   }
 
   .hero-metrics {
