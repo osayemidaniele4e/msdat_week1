@@ -22,12 +22,8 @@
         </div>
         <div class="hero-metrics">
           <div class="metric-card">
-            <span class="metric-label">New entries</span>
+            <span class="metric-label">New Update count</span>
             <strong>{{ totalUpdates }}</strong>
-          </div>
-          <div class="metric-card subtle">
-            <span class="metric-label">Categories</span>
-            <strong>{{ sections.length }}</strong>
           </div>
         </div>
       </section>
@@ -47,7 +43,11 @@
             <div class="section-title-wrap">
               <div class="section-label-row">
                 <h2>{{ section.label }}</h2>
-                <span class="pill">{{ section.items.length }} update{{ section.items.length === 1 ? '' : 's' }}</span>
+                <span class="pill"
+                  >{{ section.items.length }} update{{
+                    section.items.length === 1 ? '' : 's'
+                  }}</span
+                >
               </div>
               <p>{{ section.description }}</p>
             </div>
@@ -178,8 +178,7 @@ export default {
   width: 100%;
   min-height: 100%;
   padding: 32px 20px;
-  background:
-    radial-gradient(circle at top left, rgba(43, 124, 109, 0.22), transparent 34%),
+  background: radial-gradient(circle at top left, rgba(43, 124, 109, 0.22), transparent 34%),
     radial-gradient(circle at bottom right, rgba(203, 164, 92, 0.16), transparent 28%),
     rgba(6, 15, 13, 0.3);
   backdrop-filter: blur(6px);
@@ -193,9 +192,7 @@ export default {
   padding: 24px;
   border: 1px solid rgba(255, 255, 255, 0.45);
   border-radius: 28px;
-  background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(245, 249, 247, 0.94)),
-    #ffffff;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(245, 249, 247, 0.94)), #ffffff;
   box-shadow: 0 30px 80px rgba(4, 25, 21, 0.22);
 }
 
@@ -204,8 +201,12 @@ export default {
   top: 18px;
   right: 18px;
   z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 44px;
   height: 44px;
+  padding: 0;
   border: 1px solid rgba(18, 59, 49, 0.14);
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.92);
@@ -214,10 +215,9 @@ export default {
   transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 
   span {
-    display: inline-block;
+    display: block;
     font-size: 1.8rem;
     line-height: 1;
-    transform: translateY(-1px);
   }
 
   &:hover {
@@ -235,9 +235,7 @@ export default {
   gap: 20px;
   padding: 18px 18px 16px;
   border-radius: 24px;
-  background:
-    linear-gradient(135deg, rgba(12, 62, 53, 0.98), rgba(24, 111, 95, 0.94)),
-    #0f4d42;
+  background: linear-gradient(135deg, rgba(12, 62, 53, 0.98), rgba(24, 111, 95, 0.94)), #0f4d42;
   color: #f8fcfb;
 }
 

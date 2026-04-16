@@ -5,7 +5,7 @@
     <div v-if="showDataSourceListComponent" class="position-fixed datasource-list">
       <ShowDataSourcesList />
     </div>
-      <div v-if="showWhatsNewComponent && whatsNewContent.length" class="position-fixed whats-new">
+      <div v-if="showWhatsNewComponent" class="position-fixed whats-new">
       <WhatsNew />
     </div>
     <div v-if="showShareSectionComponent" class="position-fixed whats-new">
