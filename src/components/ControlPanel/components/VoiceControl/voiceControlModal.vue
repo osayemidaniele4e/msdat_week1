@@ -170,7 +170,9 @@
 <script>
 import BaseModal from '@/components/ui-components/_base-modal.vue';
 import store from '@/store';
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import {
+  ref, computed, onMounted, onBeforeUnmount,
+} from 'vue';
 
 export default {
   name: 'VoiceControlModal',
@@ -184,102 +186,6 @@ export default {
     },
   },
   setup(_props, { emit }) {
-    const REGULAR_DASHBOARD_SECTIONS = [
-      {
-        title: 'Indicator Overview',
-        aliases: ['indicator overview', 'overview', 'open overview', 'go to overview'],
-      },
-      {
-        title: 'Zonal Analysis',
-        aliases: ['zonal analysis', 'zonal', 'open zonal analysis', 'go to zonal analysis'],
-      },
-      {
-        title: 'Indicator Comparison',
-        aliases: [
-          'indicator comparison',
-          'comparison',
-          'indicator compare',
-          'open indicator comparison',
-          'go to indicator comparison',
-        ],
-      },
-      {
-        title: 'Dataset Comparison',
-        aliases: [
-          'dataset comparison',
-          'data set comparison',
-          'dataset compare',
-          'open dataset comparison',
-          'go to dataset comparison',
-        ],
-      },
-      {
-        title: 'Multi-Source Overview',
-        aliases: [
-          'multi-source overview',
-          'multi source overview',
-          'multisource overview',
-          'open multi source overview',
-          'go to multi source overview',
-        ],
-      },
-      {
-        title: 'Disaggregation',
-        aliases: ['disaggregation', 'open disaggregation', 'go to disaggregation'],
-      },
-    ];
-
-    const ADVANCED_ANALYTICS_SECTIONS = [
-      {
-        title: 'Correlation Analysis',
-        aliases: [
-          'correlation analysis',
-          'correlation',
-          'open correlation analysis',
-          'go to correlation analysis',
-        ],
-      },
-      {
-        title: 'Descriptive Analysis',
-        aliases: [
-          'descriptive analysis',
-          'descriptive',
-          'open descriptive analysis',
-          'go to descriptive analysis',
-        ],
-      },
-      {
-        title: 'Indicator Comparison',
-        aliases: [
-          'indicator comparison',
-          'comparison',
-          'indicator compare',
-          'open indicator comparison',
-          'go to indicator comparison',
-        ],
-      },
-      {
-        title: 'Predictive Analysis',
-        aliases: [
-          'predictive analysis',
-          'predictive',
-          'open predictive analysis',
-          'go to predictive analysis',
-        ],
-      },
-      {
-        title: 'Multisource Inidcator Comparison',
-        aliases: [
-          'multisource inidcator comparison',
-          'multisource indicator comparison',
-          'multi source indicator comparison',
-          'multisource comparison',
-          'open multisource indicator comparison',
-          'go to multisource indicator comparison',
-        ],
-      },
-    ];
-
     const sanitizeJsonResponse = (text) => {
       try {
         return JSON.parse(text);
@@ -306,6 +212,9 @@ export default {
     const listeningTimeout = ref(null); // For inactivity auto-stop timeout
     const stopReason = ref(null);
     const recoveryPending = ref(false);
+    let sendCommandToAPI;
+    let startListening;
+    let stopListening;
     const suggestedPrompts = [
       'Open the health outcome dashboard',
       'Find maternal mortality indicators',
@@ -364,71 +273,53 @@ export default {
       recoveryPending.value = false;
     };
 
-    const normalizeText = (value) =>
-      value
-        .toLowerCase()
-        .replace(/[^\w\s-]/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
+    const normalizeText = (value) => value
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
 
-    const currentDashboardName = () => store.state.MSDAT_STORE?.configObject?.name || '';
+    const normalizeResponseType = (value) => (typeof value === 'string' ? normalizeText(value).replace(/\s+/g, '') : '');
 
-    const getDetectableSections = () => {
-      if (currentDashboardName() === 'Advanced_Analytics') {
-        return ADVANCED_ANALYTICS_SECTIONS;
-      }
-      return REGULAR_DASHBOARD_SECTIONS;
-    };
-
-    const handleLocalSectionSwitch = (command) => {
-      const normalizedCommand = normalizeText(command);
-      const matchedSection = getDetectableSections().find(({ aliases, title }) => {
-        const normalizedTitle = normalizeText(title);
-
-        if (normalizedCommand === normalizedTitle) {
-          return true;
-        }
-
-        return aliases.some((alias) => {
-          const normalizedAlias = normalizeText(alias);
-          return (
-            normalizedCommand === normalizedAlias
-            || normalizedCommand.includes(normalizedAlias)
-            || normalizedAlias.includes(normalizedCommand)
-          );
-        });
-      });
-
-      if (!matchedSection) {
-        return false;
+    const getSectionTargetFromResponse = (data) => {
+      if (!data || typeof data !== 'object') {
+        return '';
       }
 
-      addDebugInfo(`Local section match detected — switching to ${matchedSection.title}`);
-      textResponse.value = `Switching to ${matchedSection.title}`;
-      store.commit('MSDAT_STORE/SET_SECTION', matchedSection.title);
-      resetVoiceSession();
-      emit('close');
-      return true;
+      const responseType = normalizeResponseType(data.type);
+      const sectionTypes = ['section', 'internalsection', 'internalnavigation'];
+
+      if (!sectionTypes.includes(responseType)) {
+        return '';
+      }
+
+      return data.section || data.section_title || data.title || data.name || data.route || '';
     };
 
-    const finalizeTranscriptProcessing = () => {
+    const getNavigationTargetFromResponse = (data) => {
+      if (!data || typeof data !== 'object') {
+        return '';
+      }
+
+      return normalizeResponseType(data.type) === 'navigation' ? data.route : '';
+    };
+
+    function finalizeTranscriptProcessing() {
       const fullTranscript = finalTranscript.value.trim();
 
       if (fullTranscript) {
         addDebugInfo(`Processing final transcript: "${fullTranscript}"`);
         transcript.value = fullTranscript;
-        if (!handleLocalSectionSwitch(fullTranscript)) {
-          status.value = 'processing';
-          sendCommandToAPI(fullTranscript);
-          emit('command', fullTranscript);
-        }
+        status.value = 'processing';
+        sendCommandToAPI(fullTranscript);
+        emit('command', fullTranscript);
       } else {
         addDebugInfo('No transcript to process');
         status.value = 'idle';
       }
-    };
+    }
 
-    const scheduleListeningTimeout = () => {
+    function scheduleListeningTimeout() {
       clearListeningTimeout();
 
       listeningTimeout.value = setTimeout(() => {
@@ -437,15 +328,15 @@ export default {
           stopListening('timeout');
         }
       }, MAX_LISTENING_DURATION);
-    };
+    }
 
     const restartRecognition = (reason = 'unexpected end') => {
       if (
-        !recognitionRef.value ||
-        !recognitionSupported.value ||
-        manualStop.value ||
-        stopReason.value === 'timeout' ||
-        status.value !== 'listening'
+        !recognitionRef.value
+        || !recognitionSupported.value
+        || manualStop.value
+        || stopReason.value === 'timeout'
+        || status.value !== 'listening'
       ) {
         return;
       }
@@ -456,11 +347,11 @@ export default {
       setTimeout(() => {
         try {
           if (
-            recognitionRef.value &&
-            recognitionSupported.value &&
-            !manualStop.value &&
-            stopReason.value !== 'timeout' &&
-            status.value === 'listening'
+            recognitionRef.value
+            && recognitionSupported.value
+            && !manualStop.value
+            && stopReason.value !== 'timeout'
+            && status.value === 'listening'
           ) {
             recognitionRef.value.start();
             scheduleListeningTimeout();
@@ -482,7 +373,7 @@ export default {
     };
 
     // Send command to API
-    const sendCommandToAPI = async (command) => {
+    sendCommandToAPI = async (command) => {
       addDebugInfo(`Preparing to send command to API: "${command}"`);
       const payload = JSON.stringify({ command });
       addDebugInfo(`API request payload: ${payload}`);
@@ -501,7 +392,7 @@ export default {
             headers: { 'Content-Type': 'application/json' },
             body: payload,
             signal: abortController.value.signal,
-          }
+          },
         );
 
         const responseText = await response.text();
@@ -513,7 +404,7 @@ export default {
 
         if (!response.ok) {
           throw new Error(
-            `API request failed with status ${response.status}. Response: ${responseText}`
+            `API request failed with status ${response.status}. Response: ${responseText}`,
           );
         }
 
@@ -534,10 +425,11 @@ export default {
         // console.log(data, '@@@ NAVigation');
 
         // ✅ Handle navigation type
-        if (data?.type === 'Navigation' && data?.route) {
-          addDebugInfo(`Navigation detected — redirecting to ${data.route}`);
+        const navigationTarget = getNavigationTargetFromResponse(data);
+        if (navigationTarget) {
+          addDebugInfo(`Navigation detected — redirecting to ${navigationTarget}`);
 
-          const rawRoute = data.route.trim();
+          const rawRoute = navigationTarget.trim();
 
           let targetUrl;
 
@@ -562,11 +454,8 @@ export default {
           return;
         }
 
-        if (
-          ['Section', 'InternalNavigation', 'InternalSection'].includes(data?.type)
-          && (data?.section || data?.section_title || data?.title)
-        ) {
-          const targetSection = data.section || data.section_title || data.title;
+        const targetSection = getSectionTargetFromResponse(data);
+        if (targetSection) {
           addDebugInfo(`Internal section switch detected — moving to ${targetSection}`);
 
           store.commit('MSDAT_STORE/SET_SECTION', targetSection);
@@ -650,10 +539,9 @@ export default {
                 if (result.length > 1) {
                   const alternatives = Array.from(result)
                     .map(
-                      (alt, idx) =>
-                        `Alt ${idx + 1}: "${alt.transcript}" (${(alt.confidence * 100).toFixed(
-                          1
-                        )}%)`
+                      (alt, idx) => `Alt ${idx + 1}: "${alt.transcript}" (${(alt.confidence * 100).toFixed(
+                        1,
+                      )}%)`,
                     )
                     .join(', ');
                   addDebugInfo(`Alternatives: ${alternatives}`);
@@ -662,8 +550,8 @@ export default {
                 final += `${transcriptText} `;
                 addDebugInfo(
                   `Final result: "${transcriptText}" (confidence: ${(confidence * 100).toFixed(
-                    1
-                  )}%)`
+                    1,
+                  )}%)`,
                 );
               } else {
                 interim += transcriptText;
@@ -727,7 +615,7 @@ export default {
 
           recognitionRef.value.onend = () => {
             addDebugInfo(
-              `Speech recognition ended. Manual stop: ${manualStop.value}, isListening: ${isListening.value}`
+              `Speech recognition ended. Manual stop: ${manualStop.value}, isListening: ${isListening.value}`,
             );
 
             // If user manually stopped, process the transcript
@@ -736,9 +624,8 @@ export default {
               isListening.value = false;
               stopReason.value = null;
               finalizeTranscriptProcessing();
-            }
-            // If recognition ended but user didn't stop, restart it
-            else if (isListening.value && status.value === 'listening') {
+            } else if (isListening.value && status.value === 'listening') {
+              // If recognition ended but user didn't stop, restart it
               addDebugInfo('Recognition ended unexpectedly, restarting...');
               restartRecognition('unexpected end');
             } else {
@@ -802,7 +689,7 @@ export default {
     };
 
     // Start listening function
-    const startListening = () => {
+    startListening = () => {
       addDebugInfo('Starting to listen...');
       // Clear previous results
       transcript.value = '';
@@ -852,7 +739,7 @@ export default {
     };
 
     // Stop listening function
-    const stopListening = (reason = 'manual') => {
+    stopListening = (reason = 'manual') => {
       addDebugInfo(`Stopping listening (${reason} stop)...`);
 
       stopReason.value = reason;
@@ -894,11 +781,9 @@ export default {
       finalTranscript.value = prompt;
       interimTranscript.value = '';
       addDebugInfo(`Running suggested prompt: "${prompt}"`);
-      if (!handleLocalSectionSwitch(prompt)) {
-        status.value = 'processing';
-        sendCommandToAPI(prompt);
-        emit('command', prompt);
-      }
+      status.value = 'processing';
+      sendCommandToAPI(prompt);
+      emit('command', prompt);
     };
 
     // Computed properties
@@ -945,9 +830,7 @@ export default {
       return 'Start speaking';
     });
 
-    const permissionTone = computed(() => {
-      return micPermission.value === 'denied' ? 'danger' : 'warning';
-    });
+    const permissionTone = computed(() => (micPermission.value === 'denied' ? 'danger' : 'warning'));
 
     // Lifecycle hooks
     onMounted(() => {
