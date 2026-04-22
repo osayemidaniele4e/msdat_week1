@@ -233,6 +233,8 @@ const mutations: MutationTree<State> = {
   },
 
   SET_SECTION_PAYLOAD: (state, obj: setPayload) => {
+    console.log(obj, '@@@@@MMMM@@@@');
+
     updateControlPayload2(state, obj);
   },
   SET_INDICATOR_DATASOURCES: (state, datasources) => {

@@ -105,7 +105,10 @@
           </div>
         </section>
 
-        <section v-if="transcript || textResponse || status === 'processing'" class="response-grid">
+        <section
+          v-if="transcript || assistantMessage || status === 'processing'"
+          class="response-grid"
+        >
           <article v-if="transcript" class="response-card glass-card">
             <div class="response-label">Captured Request</div>
             <p>{{ transcript }}</p>
@@ -122,9 +125,11 @@
             </b-button>
           </article>
 
-          <article v-if="textResponse" class="response-card assistant-card">
+          <article v-if="assistantMessage" class="response-card assistant-card">
             <div class="response-label">Assistant Response</div>
-            <p>{{ textResponse }}</p>
+            <p class="assistant-message">
+              {{ assistantMessage }}<span v-if="isTypingIntro" class="typing-cursor">|</span>
+            </p>
           </article>
         </section>
 
@@ -171,7 +176,7 @@
 import BaseModal from '@/components/ui-components/_base-modal.vue';
 import store from '@/store';
 import {
-  ref, computed, onMounted, onBeforeUnmount,
+  ref, computed, onMounted, onBeforeUnmount, watch,
 } from 'vue';
 
 export default {
@@ -185,7 +190,7 @@ export default {
       default: false,
     },
   },
-  setup(_props, { emit }) {
+  setup(props, { emit }) {
     const sanitizeJsonResponse = (text) => {
       try {
         return JSON.parse(text);
@@ -201,6 +206,10 @@ export default {
     const finalTranscript = ref(''); // Accumulated final results
     const manualStop = ref(false); // Track if user manually stopped
     const textResponse = ref(''); // Added for text response
+    const introMessage = 'Hello 👋\nI\'m your voice assistant, here to help you navigate dashboards, find indicators, and retrieve data or metadata from MSDAT.\nJust tell me what you need.';
+    const typedIntroMessage = ref('');
+    const isTypingIntro = ref(false);
+    const introTypingTimeout = ref(null);
     const status = ref('idle'); // idle, listening, processing, response
     const audioUrl = ref(null);
     const audioRef = ref(null);
@@ -221,6 +230,40 @@ export default {
       'Show metadata for this chart',
     ];
     const MAX_LISTENING_DURATION = 30000;
+
+    const clearIntroTypingTimeout = () => {
+      if (introTypingTimeout.value) {
+        clearTimeout(introTypingTimeout.value);
+        introTypingTimeout.value = null;
+      }
+    };
+
+    const startIntroTyping = () => {
+      clearIntroTypingTimeout();
+      typedIntroMessage.value = '';
+      isTypingIntro.value = true;
+      let currentIndex = 0;
+
+      const typeNextCharacter = () => {
+        if (!props.show) {
+          clearIntroTypingTimeout();
+          isTypingIntro.value = false;
+          return;
+        }
+
+        if (currentIndex >= introMessage.length) {
+          isTypingIntro.value = false;
+          introTypingTimeout.value = null;
+          return;
+        }
+
+        typedIntroMessage.value += introMessage[currentIndex];
+        currentIndex += 1;
+        introTypingTimeout.value = setTimeout(typeNextCharacter, 28);
+      };
+
+      typeNextCharacter();
+    };
 
     // Add this function to log debug information
     const addDebugInfo = (message) => {
@@ -272,6 +315,8 @@ export default {
       manualStop.value = false;
       recoveryPending.value = false;
     };
+
+    const assistantMessage = computed(() => textResponse.value || typedIntroMessage.value);
 
     const normalizeText = (value) => value
       .toLowerCase()
@@ -377,6 +422,8 @@ export default {
       addDebugInfo(`Preparing to send command to API: "${command}"`);
       const payload = JSON.stringify({ command });
       addDebugInfo(`API request payload: ${payload}`);
+      clearIntroTypingTimeout();
+      isTypingIntro.value = false;
       textResponse.value = ''; // Clear previous text response
 
       // Create new AbortController for this request
@@ -691,6 +738,8 @@ export default {
     // Start listening function
     startListening = () => {
       addDebugInfo('Starting to listen...');
+      clearIntroTypingTimeout();
+      isTypingIntro.value = false;
       // Clear previous results
       transcript.value = '';
       finalTranscript.value = '';
@@ -777,6 +826,8 @@ export default {
     };
 
     const runSuggestedPrompt = (prompt) => {
+      clearIntroTypingTimeout();
+      isTypingIntro.value = false;
       transcript.value = prompt;
       finalTranscript.value = prompt;
       interimTranscript.value = '';
@@ -832,6 +883,21 @@ export default {
 
     const permissionTone = computed(() => (micPermission.value === 'denied' ? 'danger' : 'warning'));
 
+    watch(
+      () => props.show,
+      (isVisible) => {
+        if (isVisible) {
+          startIntroTyping();
+          return;
+        }
+
+        clearIntroTypingTimeout();
+        isTypingIntro.value = false;
+        typedIntroMessage.value = '';
+      },
+      { immediate: true },
+    );
+
     // Lifecycle hooks
     onMounted(() => {
       addDebugInfo('Voice assistant component mounted');
@@ -857,6 +923,7 @@ export default {
 
       // Clear any pending timeouts
       clearListeningTimeout();
+      clearIntroTypingTimeout();
 
       // Cancel any pending API requests
       if (abortController.value) {
@@ -879,6 +946,8 @@ export default {
       isListening,
       transcript,
       textResponse,
+      assistantMessage,
+      isTypingIntro,
       status,
       audioUrl,
       audioRef,
@@ -982,6 +1051,28 @@ export default {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.assistant-message {
+  white-space: pre-line;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 1.08rem;
+  line-height: 1.85;
+  letter-spacing: 0.01em;
+  color: #14362f;
+}
+
+.typing-cursor {
+  display: inline-block;
+  margin-left: 0.08rem;
+  font-weight: 600;
+  animation: cursor-blink 1s steps(1) infinite;
+}
+
+@keyframes cursor-blink {
+  50% {
+    opacity: 0;
+  }
 }
 
 .hero-pill {
@@ -1219,6 +1310,15 @@ export default {
 
 .assistant-card {
   background: linear-gradient(180deg, #f4fbf8, #eaf5f1);
+  border: 1px solid rgba(18, 113, 95, 0.14);
+  box-shadow: 0 18px 36px rgba(13, 77, 68, 0.08);
+}
+
+.assistant-card .response-label {
+  margin-bottom: 0.7rem;
+  background: rgba(18, 113, 95, 0.08);
+  color: #0d4d44;
+  padding: 0.38rem 0.72rem;
 }
 
 .processing-card {
