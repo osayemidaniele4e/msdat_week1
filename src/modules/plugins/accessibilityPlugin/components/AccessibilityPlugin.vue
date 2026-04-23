@@ -3,16 +3,16 @@
     <div class="accessibility-header">
       <h3>Accessibility Settings</h3>
       <button class="close-btn" @click="setActiveComponent('main')" title="Close Accessibility Panel">
-        <i class="fas fa-times"></i>
+        <b-icon icon="x" aria-hidden="true"></b-icon>
       </button>
     </div>
-    
+
     <div class="accessibility-controls">
       <!-- High Contrast Toggle -->
       <div class="control-group">
         <label class="control-label">
-          <input 
-            type="checkbox" 
+          <input
+            type="checkbox"
             v-model="highContrastEnabled"
             @change="toggleHighContrast"
             aria-describedby="high-contrast-desc"
@@ -29,11 +29,11 @@
         <label class="control-label">Font Size</label>
         <div class="font-size-controls">
           <button @click="decreaseFontSize" :disabled="fontSizeLevel <= 1" title="Decrease Font Size">
-            <i class="fas fa-minus"></i>
+            <b-icon icon="dash" aria-hidden="true"></b-icon>
           </button>
           <span class="font-size-display">{{ fontSizeLevel }}</span>
           <button @click="increaseFontSize" :disabled="fontSizeLevel >= 5" title="Increase Font Size">
-            <i class="fas fa-plus"></i>
+            <b-icon icon="plus" aria-hidden="true"></b-icon>
           </button>
         </div>
         <p class="control-description">
@@ -44,8 +44,8 @@
       <!-- Focus Indicator Toggle -->
       <div class="control-group">
         <label class="control-label">
-          <input 
-            type="checkbox" 
+          <input
+            type="checkbox"
             v-model="enhancedFocusEnabled"
             @change="toggleEnhancedFocus"
             aria-describedby="focus-desc"
@@ -60,8 +60,8 @@
       <!-- Reduced Motion Toggle -->
       <div class="control-group">
         <label class="control-label">
-          <input 
-            type="checkbox" 
+          <input
+            type="checkbox"
             v-model="reducedMotionEnabled"
             @change="toggleReducedMotion"
             aria-describedby="motion-desc"
@@ -77,7 +77,7 @@
       <div class="control-group">
         <label class="control-label">Test Screen Reader</label>
         <button @click="testScreenReader" class="test-btn">
-          <i class="fas fa-volume-up"></i>
+          <b-icon icon="volume-up-fill" aria-hidden="true"></b-icon>
           Test Announcement
         </button>
         <p class="control-description">
@@ -88,7 +88,7 @@
       <!-- Reset Button -->
       <div class="control-group">
         <button @click="resetSettings" class="reset-btn">
-          <i class="fas fa-undo"></i>
+          <b-icon icon="arrow-counterclockwise" aria-hidden="true"></b-icon>
           Reset All Settings
         </button>
       </div>
@@ -114,7 +114,7 @@ export default {
     setActiveComponent(component) {
       this.$emit('setActiveComponent', component);
     },
-    
+
     toggleHighContrast() {
       if (this.highContrastEnabled) {
         document.body.classList.add('high-contrast');
@@ -125,7 +125,7 @@ export default {
       }
       this.saveSettings();
     },
-    
+
     increaseFontSize() {
       if (this.fontSizeLevel < 5) {
         this.fontSizeLevel++;
@@ -133,7 +133,7 @@ export default {
         this.$announceForAccessibility(`Font size increased to level ${this.fontSizeLevel}`);
       }
     },
-    
+
     decreaseFontSize() {
       if (this.fontSizeLevel > 1) {
         this.fontSizeLevel--;
@@ -141,13 +141,13 @@ export default {
         this.$announceForAccessibility(`Font size decreased to level ${this.fontSizeLevel}`);
       }
     },
-    
+
     applyFontSize() {
       const multiplier = 0.8 + (this.fontSizeLevel - 1) * 0.1; // 0.8x to 1.2x
       document.documentElement.style.fontSize = `${16 * multiplier}px`;
       this.saveSettings();
     },
-    
+
     toggleEnhancedFocus() {
       if (this.enhancedFocusEnabled) {
         document.body.classList.add('enhanced-focus');
@@ -158,7 +158,7 @@ export default {
       }
       this.saveSettings();
     },
-    
+
     toggleReducedMotion() {
       if (this.reducedMotionEnabled) {
         document.body.classList.add('reduced-motion');
@@ -169,25 +169,25 @@ export default {
       }
       this.saveSettings();
     },
-    
+
     testScreenReader() {
       this.$announceForAccessibility('This is a test announcement for screen readers. Accessibility features are working correctly.');
     },
-    
+
     resetSettings() {
       this.highContrastEnabled = false;
       this.fontSizeLevel = 3;
       this.enhancedFocusEnabled = false;
       this.reducedMotionEnabled = false;
-      
+
       // Remove all accessibility classes
       document.body.classList.remove('high-contrast', 'enhanced-focus', 'reduced-motion');
       document.documentElement.style.fontSize = '';
-      
+
       this.saveSettings();
       this.$announceForAccessibility('All accessibility settings have been reset to default');
     },
-    
+
     saveSettings() {
       const settings = {
         highContrastEnabled: this.highContrastEnabled,
@@ -197,7 +197,7 @@ export default {
       };
       localStorage.setItem('accessibility-settings', JSON.stringify(settings));
     },
-    
+
     loadSettings() {
       try {
         const saved = localStorage.getItem('accessibility-settings');
@@ -207,7 +207,7 @@ export default {
           this.fontSizeLevel = settings.fontSizeLevel || 3;
           this.enhancedFocusEnabled = settings.enhancedFocusEnabled || false;
           this.reducedMotionEnabled = settings.reducedMotionEnabled || false;
-          
+
           // Apply saved settings
           if (this.highContrastEnabled) {
             document.body.classList.add('high-contrast');

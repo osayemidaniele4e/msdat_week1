@@ -199,7 +199,7 @@ export default {
           fieldName: 'Indicator Overview',
           // selected: this.$store.state.MSDAT_STORE.indicatorComparision,
           selected: this.$store.getters.arrangedSections.find(
-            (sec) => sec.name === 'Indicator Overview'
+            (sec) => sec.name === 'Indicator Overview',
           ).isShow,
           fieldImage: '/img/dashboardPreviewImages/Dashboard.PNG',
         },
@@ -207,7 +207,7 @@ export default {
           fieldName: 'Zonal analysis',
           // selected: this.$store.state.MSDAT_STORE.zonalAna,
           selected: this.$store.getters.arrangedSections.find(
-            (sec) => sec.name === 'Zonal analysis'
+            (sec) => sec.name === 'Zonal analysis',
           ).isShow,
           fieldImage: '/img/dashboardPreviewImages/ZonalAnalysis.PNG',
         },
@@ -215,7 +215,7 @@ export default {
           fieldName: 'Indicator Comparison',
           // selected: this.$store.state.MSDAT_STORE.zonalAnalysis,
           selected: this.$store.getters.arrangedSections.find(
-            (sec) => sec.name === 'Indicator Comparison'
+            (sec) => sec.name === 'Indicator Comparison',
           ).isShow,
           fieldImage: '/img/dashboardPreviewImages/IndicatorComparision-byPeriod.PNG',
         },
@@ -223,7 +223,7 @@ export default {
           fieldName: 'Dataset Comparison',
           // selected: this.$store.state.MSDAT_STORE.datasetComperision,
           selected: this.$store.getters.arrangedSections.find(
-            (sec) => sec.name === 'Dataset Comparison'
+            (sec) => sec.name === 'Dataset Comparison',
           ).isShow,
           fieldImage: '/img/dashboardPreviewImages/DataSetComparison.PNG',
         },
@@ -231,7 +231,7 @@ export default {
           fieldName: 'Multi-source Comparison',
           // selected: this.$store.state.MSDAT_STORE.multisourceComparison,
           selected: this.$store.getters.arrangedSections.find(
-            (sec) => sec.name === 'Multi-source Comparison'
+            (sec) => sec.name === 'Multi-source Comparison',
           ).isShow,
           fieldImage: '/img/dashboardPreviewImages/MultiSourceComparison.PNG',
         },
@@ -334,7 +334,7 @@ export default {
     removeNullFields(obj) {
       return Object.fromEntries(
         // eslint-disable-next-line no-unused-vars
-        Object.entries(obj).filter(([_, value]) => value != null && value !== '')
+        Object.entries(obj).filter(([_, value]) => value != null && value !== ''),
       );
     },
 

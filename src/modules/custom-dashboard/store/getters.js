@@ -5,6 +5,9 @@ export default {
   dashboardDetails(state) {
     return state.dashboardDetails;
   },
+  dashboardMode(state) {
+    return state.dashboardMode;
+  },
 
   getEmbedUrl(state) {
     return state.embeddedUrl;

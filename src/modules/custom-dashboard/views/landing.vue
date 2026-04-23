@@ -88,8 +88,24 @@
                 includes cleaned data on specific key health indicators in Nigeria. This data is
                 available for your use.
               </p>
-              <b-button id="get-started" @click="$router.push('/custom/login')" class="px-3 py-2"
+              <b-button id="get-started" @click="startStandardFlow" class="px-3 py-2"
                 >Get Started Here</b-button
+              >
+            </div>
+          </div>
+          <div class="card mr-3 custom-card m-3 justify-content-center align-items-center">
+            <img
+              src="@/assets/img/Group 81.png"
+              class="card-img-top p-2"
+              style="visibility: hidden"
+            />
+            <div class="card-body">
+              <h4 class="card-title">Map Visualizations</h4>
+              <p class="card-text">
+                Build dedicated, highly interactive map visualizations of any health indicators across regions in the country. Perfect for geographic and spatial analysis of healthcare data.
+              </p>
+              <b-button id="get-started" @click="startMapFlow" class="px-3 py-2"
+                >Create map visualization here</b-button
               >
             </div>
           </div>
@@ -217,7 +233,8 @@ export default {
   },
   methods: {
     startAutoScroll() {
-      const container = this.$refs.imageContainer;
+      const container = this.$refs.scrollContainer;
+      if (!container) return;
       const containerWidth = container.offsetWidth;
       const imagesWidth = container.scrollWidth;
 
@@ -229,6 +246,14 @@ export default {
           }
         }, this.scrollSpeed);
       }
+    },
+    startStandardFlow() {
+      this.$store.dispatch('setDashboardMode', 'standard');
+      this.$router.push('/custom/login');
+    },
+    startMapFlow() {
+      this.$store.dispatch('setDashboardMode', 'map');
+      this.$router.push('/custom/login');
     },
   },
   beforeDestroy() {

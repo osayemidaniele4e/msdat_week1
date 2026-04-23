@@ -1,7 +1,7 @@
 <template>
     <div class="screenshot-manager-main">
       <button @click="setActiveComponent('plugin')">
-        <i class="fas fa-camera"></i>
+        <b-icon icon="camera-fill" aria-hidden="true"></b-icon>
       </button>
     </div>
   </template>

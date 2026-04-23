@@ -164,9 +164,7 @@ export default {
 
       return this.sources.map((section) => ({
         parent: section.parent,
-        children: section.children.filter((item) =>
-          item.datasource.toLowerCase().includes(searchLower)
-        ),
+        children: section.children.filter((item) => item.datasource.toLowerCase().includes(searchLower)),
       }));
     },
   },
@@ -190,7 +188,7 @@ export default {
             { target: { checked: this.allSourcesSelected } },
             section.parent,
             item.id,
-            item.datasource
+            item.datasource,
           );
         });
       });

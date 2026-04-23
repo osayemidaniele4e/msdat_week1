@@ -8,12 +8,7 @@
             <b-icon-chevron-left></b-icon-chevron-left>
             <div class="ml-2 d-none d-lg-inline">Back to Dashboard</div>
           </div>
-          <!-- <div class="search-input mt-5">
-            <button type="submit" class="btn search-icon p-1">
-              <i class="fa fa-search"></i>
-            </button>
-            <input type="text" class="" v-model="query" placeholder="Search">
-          </div> -->
+          <!-- Search field intentionally removed in favor of dashboard navigation shortcuts. -->
           <div class="mt-4">
             <p style="font-size: 17px;">User Profile</p>
           </div>

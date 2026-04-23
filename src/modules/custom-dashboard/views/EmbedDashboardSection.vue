@@ -153,7 +153,7 @@ export default {
       this.$store.dispatch('setEmbedUrl', this.modifyTableauUrl(this.url));
       this.$store.dispatch('setNewEmbedUrlTitleAction', this.urlTitle);
       this.$store.dispatch('setNewEmbedIframeTitleAction', this.iframeTitle);
-       this.$store.dispatch('setEmbedDashboardDescriptionAction', this.description);
+      this.$store.dispatch('setEmbedDashboardDescriptionAction', this.description);
       console.log(this.urlTitle, 'urlTitle');
       localStorage.setItem('activeTab', this.activeTab);
 

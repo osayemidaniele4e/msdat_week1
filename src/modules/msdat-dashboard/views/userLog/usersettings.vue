@@ -43,23 +43,23 @@
           <b-form-group id="input-group-7" class="form-group">
             <div class="input-label">
               <label for="new-password">New Password</label>
-              <i :class="passwordToggleIcon.newPassword" @click="togglePasswordVisibility('newPassword')" style="cursor: pointer;"></i>
+              <b-icon :icon="passwordToggleIcon.newPassword" @click="togglePasswordVisibility('newPassword')" style="cursor: pointer;"></b-icon>
             </div>
             <b-form-input id="new-password" :type="passwordFieldType.newPassword" v-model="newPassword" class="form-input" required></b-form-input>
             <b-progress :max="100" class="progress mt-2" :value="passwordStrength">
               <b-progress-bar :value="passwordStrength" class="progress-bar"></b-progress-bar>
             </b-progress>
             <span :class="passwordStrengthClass">{{ passwordStrengthText }}</span>
-            
+
             <!-- Password Requirements -->
             <div v-if="newPassword" class="password-requirements mt-2">
-              <div 
-                v-for="(requirement, index) in passwordRequirements" 
-                :key="index" 
+              <div
+                v-for="(requirement, index) in passwordRequirements"
+                :key="index"
                 class="requirement-item"
                 :class="{ 'requirement-met': requirement.met, 'requirement-unmet': !requirement.met }"
               >
-                <i :class="requirement.met ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
+                <b-icon :icon="requirement.met ? 'check-circle-fill' : 'x-circle-fill'"></b-icon>
                 <span>{{ requirement.text }}</span>
               </div>
             </div>
@@ -67,7 +67,7 @@
           <b-form-group id="input-group-8" class="form-group">
             <div class="input-label">
               <label for="confirm-password">Confirm Password</label>
-              <i :class="passwordToggleIcon.confirmPassword" @click="togglePasswordVisibility('confirmPassword')" style="cursor: pointer;"></i>
+              <b-icon :icon="passwordToggleIcon.confirmPassword" @click="togglePasswordVisibility('confirmPassword')" style="cursor: pointer;"></b-icon>
             </div>
             <b-form-input id="confirm-password" :type="passwordFieldType.confirmPassword" v-model="confirmPassword" class="form-input" required></b-form-input>
             <span class="strength-text" v-if="passwordsMatch">MATCH</span>
@@ -202,8 +202,8 @@ export default {
         confirmPassword: 'password',
       },
       passwordToggleIcon: {
-        newPassword: 'fas fa-eye',
-        confirmPassword: 'fas fa-eye',
+        newPassword: 'eye-fill',
+        confirmPassword: 'eye-fill',
       },
       plugins: [
         {
@@ -304,7 +304,7 @@ export default {
       ];
     },
     isPasswordValid() {
-      return this.passwordRequirements.every(req => req.met);
+      return this.passwordRequirements.every((req) => req.met);
     },
     passwordsMatch() {
       return this.newPassword === this.confirmPassword;
@@ -326,12 +326,12 @@ export default {
     },
 
     togglePlugin(plugin) {
-  // Persist state
-  const pluginState = plugin.enabled ? 'true' : 'false';
-  localStorage.setItem(plugin.key, pluginState);
+      // Persist state
+      const pluginState = plugin.enabled ? 'true' : 'false';
+      localStorage.setItem(plugin.key, pluginState);
 
-  // Notify root to (de)activate plugin at runtime without reload
-  this.$root.$emit('plugins:changed', { plugin: plugin.key, value: plugin.enabled });
+      // Notify root to (de)activate plugin at runtime without reload
+      this.$root.$emit('plugins:changed', { plugin: plugin.key, value: plugin.enabled });
     },
     async changePassword() {
       if (!this.passwordsMatch) {
@@ -346,17 +346,15 @@ export default {
             <div style="text-align: left;">
               <p>Password must meet all the following requirements:</p>
               <ul style="list-style: none; padding-left: 0;">
-                ${this.passwordRequirements.map(req => 
-                  `<li style="color: ${req.met ? '#28a745' : '#dc3545'}; margin: 5px 0;">
-                    <i class="fas ${req.met ? 'fa-check-circle' : 'fa-times-circle'}"></i>
+                ${this.passwordRequirements.map((req) => `<li style="color: ${req.met ? '#28a745' : '#dc3545'}; margin: 5px 0;">
+                    <span aria-hidden="true">${req.met ? '✔' : '✖'}</span>
                     ${req.text}
-                  </li>`
-                ).join('')}
+                  </li>`).join('')}
               </ul>
             </div>
           `,
           icon: 'warning',
-          confirmButtonText: 'OK'
+          confirmButtonText: 'OK',
         });
         return;
       }
@@ -406,10 +404,10 @@ export default {
     togglePasswordVisibility(field) {
       if (this.passwordFieldType[field] === 'password') {
         this.passwordFieldType[field] = 'text';
-        this.passwordToggleIcon[field] = 'fas fa-eye-slash';
+        this.passwordToggleIcon[field] = 'eye-slash-fill';
       } else {
         this.passwordFieldType[field] = 'password';
-        this.passwordToggleIcon[field] = 'fas fa-eye';
+        this.passwordToggleIcon[field] = 'eye-fill';
       }
     },
 
@@ -737,7 +735,7 @@ b-form-checkbox {
  .text-warning, .text-success {
   font-size: 12px;
  }
- .password-update .fas {
+ .password-update .b-icon {
   position: absolute;
   right: 10px;
   top: 38px;
@@ -760,7 +758,7 @@ b-form-checkbox {
   font-size: 12px;
  }
 
- .requirement-item i {
+ .requirement-item .b-icon {
   margin-right: 8px;
   font-size: 12px;
  }
