@@ -3,7 +3,7 @@
 /* eslint-disable array-callback-return */
 /* eslint-disable consistent-return */
 import axios from 'axios';
-import axiosInstance from '@/config/axios';
+import axiosInstance from '@/plugins/axios';
 
 async function getAllPaginatedResults(apiEndpoint, maxPages = 20) {
   const mergedResults = [];
@@ -53,7 +53,7 @@ const customDashboardApi = {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
-      },
+      }
     );
 
     if (!response.ok) {
@@ -248,7 +248,8 @@ export default {
       commit('setDSLoading', loading);
       // state.indicatorloading = true;
       // await axios.get('http://135.181.212.168:9234/api/crud/datasources/')
-      await customDashboardApi.fetchAllDataSources()
+      await customDashboardApi
+        .fetchAllDataSources()
         .then((res) => {
           // const { data } = res;
           const data = res.data.results;
@@ -278,7 +279,7 @@ export default {
                       x.selected = true;
                       return x;
                     }
-                  },
+                  }
                 ),
                 parent: distItem.toUpperCase(),
               });
@@ -318,7 +319,8 @@ export default {
       // commit('setshowLoader');
       // await axios.get(`http://135.181.212.168:9234/api/crud/datasource_specific_indicator/${payload.id}`)
       await // axios.get(`https://msdat-api.fmohconnect.gov.ng/api/datasource_specific_indicator/${payload.id}`)
-      customDashboardApi.fetchAllCoverageLevels(payload.id)
+      customDashboardApi
+        .fetchAllCoverageLevels(payload.id)
         .then((res) => {
           const { data } = res;
           // const data = res.data;
@@ -538,7 +540,7 @@ export default {
   // RETRIEVE DASHBOARD DETAILS
   async getDashboardDetails(_, id) {
     const { data } = await axios.get(
-      `https://msdat-fmoh-default-rtdb.firebaseio.com/custom/public/${id}.json`,
+      `https://msdat-fmoh-default-rtdb.firebaseio.com/custom/public/${id}.json`
     );
     return { data };
   },
@@ -553,7 +555,7 @@ export default {
   updateDashboard(_, payload) {
     return axios.patch(
       `https://msdat-fmoh-default-rtdb.firebaseio.com/custom/public/${payload.id}.json`,
-      payload,
+      payload
     );
   },
 };
