@@ -176,43 +176,58 @@ export default {
     refreshDashboards() {
       // Load from local storage
       const localPrivateDashboards = [...this.list];
-      this.privateDashboards = localPrivateDashboards.filter((dashboard) => !this.isMapDashboard(dashboard));
-      this.privateMapDashboards = localPrivateDashboards.filter((dashboard) => this.isMapDashboard(dashboard));
+      this.privateDashboards = localPrivateDashboards.filter(
+        (dashboard) => !this.isMapDashboard(dashboard)
+      );
+      this.privateMapDashboards = localPrivateDashboards.filter((dashboard) =>
+        this.isMapDashboard(dashboard)
+      );
 
       // Load from backend
-      this.$store.dispatch('getDashboards').then(({ result }) => {
-        console.log(result, '@@@@TY@@@@@ 2');
-        const backendPrivate = result
-          .filter((req) => req.email === this.getUser.email && req.is_private === true)
-          .map((req) => ({
-            ...req,
-            config: { ...JSON.parse(req.config) },
-          }));
+      this.$store
+        .dispatch('getDashboards')
+        .then(({ result }) => {
+          console.log(result, '@@@@TY@@@@@ 2');
+          const backendPrivate = result
+            .filter((req) => req.email === this.getUser.email && req.is_private === true)
+            .map((req) => ({
+              ...req,
+              config: { ...JSON.parse(req.config) },
+            }));
 
-        // Combine local and backend private dashboards, avoid duplicates by tracking IDs
-        const allPrivate = [...this.list];
-        backendPrivate.forEach((bp) => {
-          if (!allPrivate.find((p) => p.id === bp.id)) {
-            allPrivate.push(bp);
-          }
+          // Combine local and backend private dashboards, avoid duplicates by tracking IDs
+          const allPrivate = [...this.list];
+          backendPrivate.forEach((bp) => {
+            if (!allPrivate.find((p) => p.id === bp.id)) {
+              allPrivate.push(bp);
+            }
+          });
+          this.privateDashboards = allPrivate.filter(
+            (dashboard) => !this.isMapDashboard(dashboard)
+          );
+          this.privateMapDashboards = allPrivate.filter((dashboard) =>
+            this.isMapDashboard(dashboard)
+          );
+
+          const allPublic = result
+            .filter((req) => req.email === this.getUser.email && req.is_private === false)
+            .map((req) => ({
+              ...req,
+              config: { ...JSON.parse(req.config) },
+            }));
+          this.publicDashboards = allPublic.filter((dashboard) => !this.isMapDashboard(dashboard));
+          this.publicMapDashboards = allPublic.filter((dashboard) =>
+            this.isMapDashboard(dashboard)
+          );
+          this.loading = false;
+        })
+        .catch((err) => {
+          console.log(err);
+          this.loading = false;
+          this.$swal.fire(
+            'Could not retrieve your public dashboards from the server. Your local dashboards are still available.'
+          );
         });
-        this.privateDashboards = allPrivate.filter((dashboard) => !this.isMapDashboard(dashboard));
-        this.privateMapDashboards = allPrivate.filter((dashboard) => this.isMapDashboard(dashboard));
-
-        const allPublic = result
-          .filter((req) => req.email === this.getUser.email && req.is_private === false)
-          .map((req) => ({
-            ...req,
-            config: { ...JSON.parse(req.config) },
-          }));
-        this.publicDashboards = allPublic.filter((dashboard) => !this.isMapDashboard(dashboard));
-        this.publicMapDashboards = allPublic.filter((dashboard) => this.isMapDashboard(dashboard));
-        this.loading = false;
-      }).catch((err) => {
-        console.log(err);
-        this.loading = false;
-        this.$swal.fire('Could not retrieve your public dashboards from the server. Your local dashboards are still available.');
-      });
     },
     load(dashboard) {
       const { dashboardDetails, composedData, surveyArray, sectionsArray } = dashboard.config;
@@ -239,9 +254,9 @@ export default {
     isMapDashboard(dashboard) {
       const sections = dashboard?.config?.sectionsArray;
       if (!Array.isArray(sections)) return false;
-      const sectionNames = sections.map((section) => (
+      const sectionNames = sections.map((section) =>
         (section?.name || section?.fieldName || '').toLowerCase().trim()
-      ));
+      );
       return sectionNames.length === 1 && sectionNames[0] === 'map visualization';
     },
     edit(e, dashboard) {
@@ -271,38 +286,6 @@ export default {
     },
   },
   async mounted() {
-<<<<<<< HEAD
-    this.$store
-      .dispatch('getDashboards')
-      .then(({ result }) => {
-        this.privateDashboards = result
-          .filter((req) => req.email === this.getUser.email && req.is_private === true)
-          .map((req) => ({
-            ...req,
-            config: { ...JSON.parse(req.config) },
-          }));
-        this.publicDashboards = result
-          .filter((req) => req.email === this.getUser.email && req.is_private === false)
-          .map((req) => ({
-            ...req,
-            config: { ...JSON.parse(req.config) },
-          }));
-        this.loading = false;
-      })
-      .catch((err) => {
-        console.log(err);
-        this.loading = false;
-        this.$swal.fire('Could not retrieve your public dashboards');
-      });
-    // const { data } = await ApiServices.getCustomDashboard();
-    // console.log(data, 'Custom Dashboards');
-    // this.publicDashboards = data.data.results
-    //   .filter((item) => item.email === this.getUser.email)
-    //   .map((item) => ({
-    //     ...item,
-    //     config: { ...JSON.parse(item.config) },
-    //   }));
-=======
     this.refreshDashboards();
 
     // Watch for route changes to refresh when navigating to saved dashboards
@@ -315,7 +298,6 @@ export default {
   activated() {
     // Called when component becomes active (especially with keep-alive)
     this.refreshDashboards();
->>>>>>> 7adc198c5a5438b37ff5c5f8d9b136a2e30d0f8a
   },
 };
 </script>

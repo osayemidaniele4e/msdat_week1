@@ -12,7 +12,7 @@
         <div class="hero-copy">
           <h1>What&apos;s New</h1>
           <p>
-            Fresh improvements across MSDAT Platform, curated to help spot new datasets, dashboards,
+            New improvements across MSDAT Platform, curated to help spot new datasets, dashboards,
             and platform features at a glance.
           </p>
           <!-- <div class="hero-inline-note">
@@ -123,7 +123,10 @@ export default {
       }));
     },
     totalUpdates() {
-      return this.sections.reduce((total, section) => total + this.displayedCount(section.items), 0);
+      return this.sections.reduce(
+        (total, section) => total + this.displayedCount(section.items),
+        0
+      );
     },
   },
   methods: {
