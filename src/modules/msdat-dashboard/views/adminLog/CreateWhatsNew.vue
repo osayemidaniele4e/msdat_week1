@@ -8,10 +8,8 @@
       <section class="hero-section">
         <div class="hero-copy">
           <span class="eyebrow">Admin updates</span>
-          <h1>Create What&apos;s New entry</h1>
-          <p>
-            Publish a polished product update for datasets, dashboards, or platform features.
-          </p>
+          <h1>{{ modalHeading }}</h1>
+          <p>{{ modalDescription }}</p>
         </div>
 
         <div class="hero-summary">
@@ -20,7 +18,7 @@
             <strong>{{ type || 'Not chosen' }}</strong>
           </div>
           <div class="summary-card subtle">
-            <span>Ready to publish</span>
+            <span>{{ summaryLabel }}</span>
             <strong>{{ isFormComplete ? 'Yes' : 'Pending' }}</strong>
           </div>
         </div>
@@ -93,7 +91,7 @@
             Clear form
           </button>
           <button type="button" class="primary-btn" :disabled="submitting" @click="submit">
-            {{ submitting ? 'Publishing update...' : 'Submit update' }}
+            {{ submitLabel }}
           </button>
         </div>
       </section>
@@ -105,6 +103,12 @@
 import ApiServices from '@/modules/data-layer/services/ApiServices';
 
 export default {
+  props: {
+    initialData: {
+      type: Object,
+      default: () => ({}),
+    },
+  },
   data() {
     return {
       title: '',
@@ -121,6 +125,27 @@ export default {
     };
   },
   computed: {
+    isEditMode() {
+      return Boolean(this.initialData && this.initialData.id);
+    },
+    modalHeading() {
+      return this.isEditMode ? "Edit What's New entry" : "Create What's New entry";
+    },
+    modalDescription() {
+      return this.isEditMode
+        ? 'Refine an existing product update for datasets, dashboards, or platform features.'
+        : 'Publish a polished product update for datasets, dashboards, or platform features.';
+    },
+    summaryLabel() {
+      return this.isEditMode ? 'Ready to save' : 'Ready to publish';
+    },
+    submitLabel() {
+      if (this.submitting) {
+        return this.isEditMode ? 'Saving update...' : 'Publishing update...';
+      }
+
+      return this.isEditMode ? 'Save update' : 'Submit update';
+    },
     isFormComplete() {
       return Boolean(
         this.title.trim()
@@ -131,14 +156,38 @@ export default {
     },
   },
   methods: {
+    categoryMap() {
+      return {
+        Dashboard: 2,
+        Dataset: 1,
+        Feature: 3,
+      };
+    },
+    categoryNameMap() {
+      return {
+        1: 'Dataset',
+        2: 'Dashboard',
+        3: 'Feature',
+      };
+    },
+    populateForm() {
+      this.title = this.initialData.title || '';
+      this.type = this.initialData.category_name || this.categoryNameMap()[this.initialData.category] || '';
+      this.dashboardName = this.initialData.dashboard_name || '';
+      this.description = this.initialData.content || '';
+    },
     closeComponent() {
       this.$emit('closeModal');
     },
     clearForm() {
-      this.title = '';
-      this.type = '';
-      this.dashboardName = '';
-      this.description = '';
+      if (this.isEditMode) {
+        this.populateForm();
+      } else {
+        this.title = '';
+        this.type = '';
+        this.dashboardName = '';
+        this.description = '';
+      }
       this.errors = {
         title: null,
         content: null,
@@ -163,16 +212,10 @@ export default {
       return !Object.values(this.errors).some((error) => error);
     },
     async submit() {
-      const categoryMap = {
-        Dashboard: 2,
-        Dataset: 1,
-        Feature: 3,
-      };
-
       const data = {
         title: this.title,
         content: this.description,
-        category: categoryMap[this.type],
+        category: this.categoryMap()[this.type],
       };
 
       if (this.type === 'Dashboard') {
@@ -192,7 +235,12 @@ export default {
       this.submitting = true;
 
       try {
-        await ApiServices.saveWhatsNew(data);
+        if (this.isEditMode) {
+          await ApiServices.updateWhatsNew(this.initialData.id, data);
+        } else {
+          await ApiServices.saveWhatsNew(data);
+        }
+        this.$emit('saved');
         this.$emit('closeModal');
       } catch (error) {
         console.error('Error submitting data:', error);
@@ -200,6 +248,9 @@ export default {
         this.submitting = false;
       }
     },
+  },
+  mounted() {
+    this.populateForm();
   },
 };
 </script>

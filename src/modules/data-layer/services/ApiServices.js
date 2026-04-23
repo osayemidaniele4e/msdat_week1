@@ -71,6 +71,8 @@ const getNHMISDataObj = async (obj) => axiosInstance.get(
 );
 const getWhatsNew = async () => axiosInstance.get('news/updates/?size=1000');
 const saveWhatsNew = async (data) => authInstance.post('news/updates/', data);
+const updateWhatsNew = async (id, data) => authInstance.patch(`news/updates/${id}/`, data);
+const deleteWhatsNew = async (id) => authInstance.delete(`news/updates/${id}/`);
 const tagIndicator = async (data) => authInstance.post('tags/', data);
 const getTags = async () => axiosInstance.get('tags/');
 const saveCustomDashboard = async (data) => axiosInstance.post('custom-dashboard/', data);
@@ -124,7 +126,7 @@ const getAiIndicatorsSuggestions = async (payload) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
-    }
+    },
   );
 
   if (!response.ok) {
@@ -294,6 +296,8 @@ export default {
   getAllNHMISData,
   getWhatsNew,
   saveWhatsNew,
+  updateWhatsNew,
+  deleteWhatsNew,
   saveCustomDashboard,
   getSingleCustomDashboard,
   getCustomDashboard,

@@ -312,6 +312,11 @@ export default {
   },
   methods: {
     ...mapActions('AUTH_STORE', ['SAVE_DASHBOARDS']),
+    async logoutAndRedirect(message = 'Please log in again') {
+      this.$swal('Session expired', message, 'error');
+      await this.$store.dispatch('AUTH_STORE/logout');
+      this.$router.push('/');
+    },
     async getProfile() {
       const baseUrl = process.env.VUE_APP_API_BASE_URL;
       const url = `${baseUrl}users/${this.getUser.id}/`;
@@ -368,9 +373,7 @@ export default {
         // console.log('Token:', token);
 
         if (!token) {
-          this.$swal('Session expired', 'Please log in again', 'error');
-          this.$store.dispatch('AUTH_STORE/logout'); // Optional: Log out user if token is missing
-          this.$router.go();
+          await this.logoutAndRedirect();
           return;
         }
 
@@ -393,8 +396,7 @@ export default {
         const errorMessage = error.response?.data?.message || 'An error occurred';
 
         if (error.response?.data?.code === 'token_not_valid') {
-          this.$swal('Session expired', 'Please log in again', 'error');
-          this.$store.dispatch('logout'); // Optional: Handle token expiration
+          await this.logoutAndRedirect();
         } else {
           this.$swal('Failed to update password', errorMessage, 'error');
         }
@@ -429,9 +431,7 @@ export default {
           const token = this.getUser.tokens.access_token;
 
           if (!token) {
-            this.$swal('Session expired', 'Please log in again', 'error');
-            this.$store.dispatch('AUTH_STORE/logout');
-            this.$router.go(); // Optional: Log out user if token is missing
+            await this.logoutAndRedirect();
             return;
           }
 
@@ -443,16 +443,14 @@ export default {
           });
 
           this.$swal('Account deactivated successfully!', '', 'success');
-          this.$store.dispatch('AUTH_STORE/logout'); // Log out the user after deactivation
-          this.$router.go();
+          await this.$store.dispatch('AUTH_STORE/logout');
+          this.$router.push('/');
         } catch (error) {
           console.error('Error deactivating account:', error.response?.data || error.message);
           const errorMessage = error.response?.data?.message || 'An error occurred';
 
           if (error.response?.data?.code === 'token_not_valid') {
-            this.$swal('Session expired', 'Please log in again', 'error');
-            this.$store.dispatch('AUTH_STORE/logout');
-            this.$router.go();
+            await this.logoutAndRedirect();
           } else {
             this.$swal('Failed to deactivate account', errorMessage, 'error');
           }
