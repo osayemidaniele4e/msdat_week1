@@ -1,95 +1,108 @@
 <template>
-  <div class="">
-    <header class="header sticky-top"></header>
-    <section class="container-fluid login-section">
-      <div class="container mt-5">
-        <h3 class="w-100 text-center mx-auto">Log in to your account</h3>
-        <div class="loader" v-if="isLoading">
-          <the-loader />
-        </div>
-        <div class="row">
-          <div class="col-12 mx-auto h-50px">
-            <form>
-              <div class="mb-3 w-50 mx-auto mt-3">
-                <ul v-if="!formIsValid" class="mx-auto text-center">
-                  <li style="color: red; list-style: none">{{ msg }}</li>
-                </ul>
+  <section class="login-page">
+    <div class="login-shell">
+      <div class="login-backdrop"></div>
 
-                <label for="" class="form-label">Username</label>
-                <input
-                  type="text"
-                  v-model="userName"
-                  class="form-control"
-                  aria-describedby="helpId"
-                  placeholder="Enter your user name"
-                />
-              </div>
-              <div class="mb-3 w-50 mx-auto mt-3 pos-rel">
-                <label for="" class="form-label">Password</label>
-                <input
-                  type="password"
-                  v-model="password"
-                  class="form-control"
-                  aria-describedby="helpId"
-                  placeholder="******************"
-                />
+      <div class="login-grid">
+        <aside class="login-showcase">
+          <p class="showcase-kicker">MSDAT Nigeria</p>
+          <h1>Welcome back</h1>
+          <p class="showcase-copy">
+            Sign in to continue exploring trusted public health data, dashboards, and coordinated
+            insights across teams and decision points.
+          </p>
 
-                <a href="" class="forgot-abs">Forgot?</a>
-              </div>
-              <div class="text-center lg">
-                <button
-                  type="submit"
-                  @click.prevent="submitForm"
-                  class="btn btn-lg btn-primary px-5"
-                  style="font-size: 15px"
-                >
-                  LOG IN
-                  <!-- <router-link :to="to" @click="submitForm"> LOG IN </router-link> -->
-                </button>
-                <!-- <h4 class="py-3" style="font-size: 15px">Social Authentication</h4>
-                <div class="d-flex gap-2 justify-content-center align-items-center">
-                  <button
-                    type="button"
-                    class="btn btn-lg btn-primary px-3 py-2"
-                    @click="handleClickSignIn()"
-                  >
-                    <b-icon-google class=""></b-icon-google>
-                  </button>
-                  <a :href="linkedlnUrl" class="m-0 ml-2 rounded overflow-hidden">
-                    <img width="48" height="36" src="/img/linkedln-logo.png" alt="linkedln logo" />
-                  </a>
-                </div> -->
-              </div>
-            </form>
-
-            <div class="row">
-              <div class="col-12 text-center">
-                <h4 class="py-3" style="font-size: 15px; font-family: Work sans">
-                  Don't have an account?
-                </h4>
-                <button
-                  class="btn btn-lg btn-light btn-outline-dark"
-                  style="font-size: 15px"
-                  @click="$router.push('/custom/register')"
-                >
-                  CREATE AN ACCOUNT
-                </button>
-              </div>
+          <div class="showcase-panel">
+            <div class="showcase-stat">
+              <span class="stat-value">Connected</span>
+              <span class="stat-label"
+                >Access one streamlined space for dashboards and analysis</span
+              >
             </div>
+
+            <ul class="showcase-highlights">
+              <li>Designed for health program teams and data partners</li>
+              <li>Clearer visibility across federal, state, and local indicators</li>
+              <li>Secure access with a calmer, more focused workflow</li>
+            </ul>
           </div>
+        </aside>
+
+        <div class="login-card">
+          <div class="card-head">
+            <p class="card-kicker">Sign in</p>
+            <h2>Log in to your account</h2>
+            <p class="card-copy">
+              Use your MSDAT credentials to access your workspace and continue where you left off.
+            </p>
+          </div>
+
+          <div v-if="isLoading" class="loader">
+            <the-loader />
+          </div>
+
+          <b-form class="login-form" @submit.prevent="submitForm">
+            <div v-if="!formIsValid" class="form-alert" role="alert">
+              {{ msg }}
+            </div>
+
+            <b-form-group label="Username" label-for="username">
+              <b-form-input
+                id="username"
+                v-model="userName"
+                placeholder="Enter your username"
+                autocomplete="username"
+              />
+            </b-form-group>
+
+            <b-form-group label="Password" label-for="password" class="password-group">
+              <b-form-input
+                id="password"
+                v-model="password"
+                :type="passwordVisible ? 'text' : 'password'"
+                placeholder="Enter your password"
+                autocomplete="current-password"
+              />
+
+              <button
+                type="button"
+                class="password-toggle"
+                :aria-label="passwordVisible ? 'Hide password' : 'Show password'"
+                @click="passwordVisible = !passwordVisible"
+              >
+                <b-icon :icon="passwordVisible ? 'eye-slash' : 'eye'"></b-icon>
+              </button>
+            </b-form-group>
+
+            <div class="form-meta">
+              <span class="trust-note">Secure access for approved MSDAT users</span>
+              <a href="" class="forgot-link" @click.prevent>Forgot password?</a>
+            </div>
+
+            <b-button type="submit" class="login-button" :disabled="isLoading"> Log in </b-button>
+          </b-form>
+
+          <div class="auth-switch">
+            <span>Don&apos;t have an account?</span>
+            <b-button
+              type="button"
+              class="register-button"
+              @click="$router.push('/custom/register')"
+            >
+              Create an account
+            </b-button>
+          </div>
+
+          <p class="footer-note">
+            Built for Nigeria&apos;s health data ecosystem by eHealth4everyone.
+          </p>
         </div>
       </div>
-    </section>
-    <footer class="footer fixed-bottom">
-      <div class="container text-right pt-2">
-        <small class="text-right pr-5">Built with ❤️️ by eHealth4everyone</small>
-      </div>
-    </footer>
-  </div>
+    </div>
+  </section>
 </template>
 
 <script>
-// import axios from 'axios';
 import VueCookies from 'vue-cookies';
 import { mapActions } from 'vuex';
 import TheLoader from '../../custom-dashboard/components/Loading/TheLoader.vue';
@@ -100,21 +113,19 @@ export default {
     return {
       userName: '',
       password: '',
+      passwordVisible: false,
       formIsValid: true,
       isLoading: false,
       msg: 'Please enter Username and Password.',
-      linkedlnUrl: `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${process.env.VUE_APP_API_LINKEDIN_ID}&redirect_uri=${encodeURIComponent(`${window.location.origin}/custom`)}&state=CUSTOM&scope=openid%20profile%20email`,
+      linkedlnUrl: `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${
+        process.env.VUE_APP_API_LINKEDIN_ID
+      }&redirect_uri=${encodeURIComponent(
+        `${window.location.origin}/custom`
+      )}&state=CUSTOM&scope=openid%20profile%20email`,
     };
   },
   mounted() {
     VueCookies.remove('msdat-user-details');
-    // if (this.$route.query.code) {
-    //   const data = {
-    //     code: this.$route.query.code,
-    //     redirect_uri: `${window.location.origin}/custom/login`,
-    //   };
-    //   this.linkedlnSignin(data);
-    // }
   },
   methods: {
     ...mapActions('AUTH_STORE', ['LOGIN_USER', 'AUTHENTICATE', 'AUTHENTICATE_LINKEDIN']),
@@ -122,7 +133,8 @@ export default {
       this.isLoading = true;
       this.formIsValid = true;
       try {
-        if (this.userName === '' || this.password.length === '') {
+        if (this.userName === '' || this.password.length === 0) {
+          this.msg = 'Please enter Username and Password.';
           this.formIsValid = false;
           this.isLoading = false;
         } else {
@@ -132,18 +144,16 @@ export default {
           };
           await this.LOGIN_USER(formData)
             .then((res) => {
-              // console.log(res);
-              // eslint-disable-next-line eqeqeq
-
               if (res.status === 200) {
-                // VueCookies.set('msdat-access-token', res.data.token);
                 this.$swal(`Hi ${formData.username} 👋, \n\nWelcome to your Dashboard`);
                 this.$router.push({ path: '/my-dashboard/details' });
               } else {
+                this.msg = 'Something went wrong, confirm username and password.';
                 this.$swal('something went wrong, confirm username and password');
               }
             })
             .catch(() => {
+              this.msg = 'Confirm username and password.';
               this.$swal('confirm username and password');
             });
           this.isLoading = false;
@@ -151,8 +161,8 @@ export default {
       } catch (err) {
         this.isLoading = false;
         this.formIsValid = false;
+        this.msg = 'User not found, confirm username and password.';
         this.$swal('user not found, confirm username and password');
-        this.msg = 'user not found, confirm username and password';
       }
     },
 
@@ -201,142 +211,384 @@ export default {
       }
       return 0;
     },
-    // async linkedlnSignin(data) {
-    //   try {
-    //     await this.AUTHENTICATE_LINKEDIN(data)
-    //       .then((res) => {
-    //         if (res.status === 200 || res.status === 201) {
-    //           this.$swal({
-    //             toast: true,
-    //             position: 'bottom',
-    //             showConfirmButton: false,
-    //             timer: 5000,
-    //             icon: 'success',
-    //             title: 'Success',
-    //             text: 'Login successful',
-    //           });
-    //         }
-    //         this.$router.push({ path: '/my-dashboard/details' });
-    //       })
-    //       .catch((err) => {
-    //         console.log('res', err);
-    //         this.$swal({
-    //           toast: true,
-    //           position: 'bottom',
-    //           showConfirmButton: false,
-    //           timer: 5000,
-    //           icon: 'error',
-    //           title: 'Something went wrong',
-    //           text: 'Something went wrong signing you in with linkedln',
-    //         });
-    //       });
-    //   } catch (error) {
-    //     console.error(error);
-    //     return null;
-    //   }
-    //   return 0;
-    // },
   },
 };
 </script>
 
 <style scoped>
-.loader {
-  display: flex;
-  justify-content: center;
-  position: absolute;
-  width: 100%;
-  z-index: 999999;
-  align-items: center;
-  height: 67% !important;
-  /* transform: translate(-50%, -50%); */
-  left: 0;
-  right: 0;
-  bottom: 0;
-  top: 0;
+.login-page {
+  min-height: 100vh;
+  padding: 40px 20px;
+  background: radial-gradient(circle at top left, rgba(40, 129, 142, 0.18), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(191, 224, 218, 0.7), transparent 32%),
+    linear-gradient(145deg, #eef6f3 0%, #f7f2e8 52%, #f2f7f8 100%);
 }
-h4::before,
-h4::after {
-  display: inline-block;
+
+.login-shell {
+  position: relative;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.login-backdrop {
+  position: absolute;
+  inset: 36px auto auto 18px;
+  width: 230px;
+  height: 230px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(13, 92, 110, 0.16) 0%, rgba(13, 92, 110, 0) 72%);
+  pointer-events: none;
+}
+
+.login-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(300px, 0.95fr) minmax(320px, 0.9fr);
+  overflow: hidden;
+  border: 1px solid rgba(7, 52, 61, 0.08);
+  border-radius: 32px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 28px 70px rgba(13, 48, 56, 0.12);
+  backdrop-filter: blur(16px);
+}
+
+.login-showcase {
+  position: relative;
+  padding: 56px 44px;
+  color: #eff9f7;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0)),
+    linear-gradient(160deg, #073740 0%, #0d5c6e 52%, #1c7a78 100%);
+}
+
+.login-showcase::after {
+  position: absolute;
+  left: -70px;
+  bottom: -110px;
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
   content: '';
-  border-top: 1px solid rgb(116, 116, 116);
-  width: 4rem;
-  margin: 0 1rem;
-  transform: translateY(-0.5rem);
 }
-@media (max-width: 680px) {
-  h4::before,
-  h4::after {
-    display: none;
-  }
+
+.showcase-kicker,
+.card-kicker {
+  margin-bottom: 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
 }
-.login-button {
-  background: #3f8994;
-  color: white;
+
+.showcase-kicker {
+  color: rgba(236, 246, 244, 0.76);
 }
-.pos-rel {
-  position: relative !important;
+
+.login-showcase h1 {
+  max-width: 11ch;
+  margin-bottom: 20px;
+  font-size: clamp(2.25rem, 4vw, 3.8rem);
+  font-weight: 700;
+  line-height: 0.96;
 }
-.input-label {
-  top: 223px;
-  left: 702px;
-  width: 54px;
-  height: 29px;
-  text-align: left;
-  font: normal normal normal 22px/29px DM Sans;
-  letter-spacing: 0px;
-  color: #000000;
-  opacity: 1;
+
+.showcase-copy,
+.card-copy {
+  margin-bottom: 0;
+  font-size: 1rem;
+  line-height: 1.75;
 }
-.forgot-abs {
+
+.showcase-copy {
+  max-width: 46ch;
+  color: rgba(239, 249, 247, 0.82);
+}
+
+.showcase-panel {
+  margin-top: 42px;
+  padding: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+.showcase-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 24px;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stat-label {
+  max-width: 28ch;
+  color: rgba(239, 249, 247, 0.78);
+  line-height: 1.6;
+}
+
+.showcase-highlights {
+  display: grid;
+  gap: 14px;
+  padding-left: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.showcase-highlights li {
+  position: relative;
+  padding-left: 28px;
+  color: rgba(239, 249, 247, 0.92);
+  line-height: 1.5;
+}
+
+.showcase-highlights li::before {
   position: absolute;
-  bottom: 0;
-  top: 45px;
-  right: 0;
-  margin-right: 20px;
+  left: 0;
+  top: 0.38rem;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #d2f4e6;
+  box-shadow: 0 0 0 6px rgba(210, 244, 230, 0.15);
+  content: '';
+}
+
+.login-card {
+  position: relative;
+  padding: 56px 44px;
+}
+
+.card-head {
+  max-width: 42ch;
+  margin-bottom: 30px;
+}
+
+.card-kicker {
+  color: #0d5c6e;
+}
+
+.card-head h2 {
+  margin-bottom: 12px;
+  font-size: clamp(1.9rem, 3vw, 2.7rem);
+  font-weight: 700;
+  color: #112f35;
+}
+
+.card-copy {
+  color: #5d7276;
+}
+
+.loader {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 32px;
+  background: rgba(255, 255, 255, 0.64);
+  backdrop-filter: blur(6px);
+  z-index: 2;
+}
+
+.login-form ::v-deep .form-group {
+  margin-bottom: 18px;
+}
+
+.login-form ::v-deep label {
+  margin-bottom: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #18363d;
+}
+
+.login-form ::v-deep .form-control {
+  height: 56px;
+  padding: 0.95rem 1rem;
+  border: 1px solid rgba(17, 47, 53, 0.12);
+  border-radius: 16px;
+  background: rgba(246, 250, 249, 0.96);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  font-size: 0.98rem;
+  color: #16343a;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.login-form ::v-deep .form-control:focus {
+  border-color: rgba(13, 92, 110, 0.55);
+  background: #ffffff;
+  box-shadow: 0 0 0 0.2rem rgba(13, 92, 110, 0.12);
+}
+
+.form-alert {
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  border: 1px solid rgba(190, 74, 74, 0.18);
+  border-radius: 14px;
+  background: rgba(190, 74, 74, 0.08);
+  color: #8b2f2f;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.password-group {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 41px;
+  right: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #507176;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.password-toggle:hover {
+  background: rgba(13, 92, 110, 0.08);
+  color: #0d5c6e;
+}
+
+.form-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 6px 0 24px;
+}
+
+.trust-note {
+  color: #63777b;
+  font-size: 0.92rem;
+}
+
+.forgot-link {
+  color: #0d5c6e;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.forgot-link:hover {
+  color: #094754;
   text-decoration: underline;
 }
-.input-field {
-  top: 399px;
-  left: 702px;
-  width: 516px;
-  height: 64px;
-  background: #ffffff 0% 0% no-repeat padding-box;
-  border: 0.5px solid #000000;
-  border-radius: 2px;
-  opacity: 0.6;
-}
-.header {
-  width: 100%;
-  height: 50px;
-  background: #035c6e;
-  opacity: 1;
-}
-.h-50px input {
-  height: 50px;
-}
-.footer {
-  width: 100%;
-  height: 50px;
-  background: #035c6e;
-  opacity: 1;
+
+.login-button,
+.register-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 54px;
+  padding: 0.95rem 1.5rem;
+  border-radius: 16px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
-.footer small {
+.login-button {
   width: 100%;
-  font-size: 16px;
-  letter-spacing: 1px;
+  border: 0;
+  background: linear-gradient(135deg, #0d5c6e 0%, #1a7b79 100%);
+  box-shadow: 0 16px 32px rgba(13, 92, 110, 0.24);
   color: #ffffff;
-  opacity: 1;
 }
 
-.login-section {
-  font-family: 'Work sans';
+.login-button:hover,
+.login-button:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 20px 36px rgba(13, 92, 110, 0.28);
 }
-@media (max-width: 680px) {
-  h4::before,
-  h4::after {
-    display: none;
+
+.login-button:disabled {
+  opacity: 0.75;
+  transform: none;
+}
+
+.auth-switch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 24px;
+  color: #63777b;
+  text-align: center;
+}
+
+.register-button {
+  min-width: 190px;
+  border: 1px solid rgba(13, 92, 110, 0.14);
+  background: #f5f9f9;
+  box-shadow: 0 10px 24px rgba(17, 47, 53, 0.08);
+  color: #0d5c6e;
+}
+
+.register-button:hover,
+.register-button:focus {
+  transform: translateY(-1px);
+  background: #ffffff;
+  color: #094754;
+}
+
+.footer-note {
+  margin: 28px 0 0;
+  color: #7a8a8e;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+@media (max-width: 991px) {
+  .login-page {
+    padding: 20px 14px;
+  }
+
+  .login-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .login-showcase,
+  .login-card {
+    padding: 32px 24px;
+  }
+
+  .login-showcase h1 {
+    max-width: none;
+  }
+}
+
+@media (max-width: 575px) {
+  .form-meta,
+  .auth-switch {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .auth-switch {
+    align-items: center;
+  }
+
+  .showcase-panel {
+    padding: 22px 20px;
+  }
+
+  .register-button {
+    width: 100%;
   }
 }
 </style>
