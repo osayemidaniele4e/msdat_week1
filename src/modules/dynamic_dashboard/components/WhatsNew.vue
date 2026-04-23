@@ -8,17 +8,17 @@
       <section class="hero-section">
         <div class="hero-orb hero-orb-one"></div>
         <div class="hero-orb hero-orb-two"></div>
-        <div class="eyebrow">Product updates</div>
+        <div class="eyebrow">Platform updates</div>
         <div class="hero-copy">
           <h1>What&apos;s New</h1>
           <p>
             Fresh improvements across MSDAT Platform, curated to help spot new datasets, dashboards,
             and platform features at a glance.
           </p>
-          <div class="hero-inline-note">
+          <!-- <div class="hero-inline-note">
             <span class="hero-inline-dot"></span>
             <span>Fresh signals for your next dashboard session</span>
-          </div>
+          </div> -->
         </div>
         <div class="hero-metrics">
           <div class="metric-card">
@@ -44,8 +44,8 @@
               <div class="section-label-row">
                 <h2>{{ section.label }}</h2>
                 <span class="pill"
-                  >{{ section.items.length }} update{{
-                    section.items.length === 1 ? '' : 's'
+                  >{{ displayedCount(section.items) }} update{{
+                    displayedCount(section.items) === 1 ? '' : 's'
                   }}</span
                 >
               </div>
@@ -123,11 +123,14 @@ export default {
       }));
     },
     totalUpdates() {
-      return this.sections.reduce((total, section) => total + section.items.length, 0);
+      return this.sections.reduce((total, section) => total + this.displayedCount(section.items), 0);
     },
   },
   methods: {
     ...mapMutations('MSDAT_STORE', ['closeShowWhatsNew']),
+    displayedCount(items = []) {
+      return items.slice(0, 3).length;
+    },
 
     closeComponent() {
       localStorage.setItem('firstTimeExecution', 'true');

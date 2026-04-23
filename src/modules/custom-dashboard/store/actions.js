@@ -3,13 +3,77 @@
 /* eslint-disable array-callback-return */
 /* eslint-disable consistent-return */
 import axios from 'axios';
-import ApiServices from '@/modules/data-layer/services/ApiServices';
+import axiosInstance from '@/plugins/axios';
+
+async function getAllPaginatedResults(apiEndpoint, maxPages = 20) {
+  const mergedResults = [];
+  const visited = new Set();
+  let nextUrl = `/${apiEndpoint}`;
+  let pageCount = 0;
+
+  while (nextUrl && pageCount < maxPages) {
+    if (visited.has(nextUrl)) {
+      break;
+    }
+
+    visited.add(nextUrl);
+
+    // eslint-disable-next-line no-await-in-loop
+    const response = await axiosInstance.get(nextUrl);
+    const { data } = response;
+
+    if (Array.isArray(data?.results)) {
+      mergedResults.push(...data.results);
+    }
+
+    nextUrl = data?.next || null;
+    pageCount += 1;
+  }
+
+  return {
+    data: {
+      results: mergedResults,
+    },
+  };
+}
+
+const customDashboardApi = {
+  fetchAllIndicators: () => getAllPaginatedResults('indicators/?size=4000'),
+  fetchAllDataSources: () => axiosInstance.get('datasources/?size=100'),
+  fetchAllCoverageLevels: (id) => axiosInstance.get(`datasource_specific_indicator/${id}`),
+  getIndicatorsWithAvailable: (id) => axiosInstance.get(`indicators/${id}/years_available/`),
+  getCustomDashboard: () => axiosInstance.get('custom-dashboard/'),
+  getSingleCustomDashboard: (id) => axiosInstance.get(`custom-dashboard/${id}`),
+  async getAiIndicatorsSuggestions(payload) {
+    const response = await fetch(
+      'https://n8n.e4eweb.space/webhook/0bd06292-e8c8-433b-9c2d-89ba64006845',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Webhook error ${response.status}: ${text}`);
+    }
+
+    return response.json();
+  },
+};
 
 export default {
   resetState({ commit }) {
     commit('resetState');
   },
   // ********** Configuration Details ********** //
+
+  setDashboardMode({ commit }, payload) {
+    commit('setDashboardMode', payload);
+  },
 
   dashboardConfiguration({ commit }, payload) {
     commit('dashboardDetails', payload);
@@ -27,7 +91,7 @@ export default {
       try {
         commit('setIndiLoading', loading);
 
-        const res = await ApiServices.fetchAllIndicators();
+        const res = await customDashboardApi.fetchAllIndicators();
         console.log(res, 'All Indicator');
 
         if (res.data && res.data.results && Array.isArray(res.data.results)) {
@@ -107,7 +171,7 @@ export default {
         dashboard_description: state.dashboardDetails.description,
       };
 
-      const res = await ApiServices.getAiIndicatorsSuggestions(payload);
+      const res = await customDashboardApi.getAiIndicatorsSuggestions(payload);
       console.log(res, 'All Indicator AI');
 
       if (res && res && Array.isArray(res)) {
@@ -182,7 +246,8 @@ export default {
       commit('setDSLoading', loading);
       // state.indicatorloading = true;
       // await axios.get('http://135.181.212.168:9234/api/crud/datasources/')
-      await ApiServices.fetchAllDataSources()
+      await customDashboardApi
+        .fetchAllDataSources()
         .then((res) => {
           // const { data } = res;
           const data = res.data.results;
@@ -252,7 +317,8 @@ export default {
       // commit('setshowLoader');
       // await axios.get(`http://135.181.212.168:9234/api/crud/datasource_specific_indicator/${payload.id}`)
       await // axios.get(`https://msdat-api.fmohconnect.gov.ng/api/datasource_specific_indicator/${payload.id}`)
-      ApiServices.fetchAllCoverageLevels(payload.id)
+      customDashboardApi
+        .fetchAllCoverageLevels(payload.id)
         .then((res) => {
           const { data } = res;
           // const data = res.data;
@@ -301,7 +367,7 @@ export default {
       commit('setYearsLoading', loading);
       // await axios.get(`http://135.181.212.168:9234/api/crud/indicators/${payload.id}/years_available/`)
       await // axios.get(`https://msdat-api.fmohconnect.gov.ng/api/indicators/${payload.id}/years_available/`)
-      ApiServices.getIndicatorsWithAvailable(payload.id).then((res) => {
+      customDashboardApi.getIndicatorsWithAvailable(payload.id).then((res) => {
         const { data } = res;
 
         const currentYear = new Date().getFullYear();
@@ -464,7 +530,7 @@ export default {
     // const { data } = await axios.get(
     //   'https://msdat-fmoh-default-rtdb.firebaseio.com/custom/public.json',
     // );
-    const { data } = await ApiServices.getCustomDashboard();
+    const { data } = await customDashboardApi.getCustomDashboard();
     if (data.data.results) commit('setAllPublicDashboards', Object.values(data.data.results));
     const result = data.data.results;
     return { result };
@@ -479,7 +545,7 @@ export default {
 
   // RETRIEVE A SINGLE DASHBOARD BY ID
   async getDashboard(_, id) {
-    const { data } = await ApiServices.getSingleCustomDashboard(id);
+    const { data } = await customDashboardApi.getSingleCustomDashboard(id);
     return { data };
     // return axios.get(`https://msdat-fmoh-default-rtdb.firebaseio.com/custom/public/${id}.json`);
   },

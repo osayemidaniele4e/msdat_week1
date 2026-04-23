@@ -4,12 +4,12 @@
         <div v-for="(screenshot, index) in screenshots" :key="index" class="screenshot-item">
           <img :src="screenshot" alt="Screenshot" @click="downloadScreenshot(screenshot)">
           <button class="delete-btn" @click="deleteScreenshot(index)">
-            <i class="fas fa-times"></i>
+            <b-icon icon="x" aria-hidden="true"></b-icon>
           </button>
         </div>
       </div>
       <button @click="captureScreenshot">
-        <i class="fas fa-camera"></i> Take Screenshot
+        <b-icon icon="camera-fill" aria-hidden="true"></b-icon> Take Screenshot
       </button>
       <button @click="setActiveComponent('main')">Close</button>
     </div>

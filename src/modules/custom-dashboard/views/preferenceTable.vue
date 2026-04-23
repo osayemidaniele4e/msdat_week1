@@ -93,7 +93,7 @@
             >
           </div>
           <!-- <data-table class="data-table" /> -->
-          <SelectedInfoTable :selected-levels="selectedLevels" />
+          <SelectedInfoTable :selected-levels="selectedLevel" />
 
           <b-row align-h="end" class="text-right">
             <b-col cols="auto" style="font-size: 13px; font-family: Work Sans"
@@ -143,7 +143,6 @@ import IndicatorsSelection from '../components/preferences/selection/IndicatorsS
 import DataSource from '../components/preferences/selection/DataSourceSelection.vue';
 import YearsSelection from '../components/preferences/selection/YearsSelection.vue';
 import LevelSelection from '../components/preferences/selection/LevelSelection.vue';
-import DataTable from '../components/preferences/dataTable/DataTable.vue';
 import Notes from '../components/preferences/notes/Notes.vue';
 import SelectedInfoTable from './SelectedInfo.vue';
 
@@ -155,7 +154,6 @@ export default {
     DataSource,
     YearsSelection,
     LevelSelection,
-    DataTable,
     Notes,
     SelectedInfoTable,
   },
@@ -317,7 +315,11 @@ export default {
         && this.yearsCount
         && this.selectedLevel.length > 0
       ) {
-        this.$router.push('data-table');
+        if (this.$store.getters.dashboardMode === 'map') {
+          this.$router.push('publish-map');
+        } else {
+          this.$router.push('data-table');
+        }
         this.destroyPage = true;
       } else {
         this.$swal('You have to select atleast one item from every box');

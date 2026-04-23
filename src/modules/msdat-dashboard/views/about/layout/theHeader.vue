@@ -198,17 +198,38 @@
                 <!-- Modal for Sign In/Sign Up -->
                 <b-modal
                   id="auth-modal"
-                  title=""
                   centered
                   size="lg"
+                  hide-header
                   hide-footer
+                  modal-class="auth-modal-shell"
+                  dialog-class="auth-modal-dialog"
+                  content-class="auth-modal-content"
+                  body-class="auth-modal-body"
                   @hide="hideAuthModal"
                 >
-                  <div v-if="show">
-                    <LoginSidebar @login-success="hideAuthModal" />
-                  </div>
-                  <div v-else>
-                    <SignUp @login-success="hideAuthModal" />
+                  <div class="auth-modal-stage">
+                    <button
+                      type="button"
+                      class="auth-modal-close"
+                      aria-label="Close authentication modal"
+                      @click="hideAuthModal"
+                    >
+                      <b-icon icon="x"></b-icon>
+                    </button>
+
+                    <div v-if="show">
+                      <LoginSidebar
+                        @login-success="hideAuthModal"
+                        @open-register="showLoginForm"
+                      />
+                    </div>
+                    <div v-else>
+                      <SignUp
+                        @login-success="hideAuthModal"
+                        @open-login="showRegForm"
+                      />
+                    </div>
                   </div>
 
                   <div class="signup-main text-center mt-4" v-if="show">
@@ -1145,6 +1166,95 @@ header#the-header {
 
   .select-dropdown {
     margin-left: 100px;
+  }
+}
+</style>
+
+<style lang="scss">
+#auth-modal___BV_modal_backdrop_ {
+  background:
+    radial-gradient(circle at top, rgba(80, 168, 154, 0.2), transparent 42%),
+    rgba(5, 26, 31, 0.6);
+  backdrop-filter: blur(8px);
+}
+
+#auth-modal___BV_modal_backdrop_.show {
+  opacity: 1;
+}
+
+.auth-modal-dialog {
+  max-width: 1020px;
+}
+
+.auth-modal-content {
+  border: 0;
+  border-radius: 36px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.auth-modal-body {
+  position: relative;
+  padding: 0 0 1.25rem;
+  background: transparent;
+}
+
+.auth-modal-stage {
+  position: relative;
+}
+
+.auth-modal-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border: 1px solid rgba(46, 95, 96, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 16px 34px rgba(9, 34, 39, 0.18);
+  color: #163f41;
+  font-size: 1.4rem;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.auth-modal-close svg,
+.auth-modal-close .b-icon {
+  width: 18px;
+  height: 18px;
+  color: #163f41 !important;
+  fill: #163f41 !important;
+  opacity: 1;
+}
+
+.auth-modal-close:hover,
+.auth-modal-close:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 38px rgba(9, 34, 39, 0.18);
+  background: #ffffff;
+}
+
+@media (max-width: 767px) {
+  .auth-modal-dialog {
+    margin: 1rem;
+  }
+
+  .auth-modal-body {
+    padding-bottom: 0.75rem;
+  }
+
+  .auth-modal-close {
+    top: 12px;
+    right: 12px;
+    width: 42px;
+    height: 42px;
   }
 }
 </style>
