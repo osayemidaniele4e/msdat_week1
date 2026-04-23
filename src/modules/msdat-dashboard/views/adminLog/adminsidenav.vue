@@ -39,13 +39,14 @@
               <span class="d-none d-lg-inline">Notifications</span>
             </a>
 
-            <a
-              href="#/tags"
-              class="item"
-              :class="{ active: isCurrentRoute('/tag-management') }"
-            >
+            <a href="#/tags" class="item" :class="{ active: isCurrentRoute('/tags') }">
               <b-icon-bell-fill></b-icon-bell-fill>&nbsp;&nbsp;
               <span class="d-none d-lg-inline">Indicator Tag Management</span>
+            </a>
+
+            <a href="#/whatsnew" class="item" :class="{ active: isCurrentRoute('/whatsnew') }">
+              <b-icon-bell-fill></b-icon-bell-fill>&nbsp;&nbsp;
+              <span class="d-none d-lg-inline">Whats New Management</span>
             </a>
           </div>
           <div class="my-5">
@@ -88,6 +89,7 @@ import Plugins from './plugins.vue';
 import Settings from './adminsettings.vue';
 import dashboardList from './dashboard/List.vue';
 import TagManagement from './tagManagement.vue';
+import WhatsNewPage from './whatsNewPage.vue';
 
 const routes = {
   '/': AdminDashboard,
@@ -98,6 +100,7 @@ const routes = {
   '/adminsettings': Settings,
   '/dashboard': dashboardList,
   '/tags': TagManagement,
+  '/whatsnew': WhatsNewPage,
 };
 
 const titles = {
@@ -108,6 +111,7 @@ const titles = {
   '/Plugins': 'Plugins',
   '/adminsettings': 'Admin Settings',
   '/tags': 'Tag Management',
+  '/whatsnew': 'Whats New Management',
 };
 
 export default {
