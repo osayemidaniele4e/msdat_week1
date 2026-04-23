@@ -2,7 +2,10 @@
   <div class="container-fluid">
     <h4 class="text-center my-4">Your Private Dashboards</h4>
 
-    <div v-if="privateDashboards.length === 0 && privateMapDashboards.length === 0" class="border border-primary rounded mx-3 mb-1 pb-1 text-center">
+    <div
+      v-if="privateDashboards.length === 0 && privateMapDashboards.length === 0"
+      class="border border-primary rounded mx-3 mb-1 pb-1 text-center"
+    >
       <small>You have no existing private dashboards. Click the button below to create one!</small>
     </div>
 
@@ -74,9 +77,7 @@
           <div @click="copy(`${dashboard.link}${dashboard.id}`, $event)" class="mb-1">
             <strong class="text-primary mr-2">{{ dashboard.name_of_dashboard }}</strong>
             <b-button-group size="xs">
-              <b-button  class="py-1" variant="info"
-                >Copy Link</b-button
-              >
+              <b-button class="py-1" variant="info">Copy Link</b-button>
             </b-button-group>
           </div>
           <small>{{
@@ -136,7 +137,7 @@ export default {
   data() {
     return {
       customDashboardsList: JSON.parse(
-        localStorage.getItem('customDashboardsList') || JSON.stringify({}),
+        localStorage.getItem('customDashboardsList') || JSON.stringify({})
       ),
       publicDashboards: [],
       publicMapDashboards: [],
@@ -175,48 +176,61 @@ export default {
     refreshDashboards() {
       // Load from local storage
       const localPrivateDashboards = [...this.list];
-      this.privateDashboards = localPrivateDashboards.filter((dashboard) => !this.isMapDashboard(dashboard));
-      this.privateMapDashboards = localPrivateDashboards.filter((dashboard) => this.isMapDashboard(dashboard));
+      this.privateDashboards = localPrivateDashboards.filter(
+        (dashboard) => !this.isMapDashboard(dashboard)
+      );
+      this.privateMapDashboards = localPrivateDashboards.filter((dashboard) =>
+        this.isMapDashboard(dashboard)
+      );
 
       // Load from backend
-      this.$store.dispatch('getDashboards').then(({ result }) => {
-        console.log(result, '@@@@TY@@@@@ 2');
-        const backendPrivate = result
-          .filter((req) => req.email === this.getUser.email && req.is_private === true)
-          .map((req) => ({
-            ...req,
-            config: { ...JSON.parse(req.config) },
-          }));
+      this.$store
+        .dispatch('getDashboards')
+        .then(({ result }) => {
+          console.log(result, '@@@@TY@@@@@ 2');
+          const backendPrivate = result
+            .filter((req) => req.email === this.getUser.email && req.is_private === true)
+            .map((req) => ({
+              ...req,
+              config: { ...JSON.parse(req.config) },
+            }));
 
-        // Combine local and backend private dashboards, avoid duplicates by tracking IDs
-        const allPrivate = [...this.list];
-        backendPrivate.forEach((bp) => {
-          if (!allPrivate.find((p) => p.id === bp.id)) {
-            allPrivate.push(bp);
-          }
+          // Combine local and backend private dashboards, avoid duplicates by tracking IDs
+          const allPrivate = [...this.list];
+          backendPrivate.forEach((bp) => {
+            if (!allPrivate.find((p) => p.id === bp.id)) {
+              allPrivate.push(bp);
+            }
+          });
+          this.privateDashboards = allPrivate.filter(
+            (dashboard) => !this.isMapDashboard(dashboard)
+          );
+          this.privateMapDashboards = allPrivate.filter((dashboard) =>
+            this.isMapDashboard(dashboard)
+          );
+
+          const allPublic = result
+            .filter((req) => req.email === this.getUser.email && req.is_private === false)
+            .map((req) => ({
+              ...req,
+              config: { ...JSON.parse(req.config) },
+            }));
+          this.publicDashboards = allPublic.filter((dashboard) => !this.isMapDashboard(dashboard));
+          this.publicMapDashboards = allPublic.filter((dashboard) =>
+            this.isMapDashboard(dashboard)
+          );
+          this.loading = false;
+        })
+        .catch((err) => {
+          console.log(err);
+          this.loading = false;
+          this.$swal.fire(
+            'Could not retrieve your public dashboards from the server. Your local dashboards are still available.'
+          );
         });
-        this.privateDashboards = allPrivate.filter((dashboard) => !this.isMapDashboard(dashboard));
-        this.privateMapDashboards = allPrivate.filter((dashboard) => this.isMapDashboard(dashboard));
-
-        const allPublic = result
-          .filter((req) => req.email === this.getUser.email && req.is_private === false)
-          .map((req) => ({
-            ...req,
-            config: { ...JSON.parse(req.config) },
-          }));
-        this.publicDashboards = allPublic.filter((dashboard) => !this.isMapDashboard(dashboard));
-        this.publicMapDashboards = allPublic.filter((dashboard) => this.isMapDashboard(dashboard));
-        this.loading = false;
-      }).catch((err) => {
-        console.log(err);
-        this.loading = false;
-        this.$swal.fire('Could not retrieve your public dashboards from the server. Your local dashboards are still available.');
-      });
     },
     load(dashboard) {
-      const {
-        dashboardDetails, composedData, surveyArray, sectionsArray,
-      } = dashboard.config;
+      const { dashboardDetails, composedData, surveyArray, sectionsArray } = dashboard.config;
 
       this.$store.dispatch('resetState');
       this.$store.dispatch('dashboardConfiguration', dashboardDetails);
@@ -240,9 +254,9 @@ export default {
     isMapDashboard(dashboard) {
       const sections = dashboard?.config?.sectionsArray;
       if (!Array.isArray(sections)) return false;
-      const sectionNames = sections.map((section) => (
+      const sectionNames = sections.map((section) =>
         (section?.name || section?.fieldName || '').toLowerCase().trim()
-      ));
+      );
       return sectionNames.length === 1 && sectionNames[0] === 'map visualization';
     },
     edit(e, dashboard) {

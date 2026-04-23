@@ -166,8 +166,6 @@ export default {
     try {
       commit('setIndiLoading', loading);
 
-      console.log(state, '@@@');
-
       const payload = {
         dashboard_name: state.dashboardDetails.name,
         dashboard_description: state.dashboardDetails.description,

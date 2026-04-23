@@ -71,6 +71,7 @@ const appVueCode = `
     </div>
 
      <div class="fun-fact-trigger" aria-label="Show fun fact" @click="toggleFunFact()">
+      <span class="fun-fact-trigger-ring"></span>
       <svg class="bulb-svg" viewBox="0 0 512 512">
         <!-- keep your SVG exactly as is -->
         <!-- no inline width/height anymore -->
@@ -99,10 +100,10 @@ const appVueCode = `
     </div>
 
      <transition name="fun-fact-slide">
-      <div v-if="!isFunFactDisabled && showFunFact && nugget"  class="fun-fact">
+      <div v-if="!isFunFactDisabled && showFunFact && nugget" class="fun-fact">
         <button
           class="fun-fact-disable text-danger"
-          aria-label="Close fun fact"
+          aria-label="Disable fun facts"
           @click="toggleDisablePrompt"
         >
           <svg
@@ -124,6 +125,7 @@ const appVueCode = `
           </svg>
         </button>
         <button class="fun-fact-close" aria-label="Close fun fact" @click="closeFunFact">×</button>
+        <div class="fun-fact-glow"></div>
         <div class="fun-fact-icon">
           <!-- Light bulb SVG -->
           <svg
@@ -139,8 +141,15 @@ const appVueCode = `
         </div>
 
         <div class="fun-fact-content">
-          <p class="fun-fact-label">Did you know?</p>
-          <h1 class="fun-fact-text">{{ nugget }}</h1>
+          <div class="fun-fact-meta">
+            <p class="fun-fact-label">Curated Insight</p>
+            <span class="fun-fact-kicker">From your MSDAT context</span>
+          </div>
+          <div class="fun-fact-divider"></div>
+          <h1 class="fun-fact-text">
+            <span class="fun-fact-quote-mark">“</span>{{ nugget }}
+          </h1>
+          <p class="fun-fact-caption">A concise signal surfaced for the dashboard you are exploring.</p>
         </div>
       </div>
     </transition>
@@ -643,97 +652,111 @@ export default {
 
 .fun-fact {
   position: fixed;
-  top: 500px;
-  left: 400px;
-  width: 50vw;
+  right: 2rem;
+  bottom: 2rem;
+  width: min(34rem, calc(100vw - 2.5rem));
   display: flex;
-  gap: 14px;
+  gap: 1rem;
   align-items: flex-start;
-
-  padding: 18px 20px;
-  border-radius: 14px;
-
-  background: linear-gradient(135deg, #fff7e6, #ffffff);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
-
-  border-left: 5px solid #f59e0b;
+  overflow: hidden;
+  padding: 1.4rem 1.5rem 1.35rem;
+  border-radius: 1.6rem;
+  background:
+    radial-gradient(circle at top right, rgba(214, 169, 69, 0.18), transparent 32%),
+    linear-gradient(145deg, rgba(255, 250, 240, 0.98), rgba(250, 245, 233, 0.96));
+  border: 1px solid rgba(196, 149, 43, 0.18);
+  box-shadow:
+    0 22px 60px rgba(49, 36, 11, 0.18),
+    0 8px 20px rgba(130, 97, 27, 0.08);
   z-index: 9999;
+  transform-origin: left bottom;
+  will-change: transform, opacity;
 }
 
 
 .fun-fact-trigger {
   position: fixed;
-  top: 200px;
-  left: -15px; /* 👈 hide part of it */
+  left: 1.35rem;
+  bottom: 1.7rem;
   z-index: 9999;
 
   cursor: pointer;
-  background: none;
-  border: none;
+  width: 4.15rem;
+  height: 4.15rem;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.95), rgba(247, 236, 211, 0.78)),
+    linear-gradient(160deg, rgba(255, 248, 232, 0.92), rgba(244, 221, 165, 0.86));
+  border: 1px solid rgba(201, 154, 51, 0.22);
+  border-radius: 1.4rem;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  transition: transform 0.35s ease; /* 🔥 key */
-
-  /* subtle float */
+  box-shadow:
+    0 18px 38px rgba(75, 54, 14, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  transition: transform 0.35s ease, box-shadow 0.35s ease, filter 0.35s ease;
   animation: floaty 5s ease-in-out infinite;
 }
 
-/* 👉 slide OUT on hover */
 .fun-fact-trigger:hover {
-  // transform: translateX(28px);
-  left: 1px; /* 👈 brings it fully into view */
-  transition: transform 0.55s ease; /* 🔥 key */
+  transform: translateY(-4px) scale(1.03);
+  box-shadow:
+    0 24px 44px rgba(75, 54, 14, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .bulb-svg {
-  width: 40px; /* 👈 perfect size */
-  height: 40px;
+  width: 2rem;
+  height: 2rem;
 
   transition: all 0.3s ease;
-
-  /* base glow */
   filter: drop-shadow(0 4px 8px rgba(245, 158, 11, 0.3))
     drop-shadow(0 0 16px rgba(245, 158, 11, 0.25));
 }
 
-/* 💡 glowing bulb part */
 .bulb-glow {
   transition: all 0.3s ease;
   filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.6));
 }
 
-/* 🔥 pulse halo */
-.fun-fact-trigger::before {
-  content: '';
+.fun-fact-trigger-ring,
+.fun-fact-glow {
   position: absolute;
-  width: 90px;
-  height: 90px;
+  inset: auto;
+  width: 8rem;
+  height: 8rem;
   border-radius: 50%;
-
-  background: radial-gradient(circle, rgba(245, 158, 11, 0.25), transparent 70%);
-
+  background: radial-gradient(circle, rgba(214, 169, 69, 0.24), transparent 70%);
   animation: pulse 2.5s infinite;
   z-index: -1;
+  pointer-events: none;
 }
 
-/* ✨ hover effect */
+.fun-fact-trigger-ring {
+  width: 7rem;
+  height: 7rem;
+}
+
+.fun-fact-glow {
+  top: -3rem;
+  right: -2.5rem;
+  width: 11rem;
+  height: 11rem;
+  opacity: 0.75;
+}
+
 .fun-fact-trigger:hover .bulb-svg {
   transform: scale(1.08) translateY(-3px);
-  left: 20px;
-
   filter: drop-shadow(0 6px 12px rgba(245, 158, 11, 0.5))
     drop-shadow(0 0 24px rgba(245, 158, 11, 0.4));
 }
 
-/* 🔥 stronger glow on hover */
 .fun-fact-trigger:hover .bulb-glow {
   filter: drop-shadow(0 0 18px rgba(245, 158, 11, 0.9));
 }
 
-/* 💡 flicker (feels real) */
 .fun-fact-trigger:hover .bulb-glow {
   animation: flicker 0.6s ease-in-out;
 }
@@ -773,91 +796,94 @@ export default {
   }
 }
 
-/* subtle float */
-@keyframes floaty {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-4px);
-  }
-}
-
 .fun-fact-disable {
   position: absolute;
-  top: 10px;
-  right: 28px;
-  background: transparent;
+  top: 1rem;
+  right: 3.4rem;
+  width: 2rem;
+  height: 2rem;
+  background: rgba(255, 255, 255, 0.6);
   border: none;
-  font-size: 18px;
-  line-height: 1;
-  color: #9ca3af;
+  border-radius: 999px;
   cursor: pointer;
-  padding: 4px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  backdrop-filter: blur(8px);
+  transition: background 0.2s ease, transform 0.2s ease;
 }
 
-// hre
+.fun-fact-disable:hover {
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-1px);
+}
+
 .funfact-modal {
   position: fixed;
-  bottom: 100px;
-  right: 24px;
+  right: 2rem;
+  bottom: 7.2rem;
   z-index: 9999;
 
   display: flex;
-  gap: 12px;
+  gap: 0.9rem;
   align-items: flex-start;
 
-  width: 320px;
-  padding: 16px;
-
-  border-radius: 12px;
-
-  /* match your card */
-  background: linear-gradient(135deg, #fff7e6, #ffffff);
-  border-left: 4px solid #f59e0b;
-
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  width: min(21rem, calc(100vw - 2.5rem));
+  padding: 1rem 1.05rem;
+  border-radius: 1.15rem;
+  background: rgba(255, 251, 242, 0.96);
+  border: 1px solid rgba(196, 149, 43, 0.16);
+  box-shadow: 0 18px 36px rgba(49, 36, 11, 0.14);
+  backdrop-filter: blur(14px);
 }
 
 .funfact-modal .icon {
-  font-size: 22px;
-  color: #f59e0b;
+  font-size: 1.35rem;
+  color: #bc8a18;
 }
 
 .funfact-modal .title {
-  font-weight: 600;
-  margin-bottom: 4px;
-  color: #333;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  color: #2f2612;
 }
 
 .funfact-modal .desc {
-  font-size: 13px;
-  color: #666;
-  margin-bottom: 10px;
+  font-size: 0.84rem;
+  color: #6e6141;
+  margin-bottom: 0.9rem;
+  line-height: 1.5;
 }
 
 .funfact-modal .actions {
   display: flex;
-  gap: 8px;
+  gap: 0.65rem;
 }
 
 .funfact-modal button {
-  border: none;
+  border: 1px solid transparent;
   cursor: pointer;
-  font-size: 13px;
-  padding: 6px 10px;
-  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 
 .funfact-modal .cancel {
-  background: #eee;
-  color: #333;
+  background: rgba(255, 255, 255, 0.9);
+  color: #4c4128;
+  border-color: rgba(196, 149, 43, 0.16);
 }
 
 .funfact-modal .confirm {
-  background: #f59e0b;
+  background: linear-gradient(135deg, #bf8b18, #e0b24d);
   color: white;
+  box-shadow: 0 10px 20px rgba(191, 139, 24, 0.2);
+}
+
+.funfact-modal button:hover {
+  transform: translateY(-1px);
 }
 .fade-slide-enter-active,
 .fade-slide-leave-active {
@@ -881,79 +907,253 @@ button:focus:not(:focus-visible) {
 /* Close (X) */
 .fun-fact-close {
   position: absolute;
-  top: 10px;
-  right: 12px;
-  background: transparent;
+  top: 1rem;
+  right: 1rem;
+  width: 2rem;
+  height: 2rem;
+  background: rgba(255, 255, 255, 0.62);
   border: none;
-  font-size: 18px;
+  border-radius: 999px;
+  font-size: 1rem;
   line-height: 1;
-  color: #9ca3af;
+  color: #76684b;
   cursor: pointer;
-  padding: 4px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  backdrop-filter: blur(8px);
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
 .fun-fact-close:hover {
-  color: #374151;
+  color: #2f2612;
+  background: rgba(255, 255, 255, 0.92);
+  transform: translateY(-1px);
 }
 
 .fun-fact-icon {
   flex-shrink: 0;
-  background: #f59e0b;
+  position: relative;
+  width: 3.6rem;
+  height: 3.6rem;
+  border-radius: 1.15rem;
+  background:
+    linear-gradient(145deg, rgba(191, 139, 24, 0.98), rgba(229, 193, 106, 0.92));
   color: #fff;
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
 
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.34),
+    0 16px 30px rgba(191, 139, 24, 0.22);
 }
 
 .bulb-icon {
-  width: 22px;
-  height: 22px;
+  width: 1.55rem;
+  height: 1.55rem;
 }
 
 .fun-fact-content {
   display: flex;
   flex-direction: column;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.fun-fact-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
 }
 
 .fun-fact-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #92400e;
+  margin: 0;
+  font-size: 0.64rem;
+  font-weight: 700;
+  color: #7b5b16;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 4px;
+  letter-spacing: 0.22em;
+}
+
+.fun-fact-kicker {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.62rem;
+  border-radius: 999px;
+  background: rgba(191, 139, 24, 0.08);
+  color: #715626;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.fun-fact-divider {
+  width: 3.1rem;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(191, 139, 24, 0.8), rgba(191, 139, 24, 0));
 }
 
 .fun-fact-text {
-  font-size: 15px;
-  line-height: 1.5;
-  color: #1f2937;
+  font-family: 'Baskerville', 'Georgia', 'Times New Roman', serif;
+  font-size: clamp(1.12rem, 1rem + 0.55vw, 1.52rem);
+  line-height: 1.62;
+  color: #202217;
   font-weight: 500;
+  letter-spacing: 0.012em;
   margin: 0;
+  text-wrap: pretty;
+}
+
+.fun-fact-quote-mark {
+  display: inline-block;
+  margin-right: 0.18rem;
+  color: #bc8a18;
+  font-size: 1.3em;
+  line-height: 0;
+  transform: translateY(0.12em);
+}
+
+.fun-fact-caption {
+  margin: 0;
+  max-width: 28rem;
+  color: #685c42;
+  font-size: 0.78rem;
+  line-height: 1.7;
+  letter-spacing: 0.015em;
 }
 
 .fun-fact-slide-enter-active,
 .fun-fact-slide-leave-active {
-  transition: all 0.35s ease;
+  transition:
+    opacity 420ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 520ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 420ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.fun-fact-slide-enter {
+.fun-fact-slide-enter-active .fun-fact-icon,
+.fun-fact-slide-enter-active .fun-fact-meta,
+.fun-fact-slide-enter-active .fun-fact-divider,
+.fun-fact-slide-enter-active .fun-fact-text,
+.fun-fact-slide-enter-active .fun-fact-caption,
+.fun-fact-slide-leave-active .fun-fact-icon,
+.fun-fact-slide-leave-active .fun-fact-meta,
+.fun-fact-slide-leave-active .fun-fact-divider,
+.fun-fact-slide-leave-active .fun-fact-text,
+.fun-fact-slide-leave-active .fun-fact-caption {
+  transition:
+    opacity 360ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 460ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.fun-fact-slide-enter,
+.fun-fact-slide-leave-to {
   opacity: 0;
-  transform: translateX(40px);
+  transform: translateY(24px) scale(0.972);
+  box-shadow:
+    0 12px 26px rgba(49, 36, 11, 0.1),
+    0 4px 10px rgba(130, 97, 27, 0.05);
 }
 
 .fun-fact-slide-enter-to {
   opacity: 1;
-  transform: translateX(0);
+  transform: translateY(0) scale(1);
 }
 
-.fun-fact-slide-leave-to {
+.fun-fact-slide-enter .fun-fact-icon,
+.fun-fact-slide-leave-to .fun-fact-icon {
   opacity: 0;
-  transform: translateX(40px);
+  transform: translateY(10px) scale(0.92);
+}
+
+.fun-fact-slide-enter .fun-fact-meta,
+.fun-fact-slide-leave-to .fun-fact-meta {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.fun-fact-slide-enter .fun-fact-divider,
+.fun-fact-slide-leave-to .fun-fact-divider {
+  opacity: 0;
+  transform: scaleX(0.6);
+  transform-origin: left center;
+}
+
+.fun-fact-slide-enter .fun-fact-text,
+.fun-fact-slide-leave-to .fun-fact-text {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.fun-fact-slide-enter .fun-fact-caption,
+.fun-fact-slide-leave-to .fun-fact-caption {
+  opacity: 0;
+  transform: translateY(14px);
+}
+
+.fun-fact-slide-enter-active .fun-fact-icon {
+  transition-delay: 70ms;
+}
+
+.fun-fact-slide-enter-active .fun-fact-meta,
+.fun-fact-slide-enter-active .fun-fact-divider {
+  transition-delay: 120ms;
+}
+
+.fun-fact-slide-enter-active .fun-fact-text {
+  transition-delay: 170ms;
+}
+
+.fun-fact-slide-enter-active .fun-fact-caption {
+  transition-delay: 230ms;
+}
+
+.fun-fact-slide-leave-active .fun-fact-caption {
+  transition-delay: 0ms;
+}
+
+.fun-fact-slide-leave-active .fun-fact-text {
+  transition-delay: 25ms;
+}
+
+.fun-fact-slide-leave-active .fun-fact-meta,
+.fun-fact-slide-leave-active .fun-fact-divider {
+  transition-delay: 45ms;
+}
+
+.fun-fact-slide-leave-active .fun-fact-icon {
+  transition-delay: 65ms;
+}
+
+@media (max-width: 768px) {
+  .fun-fact {
+    right: 1rem;
+    left: 1rem;
+    bottom: 1rem;
+    width: auto;
+    padding: 1.1rem 1.05rem 1rem;
+    gap: 0.85rem;
+  }
+
+  .fun-fact-trigger {
+    left: 1rem;
+    bottom: 1rem;
+    width: 3.6rem;
+    height: 3.6rem;
+    border-radius: 1.2rem;
+  }
+
+  .fun-fact-disable {
+    right: 3rem;
+  }
+
+  .funfact-modal {
+    right: 1rem;
+    left: 1rem;
+    bottom: 5.8rem;
+    width: auto;
+  }
 }
 
 .whats-new {

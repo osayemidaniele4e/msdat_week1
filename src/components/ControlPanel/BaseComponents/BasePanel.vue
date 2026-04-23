@@ -111,7 +111,37 @@ export default {
         (item) => item?.title === this.$store.state.MSDAT_STORE.selectedSection
       );
 
-      this.changeControl(section[0].index, section[0].title);
+      if (section.length > 0) {
+        this.changeControl(section[0].index, section[0].title);
+      }
+    },
+
+    switchToSection(title) {
+      if (!title || this.modifiedControls.length === 0) return;
+
+      const normalizedTitle = title.trim().toLowerCase();
+      const targetSection = this.modifiedControls.find(
+        (item) => item?.title?.trim().toLowerCase() === normalizedTitle
+      );
+
+      if (!targetSection) return;
+
+      if (targetSection.index === this.selectedIndex) {
+        return;
+      }
+
+      this.changeControl(targetSection.index, targetSection.title);
+    },
+
+    hasMeaningfulValue(value) {
+      if (value == null) return false;
+      if (Array.isArray(value)) return value.length > 0;
+      if (typeof value === 'object') return Object.keys(value).length > 0;
+      if (typeof value === 'string') {
+        const normalized = value.trim().toLowerCase();
+        return normalized !== '' && !normalized.startsWith('indicator ');
+      }
+      return true;
     },
 
     async changeControl(index, title) {
@@ -129,9 +159,14 @@ export default {
       this.SET_SECTION_INDEX(index);
 
       const selectedConfig = this.getSelectedConfig();
+      const targetControl = this.$store.state.MSDAT_STORE.controlConfig[index];
+      const targetPayload = targetControl?.payload;
+      const shouldHydrateIndicator = !Array.isArray(targetPayload)
+        && targetPayload
+        && !this.hasMeaningfulValue(targetPayload.indicator);
 
       if (index !== 4) {
-        if (selectedConfig.indicator !== null) {
+        if (selectedConfig.indicator !== null && shouldHydrateIndicator) {
           this.$store.commit('MSDAT_STORE/SET_PAYLOAD', {
             controlIndex: index,
             key: 'indicator',
@@ -306,6 +341,9 @@ export default {
           this.title = 'Disaggregation';
         }
       }
+    },
+    '$store.state.MSDAT_STORE.selectedSection'(newValue) {
+      this.switchToSection(newValue);
     },
   },
   computed: {
