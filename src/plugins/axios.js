@@ -1,5 +1,6 @@
 import axios from 'axios';
 import Vue from 'vue';
+import VueCookies from 'vue-cookies';
 import store from '@/store'; // eslint-disable-line import/no-cycle
 import frontendAuthService from '@/modules/auth/services/frontendAuthService';
 
@@ -23,7 +24,10 @@ const createAxiosInstance = (baseURL, withAuth = false, skipHeaders = false) => 
         (config) => {
           const newConfig = { ...config };
           // eslint-disable-next-line camelcase
-          const token = store.getters['AUTH_STORE/getToken'];
+          const storeToken = store.getters['AUTH_STORE/getToken'];
+          const cookieUser = VueCookies.get('msdat-user-details');
+          const cookieToken = cookieUser?.tokens?.['access_token'];
+          const token = storeToken || cookieToken;
           if (token) {
             newConfig.headers = {
               ...newConfig.headers,
@@ -83,6 +87,23 @@ const createAxiosInstance = (baseURL, withAuth = false, skipHeaders = false) => 
       }
 
       if (error.response?.status === 401 && !originalRequest._retry) {
+        const errorCode = error.response?.data?.code;
+
+        if (errorCode === 'token_not_valid') {
+          VueCookies.remove('msdat-user-details');
+          store.dispatch('AUTH_STORE/logout');
+          Vue.swal({
+            toast: true,
+            position: 'bottom',
+            showConfirmButton: false,
+            timer: 5000,
+            icon: 'warning',
+            title: 'Session Expired',
+            text: 'Your session has expired. Please log in again.',
+          });
+          return Promise.reject(error);
+        }
+
         console.log('Received 401 error, attempting to refresh frontend token...');
         originalRequest._retry = true;
 

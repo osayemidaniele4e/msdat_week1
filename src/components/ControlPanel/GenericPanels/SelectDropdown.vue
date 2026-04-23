@@ -22,51 +22,52 @@
     >
       <span class="text-capitalize" slot="noOptions">{{ NoDataLabel }}</span>
 
-    <template slot="option" slot-scope="props">
-      <template v-if="isGroupedMode">
-        <template v-if="props.option.$groupLabel">
-          <span class="overflow-textg" :data-parent="props.option.$groupLabel">
-            {{ props.option.$groupLabel }}
-            <span
-              v-if="isCollapsibleActive"
-              class="newGrouplabel"
-              :class="{ 'open-caret': groupLabelStates[props.option.$groupLabel] }"
-              @click.stop="toggleGroupLabel(props.option.$groupLabel)"
-            >
-              {{
-                groupLabelStates[props.option.$groupLabel]
-                  ? 'Click to collapse ▲'
-                  : 'Click to expand ▼'
-              }}
+      <template slot="option" slot-scope="props">
+        <template v-if="isGroupedMode">
+          <template v-if="props.option.$groupLabel">
+            <span class="overflow-textg" :data-parent="props.option.$groupLabel">
+              {{ props.option.$groupLabel }}
+              <span
+                v-if="isCollapsibleActive"
+                class="newGrouplabel"
+                :class="{ 'open-caret': groupLabelStates[props.option.$groupLabel] }"
+                @click.stop="toggleGroupLabel(props.option.$groupLabel)"
+              >
+                {{
+                  groupLabelStates[props.option.$groupLabel]
+                    ? 'Click to collapse ▲'
+                    : 'Click to expand ▼'
+                }}
+              </span>
             </span>
-          </span>
+          </template>
+          <template v-if="props.option.item">
+            <div
+              v-if="!props.option.$groupLabel"
+              class="overflow-text"
+              :data-child="modifyDataSourceChildLabel(props.option.item)"
+            >
+              {{ props.option.item }}
+            </div>
+          </template>
+          <template v-else-if="props.option.full_name">
+            <div
+              v-if="!props.option.$groupLabel"
+              class="overflow-text text-wrap"
+              :data-child="props.option.program_area"
+            >
+              {{ props.option.full_name }}
+            </div>
+          </template>
         </template>
-        <template v-if="props.option.item">
-          <div
-            v-if="!props.option.$groupLabel"
-            class="overflow-text"
-            :data-child="modifyDataSourceChildLabel(props.option.item)"
-          >
-            {{ props.option.item }}
-          </div>
-        </template>
-        <template v-else-if="props.option.full_name">
-          <div
-            v-if="!props.option.$groupLabel"
-            class="overflow-text text-wrap"
-            :data-child="props.option.program_area"
-          >
-            {{ props.option.full_name }}
+        <template v-else>
+          <div class="overflow-text">
+            {{ getOptionLabel(props.option)
+            }}<sup v-if="isProjectedYear(props.option)" class="projected-label">projected</sup>
           </div>
         </template>
       </template>
-      <template v-else>
-        <div class="overflow-text">
-          {{ getOptionLabel(props.option) }}<sup v-if="isProjectedYear(props.option)" class="projected-label">projected</sup>
-        </div>
-      </template>
-    </template>
-  </multiselect>
+    </multiselect>
   </div>
 </template>
 <script>
@@ -99,10 +100,11 @@ export default {
         return false;
       }
       return this.options.some(
-        (option) => option
-          && typeof option === 'object'
-          && Object.prototype.hasOwnProperty.call(option, this.groupLabelKey)
-          && Array.isArray(option[this.groupValuesKey]),
+        (option) =>
+          option &&
+          typeof option === 'object' &&
+          Object.prototype.hasOwnProperty.call(option, this.groupLabelKey) &&
+          Array.isArray(option[this.groupValuesKey])
       );
     },
     effectiveMultiSelectProps() {
@@ -120,10 +122,10 @@ export default {
       },
       set(val) {
         if (
-          val
-          && typeof val === 'object'
-          && val.id !== undefined
-          && val.program_area !== undefined
+          val &&
+          typeof val === 'object' &&
+          val.id !== undefined &&
+          val.program_area !== undefined
         ) {
           this.selectedOption = val;
           // this.indicatorId = val.id;
@@ -140,10 +142,10 @@ export default {
           localStorage.setItem('indicatorSecondRelated', indicatorSecondRelated);
           this.SET_SELECTED_CONFIG(item);
         } else if (
-          val
-          && typeof val === 'object'
-          && val.id !== undefined
-          && val.methodology !== undefined
+          val &&
+          typeof val === 'object' &&
+          val.id !== undefined &&
+          val.methodology !== undefined
         ) {
           // this.saveDataSourceToStorage(val.id);
           const item = {
@@ -157,10 +159,10 @@ export default {
           };
           this.SET_ZONAL_DATASOURCE(item2);
         } else if (
-          val
-          && typeof val !== 'object'
-          && val.id === undefined
-          && val.created_at === undefined
+          val &&
+          typeof val !== 'object' &&
+          val.id === undefined &&
+          val.created_at === undefined
         ) {
           const item = {
             payload: val,
@@ -216,22 +218,20 @@ export default {
         // this.addQueryParamToUrl();
 
         this.loading = true;
-        if (this.options?.length > 0) {
+        if (newValue?.length > 0) {
           if (this.multiSelectProps['preselect-first']) {
             if (this.isGroupedMode) {
-              this.selected = newValue[0][this.groupValuesKey][0];
+              this.selected = this.value == null ? newValue[0][this.groupValuesKey][0] : this.value;
             } else if (newValue.length > 0) {
               const { name } = this.$route.params;
               if (name === 'Demographics') {
-                this.selected = '';
                 const newArr = this.options.filter(
-                  (year) => parseInt(year, 10) < new Date().getFullYear() + 1,
+                  (year) => parseInt(year, 10) < new Date().getFullYear() + 1
                 );
 
-                this.selected = newArr[0];
+                this.selected = this.value == null ? newArr[0] : this.value;
               } else {
-                this.selected = '';
-                this.selected = await this.options[0];
+                this.selected = this.value == null ? this.options[0] : this.value;
               }
               this.UPDATE_ALL_YEARS(this.options);
               // this was commented out because it updates all the selected year across all section in the multi-source comparison section
@@ -242,18 +242,16 @@ export default {
               if (name === 'Demographics') {
                 const date = new Date();
                 const year = date.getFullYear() - 1;
-                this.selected = {};
-                const newArr = this.newValue.filter(
-                  (item) => parseInt(item, 10) < new Date().getFullYear() + 1,
+                const newArr = newValue.filter(
+                  (item) => parseInt(item, 10) < new Date().getFullYear() + 1
                 );
 
-                this.selected = newArr[0] || year.toString();
+                this.selected = this.value == null ? newArr[0] || year.toString() : this.value;
                 this.UPDATE_ALL_YEARS(newValue || year.toString());
               } else {
                 const date = new Date();
                 const year = date.getFullYear() - 1;
-                this.selected = {};
-                this.selected = newValue[0] || year.toString();
+                this.selected = this.value == null ? newValue[0] || year.toString() : this.value;
                 this.UPDATE_ALL_YEARS(newValue || year.toString());
               }
             }
@@ -279,10 +277,15 @@ export default {
                 return;
               }
               this.selected = {};
+              console.log('@@@@@MMMM@@@@ 3', newValue);
+
               this.selected = await newValue[0];
+              this.loading = false;
+              return;
             }
             this.selected = {};
-            this.selected = await newValue[0];
+            this.loading = false;
+            return;
           }
           if (this.multiSelectProps?.key === 'location') {
             if (Array.isArray(newValue) && newValue?.length > 0) {
@@ -311,14 +314,14 @@ export default {
         }
         this.loading = false;
       },
+      deep: true,
+      immediate: false,
     },
     selected(newValue) {
       if (newValue && newValue.parent !== undefined) {
         this.setSelectedState(newValue);
       }
     },
-    deep: true,
-    immediate: false,
   },
   methods: {
     toggleGroupLabel(groupLabel) {
@@ -342,7 +345,7 @@ export default {
 
       // Ensure all items with data-child attribute and role="option" are visible
       this.$nextTick(() => {
-        const iterable = document.querySelectorAll('[role="option"]');
+        const iterable = this.$el.querySelectorAll('[role="option"]');
         iterable.forEach((item) => {
           if (item.querySelector('[data-child]')) {
             // eslint-disable-next-line no-param-reassign
@@ -358,7 +361,7 @@ export default {
       this.groupLabelStates = {};
       this.groupLabels = {};
       this.$nextTick(() => {
-        const iterable = document.querySelectorAll('[role="option"]');
+        const iterable = this.$el.querySelectorAll('[role="option"]');
         iterable.forEach((item) => {
           if (item.querySelector('[data-child]')) {
             // eslint-disable-next-line

@@ -12,7 +12,7 @@
           <div class="d-flex gap-2 justify-content-center p-2">
           <input type="text" class="form-control search-input" v-model="query" id="indicator-search-text-input" placeholder="Search For...">
 
-<button type="submit" class="btn search-icon p-2"><i class="fa fa-search"></i></button>
+<button type="submit" class="btn search-icon p-2"><b-icon icon="search" aria-hidden="true"></b-icon></button>
 </div>
         </form>
 

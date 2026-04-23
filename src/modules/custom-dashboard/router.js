@@ -107,6 +107,15 @@ export default [
           title: 'Custom Dashboard',
         },
       },
+      // Publish Map Dashboard
+      {
+        path: 'publish-map',
+        name: 'publish-map',
+        component: () => import('./views/PublishMapDashboard.vue'),
+        meta: {
+          title: 'Publish Map Visualization',
+        },
+      },
       // Page 4
       {
         path: 'embed-dashboard',

@@ -15,6 +15,69 @@ type setPayload = {
   value: [] | string | number;
 };
 
+type PayloadEntry = Record<string, any>;
+
+const isPayloadEntry = (payload: unknown): payload is PayloadEntry =>
+  typeof payload === 'object' && payload !== null;
+
+const normalizePayloadValue = (currentValue: unknown, nextValue: unknown) => {
+  if (Array.isArray(currentValue)) {
+    return Array.isArray(nextValue) ? nextValue : [nextValue];
+  }
+
+  return nextValue;
+};
+
+const writePayloadValue = (payload: unknown, obj: setPayload) => {
+  if (!isPayloadEntry(payload)) return;
+
+  payload[obj.key] = normalizePayloadValue(payload[obj.key], obj.value);
+};
+
+const updateControlPayload = (state: State, obj: setPayload) => {
+  const controlPanel = state.controlConfig?.[obj.controlIndex];
+
+  if (!controlPanel || controlPanel.payload === null) return;
+
+  if (Array.isArray(controlPanel.payload)) {
+    const groupedPayload = controlPanel.payload?.[obj.groupIndex];
+
+    if (groupedPayload !== undefined) {
+      writePayloadValue(groupedPayload, obj);
+      return;
+    }
+
+    controlPanel.payload.forEach((payloadItem) => {
+      writePayloadValue(payloadItem, obj);
+    });
+    return;
+  }
+
+  writePayloadValue(controlPanel.payload, obj);
+};
+
+const updateControlPayload2 = (state: State, obj: setPayload) => {
+  const controlPanel = state.controlConfig?.[obj.controlIndex];
+
+  if (!controlPanel || controlPanel.payload === null) return;
+
+  if (Array.isArray(controlPanel.payload)) {
+    const groupedPayload = controlPanel.payload?.[obj.groupIndex];
+
+    if (groupedPayload !== undefined) {
+      writePayloadValue(groupedPayload, obj);
+      return;
+    }
+
+    controlPanel.payload.forEach((payloadItem) => {
+      writePayloadValue(payloadItem, obj);
+    });
+    return;
+  }
+
+  writePayloadValue(controlPanel.payload, obj);
+};
+
 export type Conversation = {
   user: boolean;
   message: string;
@@ -112,14 +175,7 @@ const mutations: MutationTree<State> = {
   //     state.controlConfig[controlIndex].defaults[key] = value;
   //   },
   SET_PAYLOAD: (state, obj: setPayload) => {
-    if (state.controlConfig[obj.controlIndex].payload !== null) {
-      if (!Array.isArray(state.controlConfig[obj.controlIndex].payload)) {
-        state.controlConfig[obj.controlIndex].payload[obj.key] = obj.value;
-      } else {
-        // taking into consideration sections like multi-source comparison
-        state.controlConfig[obj.controlIndex].payload[obj.groupIndex][obj.key] = obj.value;
-      }
-    }
+    updateControlPayload(state, obj);
   },
 
   SET_INDICATOR_COMPARISON_PAYLOAD: (state, obj: setPayload) => {
@@ -176,15 +232,10 @@ const mutations: MutationTree<State> = {
     state.dashboards = dashboards;
   },
 
-  SET_SECTION_PAYLOAD: (state, obj) => {
-    if (state.controlConfig[obj.controlIndex].payload !== null) {
-      if (!Array.isArray(state.controlConfig[obj.controlIndex].payload)) {
-        state.controlConfig[obj.controlIndex].payload[obj.key] = obj.value;
-      } else {
-        // taking into consideration sections like multi-source comparison
-        state.controlConfig[obj.controlIndex].payload[obj.groupIndex][obj.key] = obj.value;
-      }
-    }
+  SET_SECTION_PAYLOAD: (state, obj: setPayload) => {
+    console.log(obj, '@@@@@MMMM@@@@');
+
+    updateControlPayload2(state, obj);
   },
   SET_INDICATOR_DATASOURCES: (state, datasources) => {
     state.indicatorDatasources = datasources;
@@ -349,6 +400,22 @@ const mutations: MutationTree<State> = {
 
   UPDATE_IDC_INDICATORS: (state, payload) => {
     state.controlConfig[2].setup[5].options = payload;
+  },
+
+  SET_ALL_CONFIG_RESOURCE(state, { entity, value }) {
+    state.controlConfig = state.controlConfig.map((item) => {
+      if (!item.payload) return item;
+
+      const currentValue = item.payload[entity];
+
+      return {
+        ...item,
+        payload: {
+          ...item.payload,
+          [entity]: Array.isArray(currentValue) ? (Array.isArray(value) ? value : [value]) : value,
+        },
+      };
+    });
   },
 
   SET_CONFIGURATIONS: (state, payload) => {

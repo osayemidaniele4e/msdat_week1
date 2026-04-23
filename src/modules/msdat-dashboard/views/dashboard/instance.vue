@@ -155,22 +155,42 @@
     </base-sub-card>
   </div>
 </template>
-<template v-if="customDashboard" v-slot:[`section-${sectionArray[setIndex(allSections[7])]}`]="{ payload, controlIndex }">
-  <div class="col-md-12">
-    <base-sub-card :backgroundColor="'header'" class="my-2 shadow-sm">
-      <template #title>
-        <h5 class="font-weight-bold work-sans text-white">{{ customTitle }}</h5>
-      </template>
-      <template>
-        <LazyLoading>
-          <ControlPanelConfiguration :controlIndex="controlIndex">
-            <EmbedDashboard :values="payload" :controlIndex="controlIndex" />
-          </ControlPanelConfiguration>
-        </LazyLoading>
-      </template>
-    </base-sub-card>
-  </div>
-</template>
+    <template v-if="customDashboard" v-slot:[`section-${sectionArray[setIndex(allSections[8])]}`]="{ payload, controlIndex }">
+      <div class="col-md-12">
+        <base-sub-card :backgroundColor="'header'" class="my-2 shadow-sm">
+          <template #title>
+            <h5 class="font-weight-bold work-sans text-white">{{ customTitle }}</h5>
+          </template>
+          <template>
+            <LazyLoading>
+              <ControlPanelConfiguration :controlIndex="controlIndex">
+                <EmbedDashboard :values="payload" :controlIndex="controlIndex" />
+              </ControlPanelConfiguration>
+            </LazyLoading>
+          </template>
+        </base-sub-card>
+      </div>
+    </template>
+
+    <template
+      v-if="customDashboard"
+      v-slot:[`section-${sectionArray[setIndex(allSections[7])]}`]="{ payload, controlIndex }"
+    >
+      <div class="col-md-12">
+        <base-sub-card :backgroundColor="'header'" class="my-2 shadow-sm">
+           <template #title>
+            <h5 class="font-weight-bold work-sans text-white">Map Visualization</h5>
+          </template>
+          <template>
+            <LazyLoading>
+              <ControlPanelConfiguration :controlIndex="controlIndex">
+                <MapVisualizationSection :controlPanelProps="payload" />
+              </ControlPanelConfiguration>
+            </LazyLoading>
+          </template>
+        </base-sub-card>
+      </div>
+    </template>
   </BaseDashboard>
 </template>
 
@@ -190,6 +210,7 @@ import BaseDashboard from './BaseDashboard.vue';
 import ControlPanelConfiguration from '../../modules/control_setup/ControlPanelConfiguration.vue';
 import ScorecardConfig from '../../components/sections/scorecard/scorecard-config';
 import EmbedDashboardConfig from '../../components/sections/embed-section/embed-configs';
+import MapVisualizationConfig from '../../components/sections/map-visualization/map-visualization-config';
 // eslint-disable-next-line import/extensions
 // import PolicySimulatorConfiguration from '../../components/sections/policy-simulator/policy-simulator-config.js';
 // import PolicySimulator from '../../components/sections/policy-simulator/policySimulator.vue';
@@ -201,7 +222,7 @@ export default {
       updateValue: {},
       updateKey: '',
       resetData: 1,
-      sectionArray: [0, 1, 2, 3, 4, 5, 6, 7],
+      sectionArray: [0, 1, 2, 3, 4, 5, 6, 7, 8],
       allSections: [
         'Indicator Overview',
         'Zonal Analysis',
@@ -210,6 +231,7 @@ export default {
         'Multi-Source Comparison',
         'Disaggregation',
         'Scorecard',
+        'Map Visualization',
         // 'Embedded Dashboard',
       ],
       customTitle: '',
@@ -228,6 +250,7 @@ export default {
     DynamicSection: () => import('../../components/sections/dynamic-section/DynamicSection.vue'),
     ScorecardSection: () => import('../../components/sections/scorecard/ScorecardSection.vue'),
     EmbedDashboard: () => import('../../components/sections/embed-section/EmbeddedSection.vue'),
+    MapVisualizationSection: () => import('../../components/sections/map-visualization/MapVisualizationSection.vue'),
     // PolicySimulator,
   },
   props: {
@@ -407,13 +430,14 @@ export default {
     const DiseaseSurveillanceConfig = this.noNHMIS
       ? IndicatorOverviewConfig2
       : IndicatorOverviewConfig;
-    const configs = [
+    const baseConfigs = [
       DiseaseSurveillanceConfig,
       ZonalAnalysisConfig,
       ICSConfig,
       DataSetComparisonConfig,
       BaseMultiSourceConfig,
     ];
+    const customConfigs = [...baseConfigs, MapVisualizationConfig];
 
     // Updated flow
     const { name: queryParameter } = this.$route.params;
@@ -422,15 +446,15 @@ export default {
         // const preexistingDashboard = StaticConfig.find((item) => item.name === queryParameter);
         const retrievedSections = this.getConfigObject()?.sections;
         if (retrievedSections && retrievedSections.length > 0) {
-          this.filterSectionArray(configs, retrievedSections);
+          this.filterSectionArray(customConfigs, retrievedSections);
         } else {
-          this.setPresetSections(this.fieldsArray, configs);
+          this.setPresetSections(this.fieldsArray, customConfigs);
         }
       } else {
-        this.setPresetSections(this.fieldsArray, configs);
+        this.setPresetSections(this.fieldsArray, customConfigs);
       }
     } else {
-      this.setAllSections(configs);
+      this.setAllSections(baseConfigs);
     }
   },
 

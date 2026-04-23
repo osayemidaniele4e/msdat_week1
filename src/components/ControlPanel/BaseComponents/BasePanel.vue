@@ -15,14 +15,22 @@
           >
             <div class="d-flex justify-content-between el-tit align-items-center">
               {{ el.title }}
-              <div v-if="el.index === selectedIndex" class="share-icon-wrapper tooltip-wrapper">
+              <div v-if="el.index === selectedIndex" class="share-icon-wrapper">
                 <img
+                  :id="`share-tooltip-${el.index}`"
                   src="@/assets/Share-button.png"
                   alt="share-btn"
                   class="share-icon"
                   @click.stop="toggleShareModal(el.title)"
                 />
-                <span class="custom-tooltip">Share </span>
+                <b-tooltip
+                  :target="`share-tooltip-${el.index}`"
+                  triggers="hover"
+                  placement="top"
+                  custom-class="share-tooltip"
+                >
+                  Share
+                </b-tooltip>
               </div>
             </div>
           </li>
@@ -100,10 +108,40 @@ export default {
 
     filterModifiedControls() {
       const section = this.modifiedControls.filter(
-        (item) => item?.title === this.$store.state.MSDAT_STORE.selectedSection,
+        (item) => item?.title === this.$store.state.MSDAT_STORE.selectedSection
       );
 
-      this.changeControl(section[0].index, section[0].title);
+      if (section.length > 0) {
+        this.changeControl(section[0].index, section[0].title);
+      }
+    },
+
+    switchToSection(title) {
+      if (!title || this.modifiedControls.length === 0) return;
+
+      const normalizedTitle = title.trim().toLowerCase();
+      const targetSection = this.modifiedControls.find(
+        (item) => item?.title?.trim().toLowerCase() === normalizedTitle
+      );
+
+      if (!targetSection) return;
+
+      if (targetSection.index === this.selectedIndex) {
+        return;
+      }
+
+      this.changeControl(targetSection.index, targetSection.title);
+    },
+
+    hasMeaningfulValue(value) {
+      if (value == null) return false;
+      if (Array.isArray(value)) return value.length > 0;
+      if (typeof value === 'object') return Object.keys(value).length > 0;
+      if (typeof value === 'string') {
+        const normalized = value.trim().toLowerCase();
+        return normalized !== '' && !normalized.startsWith('indicator ');
+      }
+      return true;
     },
 
     async changeControl(index, title) {
@@ -121,9 +159,14 @@ export default {
       this.SET_SECTION_INDEX(index);
 
       const selectedConfig = this.getSelectedConfig();
+      const targetControl = this.$store.state.MSDAT_STORE.controlConfig[index];
+      const targetPayload = targetControl?.payload;
+      const shouldHydrateIndicator = !Array.isArray(targetPayload)
+        && targetPayload
+        && !this.hasMeaningfulValue(targetPayload.indicator);
 
       if (index !== 4) {
-        if (selectedConfig.indicator !== null) {
+        if (selectedConfig.indicator !== null && shouldHydrateIndicator) {
           this.$store.commit('MSDAT_STORE/SET_PAYLOAD', {
             controlIndex: index,
             key: 'indicator',
@@ -159,9 +202,9 @@ export default {
       }
 
       if (
-        index === 2
-        && this.getConfigObject().name !== 'GIS_Mapping_Dashboard'
-        && title === 'Indicator Comparison'
+        index === 2 &&
+        this.getConfigObject().name !== 'GIS_Mapping_Dashboard' &&
+        title === 'Indicator Comparison'
       ) {
         const dashboardID = localStorage.getItem('activeDashboardID');
 
@@ -299,6 +342,9 @@ export default {
         }
       }
     },
+    '$store.state.MSDAT_STORE.selectedSection'(newValue) {
+      this.switchToSection(newValue);
+    },
   },
   computed: {
     // abc() {
@@ -328,61 +374,37 @@ export default {
 // $primary: #2b5d5b;
 @import '@/scss/abstracts/_variables.scss';
 
-.tooltip-wrapper {
-  position: relative;
-  display: inline-block;
-  width: 100%; // ensure it wraps the whole item cleanly
-
-  &:hover .custom-tooltip {
-    visibility: visible;
-    opacity: 1;
-  }
-}
-
-.custom-tooltip {
-  visibility: hidden;
-  opacity: 0;
-  position: absolute;
-  z-index: 999;
-  bottom: 50%; // place it above the item
-  left: 70%;
-  transform: translateX(-50%) translateY(-8px);
-  background-color: #fff;
-  color: #000;
-  padding: 6px;
-  font-size: 0.85rem;
-  border-radius: 4px;
-  white-space: normal; // allows line break
-  width: 100px; // or whatever fits your layout
-  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
-  pointer-events: none;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.15);
-  border: 1px solid #e5e5e5;
-  display: flex;
-  justify-content: center;
-  text-align: center;
-
-  &::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border-width: 6px;
-    border-style: solid;
-    border-color: #494545 transparent transparent transparent;
-  }
-}
-
 .main {
   display: inherit;
 }
 
 .share-icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid #2b5d5b;
   margin-left: 15px;
-  //padding: 2px;
+  padding: 4px;
   border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.share-icon {
+  cursor: pointer;
+}
+
+.share-tooltip ::v-deep .tooltip-inner {
+  background-color: #ffffff;
+  color: #1f2d2d;
+  padding: 4px 10px;
+  border: 1px solid #d9e3e3;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.12);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.share-tooltip ::v-deep .arrow::before {
+  border-top-color: #ffffff;
 }
 
 .share-icon-wrapper img {

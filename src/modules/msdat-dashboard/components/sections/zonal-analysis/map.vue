@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div :class="containerClass">
     <base-overlay :show="loader">
       <base-sub-card
         v-if="Object.keys(controlPanelProps).length"
@@ -107,6 +107,10 @@ export default {
       type: String,
       default: 'Category',
     },
+    fullWidth: {
+      type: Boolean,
+      default: false,
+    },
   },
   components: {
     BaseMap,
@@ -149,6 +153,9 @@ export default {
     },
     yearLabel() {
       return this.resolveDisplayText(this.controlPanelProps?.year);
+    },
+    containerClass() {
+      return this.fullWidth ? 'container-fluid px-0' : 'container';
     },
   },
   methods: {

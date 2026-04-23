@@ -166,6 +166,7 @@ export default {
       'SET_CONFIGURATIONS',
       'SET_SELECTED_CONFIG',
       'SET_DASHBOARDS',
+      'UPDATE_LOADING_STATUS',
     ]),
     ...mapActions('AUTH_STORE', ['LOGIN_USER', 'SAVE_USER_DASHBOARD']),
     ...mapActions(['SET_DASHBOARD_LOCATION']),
@@ -254,6 +255,9 @@ export default {
         localStorage.setItem('lsDataSourceCount', this.configObject.dataSources.length);
         localStorage.setItem('lsIndicatorCount', this.configObject.indicators.length);
         window.document.title = 'MSDAT Nigeria | Custom Dashboard';
+        this.$nextTick(() => {
+          this.UPDATE_LOADING_STATUS();
+        });
         return;
       }
 
@@ -277,6 +281,9 @@ export default {
         this.configObject = dashboard;
         localStorage.setItem('activeDashboardID', dashboard.id);
         this.SET_CONFIGURATIONS(dashboard);
+        this.$nextTick(() => {
+          this.UPDATE_LOADING_STATUS();
+        });
         return;
       }
 
@@ -317,6 +324,11 @@ export default {
           // intentionally suppressed
         } finally {
           this.loading = false;
+          if (this.configObject && this.configObject.id) {
+            this.$nextTick(() => {
+              this.UPDATE_LOADING_STATUS();
+            });
+          }
         }
       }
 

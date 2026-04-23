@@ -135,8 +135,6 @@ export default {
       return this.$store.getters.getDataSource;
     },
     showLoader() {
-      console.log(this.$store.getters.showloader, '@@@ showLoader');
-
       return this.$store.getters.showloader;
     },
     selectedLevels() {

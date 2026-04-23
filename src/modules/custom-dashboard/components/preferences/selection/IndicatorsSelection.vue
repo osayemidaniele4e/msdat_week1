@@ -149,10 +149,10 @@
 </template>
 
 <script>
+import apiServices from '@/modules/data-layer/services/ApiServices';
 import Card from '../../Card.vue';
 // eslint-disable-next-line import/extensions
 import TheLoader from '../../Loading/TheLoader2';
-import apiServices from '@/modules/data-layer/services/ApiServices';
 
 export default {
   props: {
@@ -206,9 +206,7 @@ export default {
 
       return this.heading.map((section) => ({
         parent: { ...section.parent },
-        children: section.children.filter((item) =>
-          item.short_name.toLowerCase().includes(searchLower)
-        ),
+        children: section.children.filter((item) => item.short_name.toLowerCase().includes(searchLower)),
       }));
     },
   },
@@ -245,7 +243,7 @@ export default {
         this.toggleAll(
           { target: { checked: this.allIndicatorsSelected } },
           section.children,
-          section.parent.value
+          section.parent.value,
         );
       });
     },
@@ -311,7 +309,7 @@ export default {
           }
           acc[item.classification].children.push(item);
           return acc;
-        }, {})
+        }, {}),
       );
 
       this.$store.commit('setAllSources', grouped);
@@ -369,7 +367,7 @@ export default {
         if (newProgramArea) {
           // Find the section corresponding to the selected program area
           const matchingSection = this.heading.find(
-            (section) => section.parent.value === newProgramArea
+            (section) => section.parent.value === newProgramArea,
           );
 
           if (matchingSection) {

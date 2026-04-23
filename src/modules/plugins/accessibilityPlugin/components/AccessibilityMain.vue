@@ -1,7 +1,7 @@
 <template>
   <div class="accessibility-main">
     <button @click="setActiveComponent('plugin')" title="Open Accessibility Settings">
-      <i class="fas fa-universal-access"></i>
+      <b-icon icon="universal-access-circle" aria-hidden="true"></b-icon>
     </button>
   </div>
 </template>
