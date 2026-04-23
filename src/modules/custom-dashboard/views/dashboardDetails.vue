@@ -6,7 +6,7 @@
       <b-row>
         <b-col cols="12" lg="6" class="forms">
           <div class="field-detail" :class="{ invalid: !dName.isValid }">
-            <p>Give your dashboard a name</p>
+            <p>Give your {{ isMapMode ? 'map visualization' : 'dashboard' }} a name</p>
             <b-form-input
               type="text"
               id="d-Name"
@@ -17,7 +17,7 @@
             <p v-if="!dName.isValid">This must not be empty.</p>
           </div>
           <div class="field-detail" :class="{ invalid: !description.isValid }">
-            <p>Description of your dashboard</p>
+            <p>Description of your {{ isMapMode ? 'map visualization' : 'dashboard' }}</p>
             <b-form-input
               type="text"
               id="description"
@@ -29,7 +29,7 @@
           </div>
           <br>
           <div class="field-detail" v-if="isPublicDashboard" >
-            <p>Reason for making your dashboard public</p>
+            <p>Reason for making your {{ isMapMode ? 'map visualization' : 'dashboard' }} public</p>
             <b-form-input
               type="text"
               id="reason"
@@ -41,7 +41,7 @@
           </div>
           <br>
           <div class="field-detail" v-if="isPublicDashboard" >
-            <p>Dashboard Category</p>
+            <p>{{ isMapMode ? 'Map Visualization' : 'Dashboard' }} Category</p>
             <b-form-select
             class="form-control"
              v-model="category" :options="categoryOptions"></b-form-select>
@@ -50,7 +50,7 @@
           <br>
           <span>
   <input type="checkbox" v-model="isPublicDashboard"> <!-- Add v-model -->
-  Create a public dashboard
+  Create a public {{ isMapMode ? 'map visualization' : 'dashboard' }}
 </span>
         </b-col>
         <b-col class="image-file mb-5">
@@ -80,7 +80,7 @@
               <p class="text-left my-4 my-md-5">
                 Logo size should be 200px by 200px. <br />
                 Not bigger than 5 MB. <br />
-                Logo should be representative of your dashboard content.
+                Logo should be representative of your {{ isMapMode ? 'map visualization' : 'dashboard' }} content.
               </p>
             </b-col>
           </b-row>
@@ -89,10 +89,10 @@
           </div>
         </b-col>
       </b-row>
-      <p><b>Select dashboard data</b></p>
+      <p><b>Select {{ isMapMode ? 'map visualization' : 'dashboard' }} data</b></p>
       <p style="margin-top: -10px !important">
         Go through our database and select the data that is relevant to your
-        dashboard.<br />
+        {{ isMapMode ? 'map visualization' : 'dashboard' }}.<br />
         Select your indicators, your preferred data source, the years and the
         coverage area (National or subnational).
       </p>
@@ -213,7 +213,10 @@ export default {
   },
   computed: {
     ...mapGetters('AUTH_STORE', ['getUser']),
-    ...mapGetters('CUSTOM_DASHBOARD_STORE', ['getVisibility']),
+    ...mapGetters(['getVisibility', 'dashboardMode']),
+    isMapMode() {
+      return this.dashboardMode === 'map';
+    },
 
   },
   methods: {

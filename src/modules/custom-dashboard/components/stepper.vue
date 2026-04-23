@@ -73,7 +73,7 @@
 
 <script>
 import VueCookies from 'vue-cookies';
-import Header from '../../../modules/msdat-dashboard/views/about/layout/theHeader.vue';
+import Header from '../../msdat-dashboard/views/about/layout/theHeader.vue';
 
 export default {
   name: 'cd-stepper',
