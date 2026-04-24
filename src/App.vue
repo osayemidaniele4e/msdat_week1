@@ -12,9 +12,64 @@
       <ShareSection />
     </div>
 
+    <IndicatorExplanationModal />
+
+     <div class="fun-fact-trigger" aria-label="Show fun fact" @click="toggleFunFact()">
+      <span class="fun-fact-trigger-ring"></span>
+      <svg class="bulb-svg" viewBox="0 0 512 512">
+        <!-- keep your SVG exactly as is -->
+        <!-- no inline width/height anymore -->
+
+        <path style="fill: #e8edee" d="M185.379,370.759V476.69h141.241v-70.621v-35.31H185.379z" />
+        <path
+          style="fill: #cbd4d8"
+          d="M269.241,512h-26.483c-7.945,0-15.89-3.531-21.186-10.593l-18.538-24.717h105.931l-18.538,24.717C285.131,508.469,277.186,512,269.241,512"
+        />
+
+        <!-- 💡 MAIN BULB (we'll target this) -->
+        <path
+          class="bulb-glow"
+          style="fill: #f0ce49"
+          d="M422.841,152.717C414.014,73.269,350.455,9.71,271.007,0.883C265.71,0.883,261.297,0,256,0
+      c-5.297,0-9.71,0-15.007,0.883C161.545,9.71,97.986,74.152,89.159,152.717c-6.179,56.497,15.007,107.697,52.083,143.007
+      c21.186,20.303,38.841,46.786,44.138,75.034h141.241c5.297-28.248,22.952-54.731,44.138-75.034
+      C407.834,260.414,429.021,209.214,422.841,152.717"
+        />
+
+        <path
+          style="fill: #ffffff"
+          d="M326.621,158.897h-52.966l44.138-79.448h-52.966l-61.793,114.759h44.138l-44.138,114.759L326.621,158.897z"
+        />
+      </svg>
+    </div>
+
      <transition name="fun-fact-slide">
-      <div v-if="showFunFact" class="fun-fact">
+      <div v-if="!isFunFactDisabled && showFunFact && nugget" class="fun-fact">
+        <button
+          class="fun-fact-disable text-danger"
+          aria-label="Disable fun facts"
+          @click="toggleDisablePrompt"
+        >
+          <svg
+            width="20px"
+            height="20px"
+            viewBox="0 -0.5 25 25"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            stroke="#FF2C2C"
+          >
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+              <path
+                d="M11.75 9.874C11.75 10.2882 12.0858 10.624 12.5 10.624C12.9142 10.624 13.25 10.2882 13.25 9.874H11.75ZM13.25 4C13.25 3.58579 12.9142 3.25 12.5 3.25C12.0858 3.25 11.75 3.58579 11.75 4H13.25ZM9.81082 6.66156C10.1878 6.48991 10.3542 6.04515 10.1826 5.66818C10.0109 5.29121 9.56615 5.12478 9.18918 5.29644L9.81082 6.66156ZM5.5 12.16L4.7499 12.1561L4.75005 12.1687L5.5 12.16ZM12.5 19L12.5086 18.25C12.5029 18.25 12.4971 18.25 12.4914 18.25L12.5 19ZM19.5 12.16L20.2501 12.1687L20.25 12.1561L19.5 12.16ZM15.8108 5.29644C15.4338 5.12478 14.9891 5.29121 14.8174 5.66818C14.6458 6.04515 14.8122 6.48991 15.1892 6.66156L15.8108 5.29644ZM13.25 9.874V4H11.75V9.874H13.25ZM9.18918 5.29644C6.49843 6.52171 4.7655 9.19951 4.75001 12.1561L6.24999 12.1639C6.26242 9.79237 7.65246 7.6444 9.81082 6.66156L9.18918 5.29644ZM4.75005 12.1687C4.79935 16.4046 8.27278 19.7986 12.5086 19.75L12.4914 18.25C9.08384 18.2892 6.28961 15.5588 6.24995 12.1513L4.75005 12.1687ZM12.4914 19.75C16.7272 19.7986 20.2007 16.4046 20.2499 12.1687L18.7501 12.1513C18.7104 15.5588 15.9162 18.2892 12.5086 18.25L12.4914 19.75ZM20.25 12.1561C20.2345 9.19951 18.5016 6.52171 15.8108 5.29644L15.1892 6.66156C17.3475 7.6444 18.7376 9.79237 18.75 12.1639L20.25 12.1561Z"
+                fill="#FF2C2C"
+              ></path>
+            </g>
+          </svg>
+        </button>
         <button class="fun-fact-close" aria-label="Close fun fact" @click="closeFunFact">×</button>
+        <div class="fun-fact-glow"></div>
         <div class="fun-fact-icon">
           <!-- Light bulb SVG -->
           <svg
@@ -30,8 +85,15 @@
         </div>
 
         <div class="fun-fact-content">
-          <p class="fun-fact-label">Did you know?</p>
-          <h1 class="fun-fact-text">{{ nugget }}</h1>
+          <div class="fun-fact-meta">
+            <p class="fun-fact-label">Curated Insight</p>
+            <span class="fun-fact-kicker">From your MSDAT context</span>
+          </div>
+          <div class="fun-fact-divider"></div>
+          <h1 class="fun-fact-text">
+            <span class="fun-fact-quote-mark">“</span>{{ nugget }}
+          </h1>
+          <p class="fun-fact-caption">A concise signal surfaced for the dashboard you are exploring.</p>
         </div>
       </div>
     </transition>
@@ -50,6 +112,21 @@
         </svg>
       </button>
     </div> -->
+     <transition name="fade-slide">
+      <div v-if="showDisablePrompt" class="funfact-modal">
+        <div class="icon">💡</div>
+
+        <div class="content">
+          <p class="title">Disable Fun Facts?</p>
+          <p class="desc">You can turn it back on anytime by clicking the bulb icon.</p>
+
+          <div class="actions">
+            <button class="cancel" @click="toggleDisablePrompt">Cancel</button>
+            <button class="confirm" @click="disableFunFact">Disable</button>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 
 </template>
@@ -61,6 +138,7 @@ import feedback from './views/feedback.vue';
 import ShowDataSourcesList from './modules/dynamic_dashboard/components/ShowDataSourcesList.vue';
 import WhatsNew from './modules/dynamic_dashboard/components/WhatsNew.vue';
 import ShareSection from './modules/dynamic_dashboard/components/ShareSection.vue';// import ChatBot from './modules/msdat-dashboard/components/ChatBot.vue';
+import IndicatorExplanationModal from './components/ui-components/IndicatorExplanationModal.vue';
 import ApiServices from './modules/data-layer/services/ApiServices';
 import accessibilityPlugin from './modules/plugins/accessibilityPlugin';
 import contextPlugin from './modules/plugins/contextPlugin';
@@ -68,8 +146,8 @@ import customReportBuilder from './modules/plugins/customReportBuilder';
 import indicatorPlugin from './modules/plugins/indicatorPlugin';
 import reviewPlugin from './modules/plugins/reviewPlugin';
 import screenshotManager from './modules/plugins/screenshotManager';
-import testonePlugin from './modules/plugins/testonePlugin';
 import testPlugin from './modules/plugins/testPlugin';
+import testonePlugin from './modules/plugins/testonePlugin';
 
 export default {
   components: {
@@ -77,6 +155,7 @@ export default {
     ShowDataSourcesList,
     WhatsNew,
     ShareSection,
+    IndicatorExplanationModal,
     // ChatBot,
   },
   data() {
@@ -84,18 +163,32 @@ export default {
       pluginsImported: [], // Explicitly specify the type as an array of strings
       showDataSourceListComponent: false, // Replace with your actual state variable
       showWhatsNewComponent: false,
-      lastExecutionTime: null,
       whatsNewContent: [],
       showShareSectionComponent: false,
       showFunFact: false,
       showInterval: null,
       hideTimeout: null,
+      funFactReadyTimeout: null,
       nugget: null,
+      showDisablePrompt: false,
+      whatsNewReadyTimeout: null,
+      funFactDisabled: false,
     };
   },
   computed: {
     ...mapGetters('appearance', ['viewMode', 'fontSize', 'theme']),
-    ...mapGetters('MSDAT_STORE', ['getConfigObject']),
+    ...mapGetters('MSDAT_STORE', ['getConfigObject', 'getFunFact', 'getLoadingStatus']),
+
+    // get fun fact disabled state from localStorage
+    isFunFactDisabled() {
+      return this.funFactDisabled;
+    },
+    dashboardConfigId() {
+      return this.getConfigObject && this.getConfigObject.id ? this.getConfigObject.id : null;
+    },
+    isDashboardInitializationComplete() {
+      return Boolean(this.dashboardConfigId) && this.getLoadingStatus === false;
+    },
   },
   watch: {
     '$store.state.MSDAT_STORE.showDataSourceList': {
@@ -128,18 +221,39 @@ export default {
     theme(newTheme) {
       document.documentElement.setAttribute('data-theme', newTheme);
     },
+    dashboardConfigId: {
+      handler(newVal, oldVal) {
+        if (newVal && newVal !== oldVal) {
+          this.scheduleWhatsNewCheck('dashboard-ready');
+        }
+      },
+      immediate: true,
+    },
+    isDashboardInitializationComplete(newVal, oldVal) {
+      if (newVal && newVal !== oldVal) {
+        this.scheduleWhatsNewCheck('dashboard-initialized');
+        this.scheduleFunFactDisplay('dashboard-initialized');
+      }
+    },
+    showDisablePrompt(newVal) {
+      if (newVal === true) {
+        setTimeout(() => {
+          this.showDisablePrompt = false;
+        }, 10000);
+      }
+    },
   },
   async mounted() {
-    await this.getWhatsNew();
-
-    this.firstTimeExecution();
-
-    // Show immediately (optional)
-    this.showFunFactTemporarily();
+    this.initializeFunFactPreference();
+    this.scheduleWhatsNewCheck('app-mounted');
+    window.addEventListener('focus', this.handleWhatsNewRecheckTrigger);
+    document.addEventListener('visibilitychange', this.handleVisibilityChange);
 
     // Repeat every 2 minutes
     this.showInterval = setInterval(() => {
-      this.showFunFactTemporarily();
+      if (this.isDashboardInitializationComplete && !this.isFunFactDisabled) {
+        this.showFunFactTemporarily();
+      }
     }, 2 * 60 * 1000);
 
     // eslint-disable-next-line
@@ -199,15 +313,6 @@ export default {
       Vue.use(screenshotManager);
     }
 
-    this.pluginsImported.push('testonePlugin');
-    if (!localStorage.getItem('testonePlugin')) {
-      localStorage.setItem('testonePlugin', 'false');
-    }
-
-    if (localStorage.getItem('testonePlugin') === 'true') {
-      Vue.use(testonePlugin);
-    }
-
     this.pluginsImported.push('testPlugin');
     if (!localStorage.getItem('testPlugin')) {
       localStorage.setItem('testPlugin', 'false');
@@ -217,16 +322,199 @@ export default {
       Vue.use(testPlugin);
     }
 
+    this.pluginsImported.push('testonePlugin');
+    if (!localStorage.getItem('testonePlugin')) {
+      localStorage.setItem('testonePlugin', 'false');
+    }
+
+    if (localStorage.getItem('testonePlugin') === 'true') {
+      Vue.use(testonePlugin);
+    }
+
     await this.SET_PLUGINS_IMPORTED(this.pluginsImported);
     document.body.className = this.viewMode;
     document.documentElement.style.fontSize = this.fontSize;
     document.documentElement.setAttribute('data-theme', this.theme);
   },
   methods: {
+    ...mapGetters('MSDAT_STORE', ['getConfigObject', 'getFunFact']),
     ...mapActions(['SET_PLUGINS_IMPORTED']),
-    ...mapMutations('MSDAT_STORE', ['toggleShowWhatsNew']),
+    ...mapMutations('MSDAT_STORE', ['toggleShowWhatsNew', 'SET_FUN_FACT']),
+    getWhatsNewStorageKey(key) {
+      return `msdat_whats_new_${key}`;
+    },
+    getStoredWhatsNewTimestamp(key) {
+      const value = Number(localStorage.getItem(this.getWhatsNewStorageKey(key)));
+      return Number.isFinite(value) ? value : 0;
+    },
+    setStoredWhatsNewTimestamp(key, value) {
+      localStorage.setItem(this.getWhatsNewStorageKey(key), String(value));
+    },
+    getStoredWhatsNewSignature() {
+      return localStorage.getItem(this.getWhatsNewStorageKey('last_seen_signature')) || '';
+    },
+    setStoredWhatsNewSignature(signature) {
+      localStorage.setItem(this.getWhatsNewStorageKey('last_seen_signature'), signature);
+    },
+    buildWhatsNewSignature(items = []) {
+      return items
+        .map((item) => [
+          item.id,
+          item.updated_at || item.created_at || '',
+          item.category_name || '',
+          item.title || '',
+          item.content || '',
+          item.dashboard_name || '',
+        ].join(':'))
+        .join('|');
+    },
+    shouldDebugWhatsNew() {
+      return localStorage.getItem(this.getWhatsNewStorageKey('debug')) === 'true';
+    },
+    logWhatsNewDebug(stage, details = {}) {
+      if (!this.shouldDebugWhatsNew()) return;
+
+      console.log('[WhatsNew Debug]', stage, {
+        dashboardConfigId: this.dashboardConfigId,
+        getLoadingStatus: this.getLoadingStatus,
+        isDashboardInitializationComplete: this.isDashboardInitializationComplete,
+        showDataSourceListComponent: this.showDataSourceListComponent,
+        showShareSectionComponent: this.showShareSectionComponent,
+        showWhatsNewComponent: this.showWhatsNewComponent,
+        storedLastSeenAt: this.getStoredWhatsNewTimestamp('last_seen_at'),
+        storedLastCheckedAt: this.getStoredWhatsNewTimestamp('last_checked_at'),
+        storedLastSeenSignature: this.getStoredWhatsNewSignature(),
+        ...details,
+      });
+    },
+    canOpenWhatsNewModal() {
+      return !this.showDataSourceListComponent && !this.showShareSectionComponent;
+    },
+    async openWhatsNewModal(signature) {
+      if (!this.canOpenWhatsNewModal()) {
+        this.logWhatsNewDebug('open-blocked', {
+          reason: 'blocking-modal-open',
+        });
+        return;
+      }
+
+      this.setStoredWhatsNewSignature(signature);
+      this.setStoredWhatsNewTimestamp('last_seen_at', Date.now());
+      this.logWhatsNewDebug('open-modal', {
+        nextSignature: signature,
+      });
+      this.toggleShowWhatsNew();
+    },
+    shouldRecheckWhatsNew() {
+      const sixHours = 6 * 60 * 60 * 1000;
+      const lastCheckedAt = this.getStoredWhatsNewTimestamp('last_checked_at');
+      return !lastCheckedAt || Date.now() - lastCheckedAt >= sixHours;
+    },
+    scheduleWhatsNewCheck(reason = 'manual') {
+      if (!this.isDashboardInitializationComplete) {
+        this.logWhatsNewDebug('schedule-skipped', { reason });
+        return;
+      }
+
+      if (this.whatsNewReadyTimeout) {
+        clearTimeout(this.whatsNewReadyTimeout);
+      }
+
+      this.logWhatsNewDebug('schedule-queued', { reason });
+      this.whatsNewReadyTimeout = setTimeout(() => {
+        this.checkWhatsNew(reason);
+      }, 60 * 1000);
+    },
+    async checkWhatsNew(reason = 'manual') {
+      if (!this.isDashboardInitializationComplete) {
+        this.logWhatsNewDebug('check-skipped', { reason });
+        return;
+      }
+
+      try {
+        const hasCheckedBefore = this.getStoredWhatsNewTimestamp('last_checked_at') > 0;
+        const response = await ApiServices.getWhatsNew();
+        const results = Array.isArray(response?.data?.results) ? response.data.results : [];
+        const signature = this.buildWhatsNewSignature(results);
+        const lastSeenSignature = this.getStoredWhatsNewSignature();
+        const lastSeenAt = this.getStoredWhatsNewTimestamp('last_seen_at');
+        const oneDay = 24 * 60 * 60 * 1000;
+        const shouldShowForDailyView = !lastSeenAt || Date.now() - lastSeenAt >= oneDay;
+        const shouldShowForChange = Boolean(signature) && signature !== lastSeenSignature;
+        const shouldShowForFirstLoad = Boolean(signature) && !hasCheckedBefore;
+        const canOpen = this.canOpenWhatsNewModal();
+
+        this.whatsNewContent = results;
+        this.setStoredWhatsNewTimestamp('last_checked_at', Date.now());
+        this.logWhatsNewDebug('check-results', {
+          reason,
+          resultsLength: results.length,
+          latestSignature: signature,
+          hasCheckedBefore,
+          shouldShowForDailyView,
+          shouldShowForChange,
+          shouldShowForFirstLoad,
+          canOpen,
+        });
+
+        if (!results.length || !canOpen) {
+          this.logWhatsNewDebug('check-no-open', {
+            reason,
+            resultsLength: results.length,
+            canOpen,
+          });
+          return;
+        }
+
+        if (shouldShowForFirstLoad || shouldShowForChange || shouldShowForDailyView) {
+          await this.openWhatsNewModal(signature);
+        } else {
+          this.logWhatsNewDebug('check-no-open', {
+            reason,
+            resultsLength: results.length,
+            canOpen,
+            shouldShowForDailyView,
+            shouldShowForChange,
+            shouldShowForFirstLoad,
+          });
+        }
+      } catch (error) {
+        this.logWhatsNewDebug('check-error', {
+          reason,
+          error: error?.message || error,
+        });
+        console.error('Failed to fetch Whats New content:', error);
+      }
+    },
+    handleWhatsNewRecheckTrigger() {
+      if (document.hidden || !this.isDashboardInitializationComplete || !this.shouldRecheckWhatsNew()) {
+        this.logWhatsNewDebug('focus-skip', {
+          documentHidden: document.hidden,
+          shouldRecheck: this.shouldRecheckWhatsNew(),
+        });
+        return;
+      }
+
+      this.checkWhatsNew('focus');
+    },
+    handleVisibilityChange() {
+      if (document.hidden || !this.shouldRecheckWhatsNew()) {
+        this.logWhatsNewDebug('visibility-skip', {
+          documentHidden: document.hidden,
+          shouldRecheck: this.shouldRecheckWhatsNew(),
+        });
+        return;
+      }
+
+      this.checkWhatsNew('visibility');
+    },
 
     async showFunFactTemporarily() {
+      if (this.isFunFactDisabled) {
+        this.showFunFact = false;
+        return;
+      }
+
       if (this.getConfigObject.id === undefined) {
         return;
       }
@@ -239,6 +527,7 @@ export default {
 
         // ✅ Only show when webhook responds successfully
         if (!result) return;
+        this.SET_FUN_FACT(result.content);
 
         this.nugget = result.content;
 
@@ -259,6 +548,54 @@ export default {
       }
     },
 
+    toggleDisablePrompt() {
+      this.showDisablePrompt = !this.showDisablePrompt;
+    },
+    initializeFunFactPreference() {
+      this.funFactDisabled = localStorage.getItem('funFactDisabled') === 'true';
+    },
+    scheduleFunFactDisplay() {
+      if (!this.isDashboardInitializationComplete || this.isFunFactDisabled) {
+        return;
+      }
+
+      if (this.funFactReadyTimeout) {
+        clearTimeout(this.funFactReadyTimeout);
+      }
+
+      this.funFactReadyTimeout = setTimeout(() => {
+        this.showFunFactTemporarily();
+      }, 30 * 1000);
+    },
+
+    toggleFunFact() {
+      localStorage.setItem('funFactDisabled', 'false');
+      this.funFactDisabled = false;
+      this.nugget = this.getFunFact;
+      this.showFunFact = Boolean(this.nugget);
+
+      if (!this.nugget && this.isDashboardInitializationComplete) {
+        this.showFunFactTemporarily();
+      }
+    },
+
+    disableFunFact() {
+      localStorage.setItem('funFactDisabled', 'true');
+      this.funFactDisabled = true;
+      this.showFunFact = false;
+      this.showDisablePrompt = false;
+
+      if (this.hideTimeout) {
+        clearTimeout(this.hideTimeout);
+        this.hideTimeout = null;
+      }
+
+      if (this.funFactReadyTimeout) {
+        clearTimeout(this.funFactReadyTimeout);
+        this.funFactReadyTimeout = null;
+      }
+    },
+
     closeFunFact() {
       this.showFunFact = false;
 
@@ -267,43 +604,6 @@ export default {
         clearTimeout(this.hideTimeout);
         this.hideTimeout = null;
       }
-    },
-
-    executeTask() {
-      const now = new Date();
-      this.lastExecutionTime = now.toLocaleTimeString();
-      this.toggleShowWhatsNew();
-    },
-
-    async getWhatsNew() {
-      const { data } = await ApiServices.getWhatsNew();
-      this.whatsNewContent = data.results;
-    },
-
-    handleAppUnload() {
-      localStorage.removeItem('firstTimeExecution');
-    },
-
-    startSixHourInterval() {
-      const checkAndExecute = () => {
-        const now = new Date();
-        const hours = now.getHours();
-        const minutes = now.getMinutes();
-        if (hours % 6 === 0 && minutes === 0) {
-          this.executeTask();
-        }
-      };
-      setInterval(checkAndExecute, 60 * 1000);
-    },
-
-    firstTimeExecution() {
-      setTimeout(() => {
-        const alreadyExecuted = localStorage.getItem('firstTimeExecution');
-        if (alreadyExecuted === null) {
-          localStorage.setItem('firstTimeExecution', 'true');
-          this.toggleShowWhatsNew();
-        }
-      }, 60 * 1000);
     },
 
     // Live plugin toggling without reload
@@ -315,8 +615,8 @@ export default {
         indicatorPlugin,
         reviewPlugin,
         screenshotManager,
-        testonePlugin,
         testPlugin,
+        testonePlugin,
       };
 
       const pkg = registry[plugin];
@@ -361,6 +661,10 @@ export default {
     // Cleanup timers
     if (this.showInterval) clearInterval(this.showInterval);
     if (this.hideTimeout) clearTimeout(this.hideTimeout);
+    if (this.funFactReadyTimeout) clearTimeout(this.funFactReadyTimeout);
+    if (this.whatsNewReadyTimeout) clearTimeout(this.whatsNewReadyTimeout);
+    window.removeEventListener('focus', this.handleWhatsNewRecheckTrigger);
+    document.removeEventListener('visibilitychange', this.handleVisibilityChange);
   },
 };
 </script>
@@ -380,99 +684,470 @@ export default {
 
 .fun-fact {
   position: fixed;
-  top: 500px;
-  left: 400px;
-  width: 50vw;
+  right: 2rem;
+  bottom: 2rem;
+  width: min(34rem, calc(100vw - 2.5rem));
   display: flex;
-  gap: 14px;
+  gap: 1rem;
   align-items: flex-start;
-
-  padding: 18px 20px;
-  border-radius: 14px;
-
-  background: linear-gradient(135deg, #fff7e6, #ffffff);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
-
-  border-left: 5px solid #f59e0b;
+  overflow: hidden;
+  padding: 1.4rem 1.5rem 1.35rem;
+  border-radius: 1.6rem;
+  background:
+    radial-gradient(circle at top right, rgba(214, 169, 69, 0.18), transparent 32%),
+    linear-gradient(145deg, rgba(255, 250, 240, 0.98), rgba(250, 245, 233, 0.96));
+  border: 1px solid rgba(196, 149, 43, 0.18);
+  box-shadow:
+    0 22px 60px rgba(49, 36, 11, 0.18),
+    0 8px 20px rgba(130, 97, 27, 0.08);
   z-index: 9999;
+  transform-origin: left bottom;
+  will-change: transform, opacity;
+}
+
+.fun-fact-trigger {
+  position: fixed;
+  left: 1.35rem;
+  bottom: 1.7rem;
+  z-index: 9999;
+  cursor: pointer;
+  width: 4.15rem;
+  height: 4.15rem;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.95), rgba(247, 236, 211, 0.78)),
+    linear-gradient(160deg, rgba(255, 248, 232, 0.92), rgba(244, 221, 165, 0.86));
+  border: 1px solid rgba(201, 154, 51, 0.22);
+  border-radius: 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 18px 38px rgba(75, 54, 14, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  transition: transform 0.35s ease, box-shadow 0.35s ease, filter 0.35s ease;
+  animation: floaty 5s ease-in-out infinite;
+}
+
+.fun-fact-trigger:hover {
+  transform: translateY(-4px) scale(1.03);
+  box-shadow:
+    0 24px 44px rgba(75, 54, 14, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.bulb-svg {
+  width: 2rem;
+  height: 2rem;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 4px 8px rgba(245, 158, 11, 0.3))
+    drop-shadow(0 0 16px rgba(245, 158, 11, 0.25));
+}
+
+.bulb-glow {
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.6));
+}
+
+.fun-fact-trigger-ring,
+.fun-fact-glow {
+  position: absolute;
+  inset: auto;
+  width: 8rem;
+  height: 8rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(214, 169, 69, 0.24), transparent 70%);
+  animation: pulse 2.5s infinite;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.fun-fact-trigger-ring {
+  width: 7rem;
+  height: 7rem;
+}
+
+.fun-fact-glow {
+  top: -3rem;
+  right: -2.5rem;
+  width: 11rem;
+  height: 11rem;
+  opacity: 0.75;
+}
+
+.fun-fact-trigger:hover .bulb-svg {
+  transform: scale(1.08) translateY(-3px);
+  filter: drop-shadow(0 6px 12px rgba(245, 158, 11, 0.5))
+    drop-shadow(0 0 24px rgba(245, 158, 11, 0.4));
+}
+
+.fun-fact-trigger:hover .bulb-glow {
+  filter: drop-shadow(0 0 18px rgba(245, 158, 11, 0.9));
+}
+
+.fun-fact-trigger:hover .bulb-glow {
+  animation: flicker 0.6s ease-in-out;
+}
+
+/* animations */
+@keyframes floaty {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.6;
+  }
+  70% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes flicker {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.fun-fact-disable {
+  position: absolute;
+  top: 1rem;
+  right: 3.4rem;
+  width: 2rem;
+  height: 2rem;
+  background: rgba(255, 255, 255, 0.6);
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  backdrop-filter: blur(8px);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.fun-fact-disable:hover {
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-1px);
+}
+
+.funfact-modal {
+  position: fixed;
+  right: 2rem;
+  bottom: 7.2rem;
+  z-index: 9999;
+  display: flex;
+  gap: 0.9rem;
+  align-items: flex-start;
+  width: min(21rem, calc(100vw - 2.5rem));
+  padding: 1rem 1.05rem;
+  border-radius: 1.15rem;
+  background: rgba(255, 251, 242, 0.96);
+  border: 1px solid rgba(196, 149, 43, 0.16);
+  box-shadow: 0 18px 36px rgba(49, 36, 11, 0.14);
+  backdrop-filter: blur(14px);
+}
+
+.funfact-modal .icon {
+  font-size: 1.35rem;
+  color: #bc8a18;
+}
+
+.funfact-modal .title {
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  color: #2f2612;
+}
+
+.funfact-modal .desc {
+  font-size: 0.84rem;
+  color: #6e6141;
+  margin-bottom: 0.9rem;
+  line-height: 1.5;
+}
+
+.funfact-modal .actions {
+  display: flex;
+  gap: 0.65rem;
+}
+
+.funfact-modal button {
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.funfact-modal .cancel {
+  background: rgba(255, 255, 255, 0.9);
+  color: #4c4128;
+  border-color: rgba(196, 149, 43, 0.16);
+}
+
+.funfact-modal .confirm {
+  background: linear-gradient(135deg, #bf8b18, #e0b24d);
+  color: white;
+  box-shadow: 0 10px 20px rgba(191, 139, 24, 0.2);
+}
+
+.funfact-modal button:hover {
+  transform: translateY(-1px);
+}
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.25s ease;
+}
+
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+button:focus:not(:focus-visible) {
+  outline: none;
 }
 
 /* Close (X) */
 .fun-fact-close {
   position: absolute;
-  top: 10px;
-  right: 12px;
-  background: transparent;
+  top: 1rem;
+  right: 1rem;
+  width: 2rem;
+  height: 2rem;
+  background: rgba(255, 255, 255, 0.62);
   border: none;
-  font-size: 18px;
+  border-radius: 999px;
+  font-size: 1rem;
   line-height: 1;
-  color: #9ca3af;
+  color: #76684b;
   cursor: pointer;
-  padding: 4px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  backdrop-filter: blur(8px);
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
 .fun-fact-close:hover {
-  color: #374151;
+  color: #2f2612;
+  background: rgba(255, 255, 255, 0.92);
+  transform: translateY(-1px);
 }
 
 .fun-fact-icon {
   flex-shrink: 0;
-  background: #f59e0b;
+  position: relative;
+  width: 3.6rem;
+  height: 3.6rem;
+  border-radius: 1.15rem;
+  background:
+    linear-gradient(145deg, rgba(191, 139, 24, 0.98), rgba(229, 193, 106, 0.92));
   color: #fff;
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
-
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.34),
+    0 16px 30px rgba(191, 139, 24, 0.22);
 }
 
 .bulb-icon {
-  width: 22px;
-  height: 22px;
+  width: 1.55rem;
+  height: 1.55rem;
 }
 
 .fun-fact-content {
   display: flex;
   flex-direction: column;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.fun-fact-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
 }
 
 .fun-fact-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #92400e;
+  margin: 0;
+  font-size: 0.64rem;
+  font-weight: 700;
+  color: #7b5b16;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 4px;
+  letter-spacing: 0.22em;
+}
+
+.fun-fact-kicker {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.62rem;
+  border-radius: 999px;
+  background: rgba(191, 139, 24, 0.08);
+  color: #715626;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.fun-fact-divider {
+  width: 3.1rem;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(191, 139, 24, 0.8), rgba(191, 139, 24, 0));
 }
 
 .fun-fact-text {
-  font-size: 15px;
-  line-height: 1.5;
-  color: #1f2937;
+  font-family: 'Baskerville', 'Georgia', 'Times New Roman', serif;
+  font-size: clamp(1.12rem, 1rem + 0.55vw, 1.52rem);
+  line-height: 1.62;
+  color: #202217;
   font-weight: 500;
+  letter-spacing: 0.012em;
   margin: 0;
+  text-wrap: pretty;
+}
+
+.fun-fact-quote-mark {
+  display: inline-block;
+  margin-right: 0.18rem;
+  color: #bc8a18;
+  font-size: 1.3em;
+  line-height: 0;
+  transform: translateY(0.12em);
+}
+
+.fun-fact-caption {
+  margin: 0;
+  max-width: 28rem;
+  color: #685c42;
+  font-size: 0.78rem;
+  line-height: 1.7;
+  letter-spacing: 0.015em;
 }
 
 .fun-fact-slide-enter-active,
 .fun-fact-slide-leave-active {
-  transition: all 0.35s ease;
+  transition:
+    opacity 420ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 520ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 420ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.fun-fact-slide-enter {
+.fun-fact-slide-enter-active .fun-fact-icon,
+.fun-fact-slide-enter-active .fun-fact-meta,
+.fun-fact-slide-enter-active .fun-fact-divider,
+.fun-fact-slide-enter-active .fun-fact-text,
+.fun-fact-slide-enter-active .fun-fact-caption,
+.fun-fact-slide-leave-active .fun-fact-icon,
+.fun-fact-slide-leave-active .fun-fact-meta,
+.fun-fact-slide-leave-active .fun-fact-divider,
+.fun-fact-slide-leave-active .fun-fact-text,
+.fun-fact-slide-leave-active .fun-fact-caption {
+  transition:
+    opacity 360ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 460ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.fun-fact-slide-enter,
+.fun-fact-slide-leave-to {
   opacity: 0;
-  transform: translateX(40px);
+  transform: translateY(24px) scale(0.972);
+  box-shadow:
+    0 12px 26px rgba(49, 36, 11, 0.1),
+    0 4px 10px rgba(130, 97, 27, 0.05);
 }
 
 .fun-fact-slide-enter-to {
   opacity: 1;
-  transform: translateX(0);
+  transform: translateY(0) scale(1);
 }
 
-.fun-fact-slide-leave-to {
+.fun-fact-slide-enter .fun-fact-icon,
+.fun-fact-slide-leave-to .fun-fact-icon {
   opacity: 0;
-  transform: translateX(40px);
+  transform: translateY(10px) scale(0.92);
+}
+
+.fun-fact-slide-enter .fun-fact-meta,
+.fun-fact-slide-leave-to .fun-fact-meta {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.fun-fact-slide-enter .fun-fact-divider,
+.fun-fact-slide-leave-to .fun-fact-divider {
+  opacity: 0;
+  transform: scaleX(0.6);
+  transform-origin: left center;
+}
+
+.fun-fact-slide-enter .fun-fact-text,
+.fun-fact-slide-leave-to .fun-fact-text {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.fun-fact-slide-enter .fun-fact-caption,
+.fun-fact-slide-leave-to .fun-fact-caption {
+  opacity: 0;
+  transform: translateY(14px);
+}
+
+.fun-fact-slide-enter-active .fun-fact-icon {
+  transition-delay: 70ms;
+}
+
+.fun-fact-slide-enter-active .fun-fact-meta,
+.fun-fact-slide-enter-active .fun-fact-divider {
+  transition-delay: 120ms;
+}
+
+.fun-fact-slide-enter-active .fun-fact-text {
+  transition-delay: 170ms;
+}
+
+.fun-fact-slide-enter-active .fun-fact-caption {
+  transition-delay: 230ms;
+}
+
+.fun-fact-slide-leave-active .fun-fact-caption {
+  transition-delay: 0ms;
+}
+
+.fun-fact-slide-leave-active .fun-fact-text {
+  transition-delay: 25ms;
+}
+
+.fun-fact-slide-leave-active .fun-fact-meta,
+.fun-fact-slide-leave-active .fun-fact-divider {
+  transition-delay: 45ms;
+}
+
+.fun-fact-slide-leave-active .fun-fact-icon {
+  transition-delay: 65ms;
 }
 
 .whats-new {
@@ -520,6 +1195,36 @@ export default {
 .global-chat-trigger svg {
   width: 28px;
   height: 28px;
+}
+
+@media (max-width: 768px) {
+  .fun-fact {
+    right: 1rem;
+    left: 1rem;
+    bottom: 1rem;
+    width: auto;
+    padding: 1.1rem 1.05rem 1rem;
+    gap: 0.85rem;
+  }
+
+  .fun-fact-trigger {
+    left: 1rem;
+    bottom: 1rem;
+    width: 3.6rem;
+    height: 3.6rem;
+    border-radius: 1.2rem;
+  }
+
+  .fun-fact-disable {
+    right: 3rem;
+  }
+
+  .funfact-modal {
+    right: 1rem;
+    left: 1rem;
+    bottom: 5.8rem;
+    width: auto;
+  }
 }
 
   .light {
