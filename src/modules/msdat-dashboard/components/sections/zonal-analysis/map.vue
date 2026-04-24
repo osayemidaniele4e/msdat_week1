@@ -1,26 +1,26 @@
 <template>
-  <div class="container">
+  <div :class="containerClass">
     <base-overlay :show="loader">
       <base-sub-card
         v-if="Object.keys(controlPanelProps).length"
         showControls
         @dropdownTypeSelected="
           downLoadTypeMap($event, {
-            indicator: controlPanelProps.indicator.short_name,
-            datasource: controlPanelProps.datasource.datasource,
-            year: controlPanelProps.year,
+            indicator: indicatorLabel,
+            datasource: datasourceLabel,
+            year: yearLabel,
           })
         "
       >
         <template #title>
           <p class="work-sans mb-0 line-height">
             Distribution of
-            <span class="font-weight-bold"> {{ controlPanelProps.indicator.full_name }} </span
+            <span class="font-weight-bold"> {{ indicatorLabel }} </span
             >across
-            <span class="font-weight-bold"> {{ controlPanelProps.location.name }}.</span> Source:
+            <span class="font-weight-bold"> {{ locationLabel }}.</span> Source:
             <span class="font-weight-bold">
-              {{ controlPanelProps.datasource.datasource }}
-              {{ controlPanelProps.year }}</span
+              {{ datasourceLabel }}
+              {{ yearLabel }}</span
             >
           </p>
         </template>
@@ -107,6 +107,10 @@ export default {
       type: String,
       default: 'Category',
     },
+    fullWidth: {
+      type: Boolean,
+      default: false,
+    },
   },
   components: {
     BaseMap,
@@ -129,7 +133,46 @@ export default {
       zonalObj: null,
     };
   },
+  computed: {
+    indicatorLabel() {
+      return this.resolveDisplayText(this.controlPanelProps?.indicator, [
+        'full_name',
+        'short_name',
+        'name',
+      ]);
+    },
+    locationLabel() {
+      return this.resolveDisplayText(this.controlPanelProps?.location, ['name']);
+    },
+    datasourceLabel() {
+      return this.resolveDisplayText(this.controlPanelProps?.datasource, [
+        'datasource',
+        'name',
+        'item',
+      ]);
+    },
+    yearLabel() {
+      return this.resolveDisplayText(this.controlPanelProps?.year);
+    },
+    containerClass() {
+      return this.fullWidth ? 'container-fluid px-0' : 'container';
+    },
+  },
   methods: {
+    resolveDisplayText(value, preferredKeys = []) {
+      if (value == null) return '';
+      if (typeof value === 'string' || typeof value === 'number') return String(value);
+      if (Array.isArray(value)) return '';
+      if (typeof value === 'object') {
+        for (let i = 0; i < preferredKeys.length; i += 1) {
+          const key = preferredKeys[i];
+          if (typeof value[key] === 'string' || typeof value[key] === 'number') {
+            return String(value[key]);
+          }
+        }
+      }
+      return '';
+    },
     returnToNational() {
       const selectedPlace = this.dlGetLocation({ level: 1 });
       if (selectedPlace.length !== 0) {
@@ -384,7 +427,7 @@ export default {
             this.chart = {
               series: zData,
             };
-            this.title = `Distribution of ${val.indicator.full_name} Across ${this.controlPanelProps.location.name}`;
+            this.title = `Distribution of ${this.indicatorLabel} Across ${this.locationLabel}`;
             this.level = 2;
             this.stateName = 'Nigeria';
           } else {
@@ -444,8 +487,6 @@ export default {
             (item) => this.dlGetLocation(item.location).parent === stateObject.id,
           );
 
-          const tempData = this.updatedSeries();
-
           if (filteredLGADataForState.length === 0) {
             this.showNoAvailableData = true;
             this.loader = false;
@@ -504,7 +545,7 @@ export default {
   },
 
   mounted() {
-    this.title = ` Distribution of ${this.controlPanelProps.indicator.full_name} across ${this.controlPanelProps.location.name}. Source: ${this.controlPanelProps.datasource.datasource} ${this.controlPanelProps.year}`;
+    this.title = ` Distribution of ${this.indicatorLabel} across ${this.locationLabel}. Source: ${this.datasourceLabel} ${this.yearLabel}`;
   },
 };
 </script>

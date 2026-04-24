@@ -1,46 +1,82 @@
 <template>
-  <div class="datasource-container">
-    <div class="whats-new-content">
-      <div @click="closeComponent" class="close-btn">
-        <img src="../../../assets/close-icon.png" alt="" />
-      </div>
-      <div class="d-flex w-100 justify-content-center mt-2 title">
-        <h1>What's New!</h1>
-      </div>
-      <div v-for="(items, category) in whatsNew" :key="category" class="w-100 new-item d-flex">
-        <div v-if="category === 'Dataset'" class="icon">
-          <img src="../../../assets/new-dataset.png" alt="" />
+  <div class="whats-new-overlay">
+    <div class="whats-new-modal">
+      <button type="button" class="close-btn" @click="closeComponent" aria-label="Close what's new">
+        <span>×</span>
+      </button>
+
+      <section class="hero-section">
+        <div class="hero-orb hero-orb-one"></div>
+        <div class="hero-orb hero-orb-two"></div>
+        <div class="eyebrow">Platform updates</div>
+        <div class="hero-copy">
+          <h1>What&apos;s New</h1>
+          <p>
+            New improvements across MSDAT Platform, curated to help spot new datasets, dashboards,
+            and platform features at a glance.
+          </p>
+          <!-- <div class="hero-inline-note">
+            <span class="hero-inline-dot"></span>
+            <span>Fresh signals for your next dashboard session</span>
+          </div> -->
         </div>
-        <div v-if="category === 'Dashboard'" class="icon">
-          <img src="../../../assets/dashboard.png" alt="" />
+        <div class="hero-metrics">
+          <div class="metric-card">
+            <span class="metric-label">New Update count</span>
+            <strong>{{ totalUpdates }}</strong>
+          </div>
         </div>
-        <div v-if="category === 'Feature'" class="icon">
-          <img src="../../../assets/feature.png" alt="" />
-        </div>
-        <div class="info">
-          <div v-if="category === 'Dashboard'" class="">
-            <h3>{{ category }}</h3>
-            <ul v-if="items && items.length > 0">
-              <li v-for="item in items.slice(0, 3)" :key="item.id">
+      </section>
+
+      <section class="updates-grid">
+        <article
+          v-for="section in sections"
+          :key="section.key"
+          class="update-section"
+          :class="section.theme"
+        >
+          <div class="section-accent"></div>
+          <div class="section-header">
+            <div class="section-icon">
+              <img :src="section.icon" :alt="section.label" />
+            </div>
+            <div class="section-title-wrap">
+              <div class="section-label-row">
+                <h2>{{ section.label }}</h2>
+                <span class="pill"
+                  >{{ displayedCount(section.items) }} update{{
+                    displayedCount(section.items) === 1 ? '' : 's'
+                  }}</span
+                >
+              </div>
+              <p>{{ section.description }}</p>
+            </div>
+          </div>
+
+          <ul v-if="section.items.length" class="update-list">
+            <li v-for="item in section.items.slice(0, 3)" :key="item.id" class="update-item">
+              <div class="item-marker"></div>
+              <div class="item-content">
                 <h3>{{ item.content }}</h3>
-                <div class="w-100 d-flex justify-content-end">
-                  <span @click="navigateToDashboard(item.title)" class="link">View Dashboard</span>
+                <span class="item-meta">{{ section.label }} highlight</span>
+                <div v-if="section.key === 'Dashboard'" class="item-action-row">
+                  <button
+                    type="button"
+                    class="link-btn"
+                    @click="navigateToDashboard(item.dashboard_name || item.title)"
+                  >
+                    View
+                  </button>
                 </div>
-              </li>
-            </ul>
-            <p v-else class="no-items-message">No New Dashboard available.</p>
+              </div>
+            </li>
+          </ul>
+
+          <div v-else class="empty-state">
+            <span>No new {{ section.label.toLowerCase() }} updates yet.</span>
           </div>
-          <div v-else class="">
-            <h2>{{ category }}</h2>
-            <ul v-if="items && items.length > 0">
-              <li v-for="item in items.slice(0, 3)" :key="item.id">
-                <h3>{{ item.content }}</h3>
-              </li>
-            </ul>
-            <p v-else class="no-items-message">No items available in this category.</p>
-          </div>
-        </div>
-      </div>
+        </article>
+      </section>
     </div>
   </div>
 </template>
@@ -48,15 +84,56 @@
 <script>
 import { mapMutations } from 'vuex';
 import ApiServices from '@/modules/data-layer/services/ApiServices';
+import datasetIcon from '../../../assets/new-dataset.png';
+import dashboardIcon from '../../../assets/dashboard.png';
+import featureIcon from '../../../assets/feature.png';
 
 export default {
   data() {
     return {
-      whatsNew: [],
+      whatsNew: {},
+      sectionMeta: {
+        Dataset: {
+          icon: datasetIcon,
+          description: 'New data sources and content ready for exploration.',
+          theme: 'dataset-theme',
+        },
+        Dashboard: {
+          icon: dashboardIcon,
+          description: 'Recently published views and decision-ready dashboards.',
+          theme: 'dashboard-theme',
+        },
+        Feature: {
+          icon: featureIcon,
+          description: 'Platform improvements designed to make work smoother.',
+          theme: 'feature-theme',
+        },
+      },
+      sectionOrder: ['Dataset', 'Dashboard', 'Feature'],
+      autoCloseTimer: null,
     };
   },
+  computed: {
+    sections() {
+      return this.sectionOrder.map((key) => ({
+        key,
+        label: key,
+        items: this.whatsNew[key] || [],
+        ...this.sectionMeta[key],
+      }));
+    },
+    totalUpdates() {
+      return this.sections.reduce(
+        (total, section) => total + this.displayedCount(section.items),
+        0
+      );
+    },
+  },
   methods: {
-    ...mapMutations('MSDAT_STORE', ['toggleShowWhatsNew', 'closeShowWhatsNew']),
+    ...mapMutations('MSDAT_STORE', ['closeShowWhatsNew']),
+    displayedCount(items = []) {
+      return items.slice(0, 3).length;
+    },
 
     closeComponent() {
       localStorage.setItem('firstTimeExecution', 'true');
@@ -64,9 +141,7 @@ export default {
     },
     async getWhatsNew() {
       const { data } = await ApiServices.getWhatsNew();
-      const temp = this.groupByCategory(data.results);
-      this.whatsNew = temp;
-      console.log('Whats New:', this.whatsNew);
+      this.whatsNew = this.groupByCategory(data.results || []);
     },
     groupByCategory(data) {
       return data.reduce((acc, item) => {
@@ -75,29 +150,22 @@ export default {
         return acc;
       }, {});
     },
-
     navigateToDashboard(str) {
       if (str === null || str === undefined || str === 'null') {
         return;
       }
       const origin = window.location.origin;
-      const url = `/${str}`;
-      // Construct the full URL
-      const fullUrl = origin + url;
-      // Open the full URL in a new tab
+      const fullUrl = `${origin}/${str}`;
       window.open(fullUrl, '_blank');
     },
   },
   mounted() {
     this.getWhatsNew();
-
-    // ⏱️ Auto-close after 2 minutes (120,000 ms)
     this.autoCloseTimer = setTimeout(() => {
       this.closeComponent();
     }, 90000);
   },
   beforeUnmount() {
-    // cleanup when component is destroyed
     if (this.autoCloseTimer) {
       clearTimeout(this.autoCloseTimer);
     }
@@ -106,274 +174,435 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap');
 
-.datasource-container {
+.whats-new-overlay {
   position: relative;
-  border: 1px solid #c3c3c3;
-  background-color: rgba(0, 0, 0, 0.4); // Adjust opacity only for the background
-  height: 100%;
-  width: 100%;
-  padding: 20px;
   display: flex;
-  justify-content: center;
   align-items: center;
-  h1 {
-    font-size: 16px;
-  }
-  h2 {
-    font-size: 14px;
-    font-weight: bold;
-  }
+  justify-content: center;
+  width: 100%;
+  min-height: 100%;
+  padding: 32px 20px;
+  background: radial-gradient(circle at top left, rgba(43, 124, 109, 0.22), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(203, 164, 92, 0.16), transparent 28%),
+    rgba(6, 15, 13, 0.3);
+  backdrop-filter: blur(6px);
+}
+
+.whats-new-modal {
+  position: relative;
+  width: min(980px, 100%);
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 28px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(245, 249, 247, 0.94)), #ffffff;
+  box-shadow: 0 30px 80px rgba(4, 25, 21, 0.22);
 }
 
 .close-btn {
   position: absolute;
-  top: 5px;
-  right: 5px;
+  top: 18px;
+  right: 18px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid rgba(18, 59, 49, 0.14);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: #173a33;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+
+  span {
+    display: block;
+    font-size: 1.8rem;
+    line-height: 1;
+  }
+
+  &:hover {
+    transform: translateY(-1px);
+    background: #ffffff;
+    box-shadow: 0 16px 32px rgba(23, 58, 51, 0.14);
+  }
 }
 
-.close-btn img {
-  width: 32px;
-  height: 32px;
-  cursor: pointer;
-}
-.whats-new-content {
+.hero-section {
   position: relative;
-  //   right: 20px;
-  min-height: 300px;
-  width: 600px;
-  // top: 5rem;
-  background-color: white;
-  padding: 30px;
-  border-radius: 10px;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(220px, 0.9fr);
+  gap: 20px;
+  padding: 18px 18px 16px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(12, 62, 53, 0.98), rgba(24, 111, 95, 0.94)), #0f4d42;
+  color: #f8fcfb;
 }
 
-.title h1 {
-  font-size: 24px;
-  color: #348481;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 600;
-  line-height: 24px;
-  line-height: 28px;
+.hero-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(2px);
 }
-.new-item {
-  margin: 10px 0;
-  display: flex;
+
+.hero-orb-one {
+  top: -54px;
+  right: -12px;
+  width: 168px;
+  height: 168px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0));
 }
-.icon img {
-  height: 35px;
-  width: 35px;
+
+.hero-orb-two {
+  bottom: -72px;
+  left: 34%;
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(circle, rgba(217, 177, 95, 0.22), rgba(217, 177, 95, 0));
 }
-.info {
+
+.eyebrow {
+  position: relative;
+  z-index: 1;
+  grid-column: 1 / -1;
+  width: fit-content;
+  padding: 7px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  font: 700 0.72rem/1 'Manrope', sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hero-copy h1 {
+  margin: 0 0 10px;
+  font: 700 clamp(2rem, 4vw, 3.2rem) / 1.02 'Playfair Display', serif;
+  letter-spacing: -0.03em;
+}
+
+.hero-copy,
+.hero-metrics {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-copy p {
+  max-width: 560px;
+  margin: 0;
+  font: 500 0.95rem/1.65 'Manrope', sans-serif;
+  color: rgba(248, 252, 251, 0.84);
+}
+
+.hero-inline-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  color: rgba(248, 252, 251, 0.86);
+  font: 600 0.82rem/1.2 'Manrope', sans-serif;
+}
+
+.hero-inline-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f8d58d, #ffffff);
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.08);
+}
+
+.hero-metrics {
+  display: grid;
+  gap: 12px;
+  align-content: end;
+}
+
+.metric-card {
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06));
+  backdrop-filter: blur(12px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  strong {
+    display: block;
+    margin-top: 6px;
+    font: 800 1.85rem/1 'Manrope', sans-serif;
+  }
+}
+
+.metric-card.subtle {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
+}
+
+.metric-label {
+  font: 600 0.82rem/1.4 'Manrope', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(248, 252, 251, 0.74);
+}
+
+.updates-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.update-section {
+  position: relative;
+  padding: 18px;
+  border: 1px solid rgba(18, 59, 49, 0.08);
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(246, 249, 247, 0.9));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  overflow: hidden;
+}
+
+.section-accent {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  margin: 0 10px;
-}
-.info h2 {
-  margin: 0;
-  font-size: 16px;
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 600;
-  line-height: 18px;
-  color: #202020;
+  height: 4px;
+  background: linear-gradient(90deg, rgba(12, 141, 111, 0.95), rgba(215, 178, 103, 0.8));
 }
 
-.info h3 {
-  margin: 0;
-  font-size: 14px;
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 600;
-  line-height: 18px;
-  color: #202020;
-}
-.info p {
-  font-size: 14px;
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 400;
-  line-height: 20px;
-  color: #202020;
+.dataset-theme {
+  background: linear-gradient(180deg, rgba(241, 250, 246, 0.96), rgba(255, 255, 255, 0.95));
 }
 
-.link {
-  font-size: 14px;
-  color: #348461;
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 400;
-  line-height: 20px;
-  color: #202020;
-  cursor: pointer;
-}
-.link:hover {
-  text-decoration: underline;
-  color: #0e3a27;
-  cursor: pointer;
+.dashboard-theme {
+  background: linear-gradient(180deg, rgba(242, 247, 255, 0.96), rgba(255, 255, 255, 0.95));
 }
 
-/* 📱 MOBILE RESPONSIVE STYLES */
-
-/* Tablets and smaller devices */
-@media (max-width: 768px) {
-  .datasource-container {
-    padding: 10px;
-  }
-
-  .whats-new-content {
-    width: 90%;
-    min-height: 250px;
-    padding: 25px 20px;
-    border-radius: 8px;
-  }
-
-  .title h1 {
-    font-size: 20px;
-    line-height: 24px;
-  }
-
-  .info h2 {
-    font-size: 15px;
-    line-height: 16px;
-  }
-
-  .info h3 {
-    font-size: 13px;
-    line-height: 16px;
-  }
-
-  .icon img {
-    height: 30px;
-    width: 30px;
-  }
+.feature-theme {
+  background: linear-gradient(180deg, rgba(255, 248, 239, 0.98), rgba(255, 255, 255, 0.95));
 }
 
-/* Mobile devices */
-@media (max-width: 600px) {
-  .datasource-container {
-    padding: 5px;
-  }
+.section-header {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
 
-  .whats-new-content {
-    width: 95%;
-    padding: 20px 15px;
-    border-radius: 8px;
-    min-height: 200px;
-  }
+.section-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 251, 250, 0.88));
+  box-shadow: 0 14px 24px rgba(24, 63, 54, 0.08);
 
-  .title h1 {
-    font-size: 18px;
-    line-height: 22px;
-  }
-
-  .info h2 {
-    font-size: 14px;
-    line-height: 16px;
-  }
-
-  .info h3 {
-    font-size: 12px;
-    line-height: 15px;
-  }
-
-  .info p {
-    font-size: 12px;
-    line-height: 16px;
-  }
-
-  ul {
-    padding-left: 15px;
-    margin: 10px 0;
-    margin-top: 10px;
-  }
-
-  .new-item {
-    margin: 8px 0;
-  }
-
-  .icon img {
-    height: 28px;
+  img {
     width: 28px;
+    height: 28px;
+    object-fit: contain;
+  }
+}
+
+.section-title-wrap {
+  min-width: 0;
+
+  h2 {
+    margin: 0;
+    color: #173a33;
+    font: 800 1rem/1.2 'Manrope', sans-serif;
   }
 
-  .close-btn img {
-    width: 32px;
-    height: 32px;
+  p {
+    margin: 6px 0 0;
+    color: #5d6f69;
+    font: 500 0.85rem/1.55 'Manrope', sans-serif;
+  }
+}
+
+.section-label-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pill {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(23, 58, 51, 0.08);
+  color: #205349;
+  font: 700 0.7rem/1 'Manrope', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.update-list {
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.update-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid rgba(28, 77, 66, 0.08);
+}
+
+.item-marker {
+  width: 10px;
+  height: 10px;
+  margin-top: 7px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0c8d6f, #67c3ae);
+  box-shadow: 0 0 0 6px rgba(12, 141, 111, 0.08);
+}
+
+.item-content {
+  min-width: 0;
+
+  h3 {
+    margin: 0;
+    color: #1b2b28;
+    font: 700 0.92rem/1.5 'Manrope', sans-serif;
+  }
+}
+
+.item-meta {
+  display: inline-flex;
+  margin-top: 8px;
+  color: #6b7e78;
+  font: 700 0.68rem/1 'Manrope', sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.item-action-row {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 10px;
+}
+
+.link-btn {
+  min-width: 96px;
+  border: 1px solid rgba(12, 109, 88, 0.14);
+  padding: 9px 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #0f7b64, #125a4a);
+  color: #f5fbf8;
+  font: 800 0.82rem/1.1 'Manrope', sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px rgba(15, 123, 100, 0.22);
+    filter: brightness(1.02);
+  }
+}
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 145px;
+  margin-top: 16px;
+  padding: 18px;
+  border: 1px dashed rgba(23, 58, 51, 0.16);
+  border-radius: 18px;
+  color: #60706b;
+  text-align: center;
+  font: 600 0.92rem/1.6 'Manrope', sans-serif;
+}
+
+@media (max-width: 991px) {
+  .whats-new-overlay {
+    padding: 20px 14px;
+  }
+
+  .whats-new-modal {
+    padding: 20px;
+    border-radius: 24px;
+  }
+
+  .hero-section {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .updates-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .whats-new-overlay {
+    padding: 12px;
+  }
+
+  .whats-new-modal {
+    max-height: calc(100vh - 24px);
+    padding: 16px;
+    border-radius: 22px;
   }
 
   .close-btn {
-    top: 3px;
-    right: 3px;
+    top: 12px;
+    right: 12px;
+    width: 40px;
+    height: 40px;
   }
 
-  .link {
-    font-size: 12px;
-    line-height: 16px;
-  }
-}
-
-/* Extra small mobile devices */
-@media (max-width: 400px) {
-  .datasource-container {
-    padding: 2px;
+  .hero-section {
+    padding: 16px;
+    gap: 20px;
   }
 
-  .whats-new-content {
-    width: 90%;
-    padding: 15px 10px;
-    border-radius: 6px;
-    max-height: 400px;
-    overflow-y: auto;
+  .hero-copy p {
+    font-size: 0.92rem;
   }
 
-  .title h1 {
-    font-size: 16px;
-    line-height: 20px;
+  .hero-inline-note {
+    flex-wrap: wrap;
   }
 
-  .info {
-    margin: 0 8px;
+  .hero-metrics {
+    grid-template-columns: 1fr;
   }
 
-  .info h2 {
-    font-size: 13px;
-    line-height: 15px;
+  .update-section {
+    padding: 16px;
+    border-radius: 20px;
   }
 
-  .info h3 {
-    font-size: 11px;
-    line-height: 14px;
+  .section-header,
+  .section-label-row {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
-  .info p {
-    font-size: 11px;
-    line-height: 14px;
+  .item-action-row {
+    align-items: stretch;
   }
 
-  ul {
-    padding-left: 12px;
-    margin: 8px 0;
-  }
-
-  .new-item {
-    margin: 6px 0;
-  }
-
-  .icon img {
-    height: 24px;
-    width: 24px;
-  }
-
-  .close-btn img {
-    width: 28px;
-    height: 28px;
-  }
-
-  .close-btn {
-    top: 2px;
-    right: 2px;
-  }
-
-  .link {
-    font-size: 11px;
-    line-height: 14px;
+  .link-btn {
+    width: auto;
   }
 }
 </style>

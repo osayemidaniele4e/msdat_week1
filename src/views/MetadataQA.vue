@@ -1,11 +1,26 @@
-<template>
+﻿<template>
   <div class="metadata-qa-container">
     <!-- Sidebar -->
     <div class="sidebar">
-      <div class="new-chat-btn" @click="clearChat">
-        <b-icon icon="plus-lg"></b-icon>
-        <span>New chat</span>
+      <div class="sidebar-header">
+        <div class="bot-icon-container">
+          <img src="../modules/msdat-dashboard/components/assets/ai-launcher-green.svg" alt="AI" style="width: 24px; height: 24px;" />
+        </div>
+        <div class="sidebar-title">
+          <div class="title-main">MSDAT</div>
+          <div class="title-sub">Metadata ChatBot</div>
+        </div>
       </div>
+
+      <button class="new-analysis-btn" @click="clearChat">
+        <b-icon icon="plus" font-scale="1.2"></b-icon>
+        <span>New Data Analysis</span>
+      </button>
+
+      <div class="sidebar-section-title">
+        <b-icon icon="clock-history" class="mr-1"></b-icon> RECENT QUERIES
+      </div>
+
       <div class="history-list">
         <div
           v-for="history in chatHistory"
@@ -13,8 +28,13 @@
           :class="['history-item', { active: history.id === sessionId }]"
           @click="loadSession(history.id)"
         >
-          <b-icon icon="chat-left-text"></b-icon>
-          <span>{{ history.title }}</span>
+          <div class="history-icon">
+            <b-icon icon="chat-left-text"></b-icon>
+          </div>
+          <div class="history-content">
+            <span class="history-title">{{ history.title }}</span>
+            <span class="history-date" v-if="history.timestamp">{{ formatDate(history.timestamp) }}</span>
+          </div>
           <b-icon
             icon="trash"
             class="delete-icon"
@@ -22,55 +42,65 @@
           ></b-icon>
         </div>
       </div>
+
       <div class="sidebar-footer">
         <div class="user-profile">
           <div class="avatar">
-            <b-icon icon="person-fill"></b-icon>
+            <b-icon icon="person-circle" font-scale="1.5"></b-icon>
           </div>
-          <span>User</span>
+          <div class="user-info">
+            <span class="user-name">{{ displayUserName }}</span>
+            <span class="user-role" v-if="isAuthenticated">Authorized User</span>
+            <span class="user-role" v-else>Guest</span>
+          </div>
+          <b-icon icon="gear" class="settings-icon"></b-icon>
         </div>
       </div>
     </div>
 
     <!-- Main Chat Area -->
     <div class="main-chat-area">
+      <!-- Top Header -->
+      <div class="chat-top-header">
+        <div class="header-badges">
+          <span class="badge-item"><b-icon icon="geo-alt"></b-icon> National View</span>
+          <span class="badge-item linked"><b-icon icon="link"></b-icon> DHIS2 Linked</span>
+          <span class="badge-item live"><b-icon icon="lightning-fill"></b-icon> Live Reporting</span>
+        </div>
+        <div class="header-actions">
+          <button class="action-btn" @click="exportReport"><b-icon icon="download"></b-icon> Export Report</button>
+          <button class="icon-btn"><b-icon icon="question-circle"></b-icon></button>
+        </div>
+      </div>
+
       <div class="chat-messages" ref="messagesContainer">
+        <!-- Empty State -->
         <div v-if="messages.length === 0" class="empty-state">
-          <div class="logo-container">
-            <img src="../modules/msdat-dashboard/components/assets/ai-launcher.svg" alt="MSDAT AI" class="ai-logo-large">
+          <div class="robot-icon-wrapper">
+            <img src="../modules/msdat-dashboard/components/assets/ai-launcher-green.svg" alt="AI Logo" style="width: 40px; height: 40px;" />
           </div>
-          <h2>How can I help you today?</h2>
+          <h2>How can I help you with MSDAT today?</h2>
+          <p class="empty-subtitle">
+            ≡ƒæï Hi there! I'm <span class='soma-name'><strong>Soma</strong></span> ΓÇö <strong>MSDAT Data Assistant</strong>.<br><br>
+            Ask me about <strong>metadata, indicators, data sources</strong>, reporting periods, or even how to interpret key health metrics.
+          </p>
         </div>
 
+        <!-- Chat Rows -->
         <div
           v-for="(message, index) in messages"
           :key="index"
           :class="['message-row', message.type]"
         >
           <div class="message-content-wrapper">
-            <div class="message-avatar">
-              <div v-if="message.type === 'bot'" class="bot-avatar">
-                <img src="../modules/msdat-dashboard/components/assets/ai-launcher-green.svg" alt="AI">
-              </div>
-              <div v-else class="user-avatar">
-                <b-icon icon="person-fill"></b-icon>
+            <div class="message-avatar" v-if="message.type === 'bot'">
+              <div class="bot-avatar">
+                <img src="../modules/msdat-dashboard/components/assets/ai-launcher-green.svg" alt="AI" />
               </div>
             </div>
             <div class="message-text">
-              <div class="sender-name">{{ message.type === 'bot' ? 'Soma' : 'You' }}</div>
               <div class="markdown-body" v-if="message.type === 'bot'" v-html="renderMarkdown(message.text)"></div>
               <div class="text-body" v-else>{{ message.text }}</div>
-
-              <div v-if="message.suggestions && message.suggestions.length > 0" class="suggestions">
-                <button
-                  v-for="(suggestion, sIndex) in message.suggestions"
-                  :key="sIndex"
-                  class="suggestion-chip"
-                  @click="sendSuggestedMessage(suggestion)"
-                >
-                  {{ suggestion }}
-                </button>
-              </div>
             </div>
           </div>
         </div>
@@ -79,11 +109,10 @@
           <div class="message-content-wrapper">
             <div class="message-avatar">
               <div class="bot-avatar">
-                <img src="../modules/msdat-dashboard/components/assets/ai-launcher-green.svg" alt="AI">
+                <img src="../modules/msdat-dashboard/components/assets/ai-launcher-green.svg" alt="AI" />
               </div>
             </div>
             <div class="message-text">
-              <div class="sender-name">Soma</div>
               <div class="typing-indicator">
                 <span></span><span></span><span></span>
               </div>
@@ -94,26 +123,41 @@
 
       <!-- Input Area -->
       <div class="input-area-wrapper">
+        <div v-if="messages.length === 0" class="suggestions">
+          <span class="suggestions-label">SUGGESTIONS:</span>
+          <button
+            v-for="(suggestion, sIndex) in defaultSuggestions"
+            :key="sIndex"
+            class="suggestion-chip"
+            @click="sendSuggestedMessage(suggestion)"
+          >
+            {{ suggestion }}
+          </button>
+        </div>
+
         <div class="input-container">
           <textarea
             v-model="userInput"
             @input="autoResizeInput"
             @keyup.enter.exact="sendMessage"
-            placeholder="Message Soma..."
+            placeholder="Inquire about health indicators, reporting rates, or validation issues..."
             :disabled="isLoading"
             ref="chatInput"
             rows="1"
           ></textarea>
+
           <button
             class="send-btn"
             @click="sendMessage"
             :disabled="isLoading || !userInput.trim()"
           >
-            <b-icon icon="arrow-up"></b-icon>
+            <b-icon icon="cursor-fill" font-scale="1" class="mr-2" style="transform: rotate(45deg);"></b-icon> Analyze
           </button>
         </div>
-        <div class="disclaimer">
-          Soma can make mistakes. Consider checking important information.
+
+        <div class="footer-status">
+          <span class="status-item"><b-icon icon="shield-check" class="text-secondary"></b-icon> Data verified by FMOH DHIS2</span>
+          <span class="status-item"><b-icon icon="info-circle" class="text-secondary"></b-icon> Information subject to validation cycles</span>
         </div>
       </div>
     </div>
@@ -122,6 +166,7 @@
 
 <script>
 import { marked } from 'marked';
+import { mapGetters } from 'vuex';
 
 export default {
   name: 'MetadataQA',
@@ -132,10 +177,23 @@ export default {
       isLoading: false,
       sessionId: '',
       chatHistory: [],
+      defaultSuggestions: [
+        'What health indicators are available?',
+        'Explain the data sources used in MSDAT',
+        'How do I interpret maternal health metrics?',
+      ],
     };
   },
+  computed: {
+    ...mapGetters('AUTH_STORE', ['isAuthenticated', 'getUser']),
+    displayUserName() {
+      if (this.isAuthenticated && this.getUser) {
+        return this.getUser.username || this.getUser.email || 'User';
+      }
+      return 'User';
+    },
+  },
   methods: {
-    // UUID generator (RFC4122 version 4 compliant)
     generateSessionId() {
       return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
         const r = Math.floor(Math.random() * 16);
@@ -149,7 +207,6 @@ export default {
       });
     },
     persistSession() {
-      // Save current session to localStorage
       const currentSession = {
         id: this.sessionId,
         title: this.getSessionTitle(),
@@ -157,10 +214,8 @@ export default {
         timestamp: Date.now(),
       };
 
-      // Get all sessions from localStorage
       let allSessions = this.getAllSessions();
 
-      // Update or add current session
       const existingIndex = allSessions.findIndex((s) => s.id === this.sessionId);
       if (existingIndex !== -1) {
         allSessions[existingIndex] = currentSession;
@@ -168,15 +223,11 @@ export default {
         allSessions.unshift(currentSession);
       }
 
-      // Keep only last 50 sessions
       if (allSessions.length > 50) {
         allSessions = allSessions.slice(0, 50);
       }
 
-      // Save to localStorage
       localStorage.setItem('metadata_qa_sessions', JSON.stringify(allSessions));
-
-      // Update chatHistory
       this.loadChatHistory();
     },
     getAllSessions() {
@@ -184,7 +235,6 @@ export default {
       return stored ? JSON.parse(stored) : [];
     },
     getSessionTitle() {
-      // Generate title from first user message or use default
       const firstUserMessage = this.messages.find((m) => m.type === 'user');
       if (firstUserMessage) {
         const text = firstUserMessage.text.trim();
@@ -197,7 +247,6 @@ export default {
     },
     loadSession(sessionId) {
       if (sessionId === this.sessionId) return;
-
       const sessions = this.getAllSessions();
       const session = sessions.find((s) => s.id === sessionId);
 
@@ -207,14 +256,22 @@ export default {
         this.$nextTick(() => this.scrollToBottom());
       }
     },
-    deleteSession(sessionId) {
-      if (confirm('Are you sure you want to delete this conversation?')) {
+    async deleteSession(sessionId) {
+      const result = await this.$swal({
+        title: 'Delete conversation?',
+        text: 'Are you sure you want to delete this conversation?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel',
+      });
+
+      if (result && result.isConfirmed) {
         let sessions = this.getAllSessions();
         sessions = sessions.filter((s) => s.id !== sessionId);
         localStorage.setItem('metadata_qa_sessions', JSON.stringify(sessions));
         this.loadChatHistory();
 
-        // If we deleted the current session, create a new one
         if (sessionId === this.sessionId) {
           this.clearChat();
         }
@@ -222,44 +279,33 @@ export default {
     },
     clearChat() {
       this.sessionId = this.generateSessionId();
-      this.messages = [
-        {
-          type: 'bot',
-          text: "👋 Hi there! I’m <span class='soma-name'>**Soma**</span> — **MSDAT Data Assistant**.\n\nI can help you explore Nigeria’s health data on the MSDAT platform.\n\nAsk me about **metadata, indicators, data sources**, reporting periods, or even how to interpret key health metrics.",
-        },
-      ];
+      this.messages = [];
       this.persistSession();
       this.$nextTick(() => this.scrollToBottom());
     },
     restoreSession() {
       const storedId = sessionStorage.getItem('metadata_qa_session_id');
       const storedMessages = sessionStorage.getItem('metadata_qa_messages');
+
       if (storedId) {
         this.sessionId = storedId;
       } else {
         this.sessionId = this.generateSessionId();
         sessionStorage.setItem('metadata_qa_session_id', this.sessionId);
       }
+
       if (storedMessages) {
         try {
           this.messages = JSON.parse(storedMessages);
         } catch (e) {
-          // fallback
+          this.messages = [];
         }
       } else {
-        // Initialize with welcome message if no history
-        this.messages = [
-          {
-            type: 'bot',
-            text: "👋 Hi there! I'm <span class='soma-name'>**Soma**</span> — **MSDAT Data Assistant**.\n\nI can help you explore Nigeria's health data on the MSDAT platform.\n\nAsk me about **metadata, indicators, data sources**, reporting periods, or even how to interpret key health metrics.",
-          },
-        ];
+        this.messages = [];
       }
 
-      // Load chat history first
       this.loadChatHistory();
 
-      // Try to restore last active session from localStorage
       const lastSessionId = localStorage.getItem('metadata_qa_last_session');
 
       if (lastSessionId && this.chatHistory.length > 0) {
@@ -272,24 +318,19 @@ export default {
         }
       }
 
-      // If no valid session found, check if there are any existing sessions
       if (this.chatHistory.length > 0) {
-        // Load the most recent session
         const mostRecent = this.chatHistory[0];
         this.sessionId = mostRecent.id;
         this.messages = mostRecent.messages || [];
       } else if (!storedId) {
-        // Only persist new session if we created it fresh
         this.persistSession();
       }
 
-      // Remember last active session
       localStorage.setItem('metadata_qa_last_session', this.sessionId);
     },
     async sendMessage() {
       if (!this.userInput.trim() || this.isLoading) return;
 
-      // Add user message
       this.messages.push({
         type: 'user',
         text: this.userInput,
@@ -300,13 +341,11 @@ export default {
       this.userInput = '';
       this.isLoading = true;
 
-      // Reset height
       this.$nextTick(() => {
         if (this.$refs.chatInput) this.$refs.chatInput.style.height = 'auto';
       });
 
       try {
-        // Webhook integration
         const response = await fetch('https://n8n.e4eweb.space/webhook/7038e292-511b-49ca-94ba-92738219de03', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -379,6 +418,32 @@ export default {
         }
       });
     },
+    async exportReport() {
+      if (this.messages.length === 0) {
+        await this.$swal({
+          title: 'Nothing to export',
+          text: 'No analysis to export.',
+          icon: 'info',
+          confirmButtonText: 'OK',
+        });
+        return;
+      }
+      const content = this.messages.map((m) => `${m.type.toUpperCase()}:\n${m.text}`).join('\n\n');
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `MSDAT_Analysis_${new Date().toISOString().slice(0, 10)}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    },
+    formatDate(timestamp) {
+      if (!timestamp) return '';
+      const date = new Date(timestamp);
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    },
   },
   mounted() {
     this.restoreSession();
@@ -392,44 +457,89 @@ export default {
   display: flex;
   height: 100vh;
   width: 100%;
-  background-color: #ffffff;
+  background-color: #f8fafc;
   font-family: 'Inter', sans-serif;
   overflow: hidden;
 }
 
 /* Sidebar */
 .sidebar {
-  width: 260px;
-  background-color: #007d53;
-  color: #ffffff;
+  width: 280px;
+  background-color: #ffffff;
+  border-right: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
-  padding: 0.5rem;
   flex-shrink: 0;
 
   @media (max-width: 768px) {
-    display: none; /* Hide sidebar on mobile for now */
+    display: none;
   }
 }
 
-.new-chat-btn {
+.sidebar-header {
   display: flex;
   align-items: center;
+  padding: 1.25rem 1.5rem;
+  background-color: #007d53;
+  color: white;
   gap: 0.75rem;
-  padding: 0.75rem;
+
+  .bot-icon-container {
+    width: 32px;
+    height: 32px;
+    background-color: rgba(255,255,255,0.2);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar-title {
+    display: flex;
+    flex-direction: column;
+
+    .title-main {
+      font-weight: 700;
+      font-size: 1rem;
+      line-height: 1.2;
+    }
+    .title-sub {
+      font-size: 0.75rem;
+      opacity: 0.9;
+    }
+  }
+}
+
+.new-analysis-btn {
+  margin: 1.5rem;
+  background-color: #008751;
+  color: white;
+  border: none;
   border-radius: 0.375rem;
+  padding: 0.6rem 0.75rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   cursor: pointer;
   transition: background-color 0.2s;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  margin-bottom: 1rem;
 
   &:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: #006b40;
   }
+}
 
-  span {
-    font-size: 0.875rem;
-  }
+.sidebar-section-title {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  padding: 0 1.5rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
 }
 
 .history-list {
@@ -437,25 +547,44 @@ export default {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  padding: 0 0.75rem;
+  gap: 0.25rem;
 }
 
 .history-item {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem;
-  border-radius: 0.375rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.5rem;
   cursor: pointer;
-  color: #ececf1;
-  font-size: 0.875rem;
+  color: #475569;
   position: relative;
+  transition: all 0.2s;
 
-  span {
+  .history-icon {
+    opacity: 0.6;
+  }
+
+  .history-content {
     flex: 1;
-    white-space: nowrap;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
-    text-overflow: ellipsis;
+
+    .history-title {
+      font-size: 0.875rem;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .history-date {
+      font-size: 0.7rem;
+      color: #94a3b8;
+      margin-top: 0.1rem;
+    }
   }
 
   .delete-icon {
@@ -463,14 +592,15 @@ export default {
     transition: opacity 0.2s;
     cursor: pointer;
     flex-shrink: 0;
+    color: #94a3b8;
 
     &:hover {
-      color: #ff4444;
+      color: #ef4444;
     }
   }
 
   &:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: #f8fafc;
 
     .delete-icon {
       opacity: 1;
@@ -478,36 +608,94 @@ export default {
   }
 
   &.active {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: #007d53;
+    color: white;
+
+    .history-icon {
+      opacity: 1;
+    }
+    .history-content {
+      .history-date { color: rgba(255,255,255,0.7); }
+    }
+    .delete-icon {
+      color: rgba(255,255,255,0.7);
+      opacity: 1;
+      &:hover { color: #fca5a5; }
+    }
+  }
+}
+
+.health-domains-list {
+  padding: 0 0.75rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  .domain-item {
+    font-size: 0.85rem;
+    color: #475569;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: #f1f5f9;
+    }
+
+    .chevron {
+      font-size: 0.75rem;
+      color: #94a3b8;
+    }
   }
 }
 
 .sidebar-footer {
-  padding-top: 0.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 1rem 1.5rem;
+  background-color: #f8fafc;
+  border-top: 1px solid #e2e8f0;
 }
 
 .user-profile {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem;
-  border-radius: 0.375rem;
   cursor: pointer;
-
-  &:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-  }
 
   .avatar {
     width: 32px;
     height: 32px;
-    background-color: #f3f3f3ff;
-    border-radius: 4px;
+    border-radius: 50%;
+    background-color: #e2e8f0;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: black;
+    color: #64748b;
+  }
+
+  .user-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+
+    .user-name {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    .user-role {
+      font-size: 0.7rem;
+      color: #64748b;
+    }
+  }
+
+  .settings-icon {
+    color: #94a3b8;
+    &:hover { color: #475569; }
   }
 }
 
@@ -520,10 +708,84 @@ export default {
   background-color: #ffffff;
 }
 
+.chat-top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+
+  .header-badges {
+    display: flex;
+    gap: 0.75rem;
+
+    .badge-item {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #64748b;
+      background-color: #f8fafc;
+      padding: 0.25rem 0.6rem;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      border: 1px solid #e2e8f0;
+
+      &.linked {
+        color: #15803d;
+        background-color: #f0fdf4;
+        border-color: #bbf7d0;
+      }
+      &.live {
+        color: #0369a1;
+        background-color: #f0f9ff;
+        border-color: #bae6fd;
+      }
+    }
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .action-btn {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #475569;
+      background-color: transparent;
+      border: 1px solid #cbd5e1;
+      padding: 0.4rem 0.75rem;
+      border-radius: 0.375rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        background-color: #f8fafc;
+        color: #0f172a;
+      }
+    }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      color: #64748b;
+      cursor: pointer;
+      font-size: 1.1rem;
+      padding: 0.4rem;
+
+      &:hover { color: #0f172a; }
+    }
+  }
+}
+
 .chat-messages {
   flex: 1;
   overflow-y: auto;
-  padding-bottom: 150px; /* Space for input area */
+  padding-bottom: 180px; /* Space for input area */
   scroll-behavior: smooth;
 }
 
@@ -533,101 +795,116 @@ export default {
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #333;
+  text-align: center;
+  padding: 2rem;
 
-  .logo-container {
-    background: #ffffff;
-    padding: 20px;
+  .robot-icon-wrapper {
+    width: 56px;
+    height: 56px;
+    background-color: #f0fdf4;
+    color: #16a34a;
     border-radius: 50%;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-  }
-
-  .ai-logo-large {
-    width: 80px;
-    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
   }
 
   h2 {
+    font-size: 1.5rem;
     font-weight: 600;
-    margin-bottom: 0;
+    color: #0f172a;
+    margin-bottom: 1rem;
+  }
+
+  .empty-subtitle {
+    font-size: 0.95rem;
+    color: #64748b;
+    max-width: 550px;
+    line-height: 1.5;
   }
 }
 
 .message-row {
-  padding: 1.5rem;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
-
-  &.bot {
-    background-color: #f7f7f8;
-  }
-
-  &.user {
-    background-color: #ffffff;
-  }
+  padding: 1.5rem 2rem;
+  display: flex;
+  width: 100%;
 }
 
 .message-content-wrapper {
-  max-width: 768px;
+  max-width: 800px;
   margin: 0 auto;
   display: flex;
-  gap: 1.5rem;
-}
-
-.message-avatar {
-  flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-}
-
-.bot-avatar, .user-avatar {
+  gap: 1rem;
   width: 100%;
-  height: 100%;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-.bot-avatar {
-  background-color: #10a37f; /* OpenAI green-ish, or use MSDAT green */
-  background-color: transparent;
-  img {
-      width: 100%;
-      height: 100%;
+/* User Messages On the Right */
+.message-row.user {
+  .message-content-wrapper {
+    justify-content: flex-end;
+  }
+
+  .message-text {
+    background-color: #008751;
+    color: white;
+    padding: 1rem 1.25rem;
+    border-radius: 1rem;
+    border-bottom-right-radius: 0.25rem;
+    max-width: 80%;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
   }
 }
 
-.user-avatar {
-  background-color: #5436da; /* Or any user color */
-  color: white;
-  border-radius: 4px;
-}
+/* Bot Messages On the Left */
+.message-row.bot {
+  background-color: #f8fafc;
+  border-bottom: 1px solid #f1f5f9;
+  border-top: 1px solid #f1f5f9;
 
-.message-text {
-  flex: 1;
-  font-size: 1.25rem;
-  line-height: 1.7;
-  color: #374151;
-  overflow-wrap: break-word;
+  .message-content-wrapper {
+    justify-content: flex-start;
+  }
 
-  .sender-name {
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-    font-size: 1.125rem;
-    color: #111;
+  .message-avatar {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    background-color: transparent;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    .bot-avatar {
+      width: 100%;
+      height: 100%;
+      img {
+        width: 100%;
+        height: 100%;
+      }
+    }
+  }
+
+  .message-text {
+    flex: 1;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #1e293b;
+    padding-top: 0.25rem;
   }
 }
 
 .typing-indicator {
   display: flex;
   gap: 4px;
-  padding: 10px 0;
+  padding: 5px 0;
 
   span {
-    width: 8px;
-    height: 8px;
-    background-color: #ccc;
+    width: 6px;
+    height: 6px;
+    background-color: #94a3b8;
     border-radius: 50%;
     animation: bounce 1.4s infinite ease-in-out both;
 
@@ -647,122 +924,164 @@ export default {
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(180deg, rgba(255,255,255,0) 0%, #ffffff 20%);
-  padding: 2rem 1rem 1rem;
+  background: linear-gradient(180deg, rgba(255,255,255,0) 0%, #ffffff 15%);
+  padding: 2rem 2rem 1rem;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
+.suggestions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  width: 100%;
+  max-width: 800px;
+
+  .suggestions-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-right: 0.5rem;
+  }
+
+  .suggestion-chip {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    padding: 0.4rem 0.8rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background-color: #f8fafc;
+      border-color: #cbd5e1;
+      color: #0f172a;
+    }
+  }
+}
+
 .input-container {
   width: 100%;
-  max-width: 768px;
-  position: relative;
-  border: 1px solid rgba(0,0,0,0.1);
-  border-radius: 0.75rem;
+  max-width: 800px;
   background-color: #ffffff;
-  box-shadow: 0 0 10px rgba(0,0,0,0.05);
+  border: 1px solid #cbd5e1;
+  border-radius: 0.75rem;
+  padding: 0.5rem;
   display: flex;
-  align-items: flex-end;
-  padding: 0.75rem;
+  align-items: center;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
 
   &:focus-within {
     border-color: #007d53;
-    box-shadow: 0 0 10px rgba(0, 125, 83, 0.1);
+    box-shadow: 0 0 0 2px rgba(0, 125, 83, 0.1);
+  }
+
+  .icon-btn {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    padding: 0.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+
+    &:hover { color: #475569; }
   }
 
   textarea {
     flex: 1;
     border: none;
     resize: none;
-    max-height: 200px;
-    padding: 0 0.5rem;
+    padding: 0.5rem 0.75rem;
     font-family: inherit;
-    font-size: 1rem;
+    font-size: 0.95rem;
     line-height: 1.5;
     outline: none;
     background: transparent;
-    color: #333;
+    color: #1e293b;
+    max-height: 120px;
 
     &::placeholder {
-      color: #9ca3af;
+      color: #94a3b8;
     }
   }
 
   .send-btn {
-    background-color: #007d53;
-    color: white;
-    border: none;
-    border-radius: 0.375rem;
-    width: 32px;
-    height: 32px;
+    background-color: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    font-size: 0.875rem;
     display: flex;
     align-items: center;
-    justify-content: center;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.2s;
     margin-left: 0.5rem;
 
     &:disabled {
-      background-color: #e5e7eb;
-      color: #9ca3af;
-      cursor: default;
+      background-color: #f1f5f9;
+      color: #94a3b8;
+      border-color: #e2e8f0;
+      cursor: not-allowed;
     }
 
     &:not(:disabled):hover {
-      background-color: #006040;
+      background-color: #dcfce7;
+      border-color: #86efac;
+    }
+
+    /* Simple arrow tweak for matching Figma's send representation if needed */
+    .icon {
+      margin-right: 0.25rem;
     }
   }
 }
 
-.disclaimer {
-  font-size: 0.75rem;
-  color: #9ca3af;
-  margin-top: 0.75rem;
-  text-align: center;
-}
-
-.suggestions {
+.footer-status {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  justify-content: center;
+  gap: 1.5rem;
   margin-top: 1rem;
+  width: 100%;
+  max-width: 800px;
 
-  .suggestion-chip {
-    background-color: #ffffff;
-    border: 1px solid #d1d5db;
-    color: #374151;
-    padding: 0.5rem 1rem;
-    border-radius: 9999px;
-    font-size: 0.875rem;
-    cursor: pointer;
-    transition: all 0.2s;
-
-    &:hover {
-      background-color: #f3f4f6;
-      border-color: #9ca3af;
-    }
+  .status-item {
+    font-size: 0.65rem;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
   }
 }
 
-/* Markdown Styles */
+/* Markdown Styles inside bot messages */
 ::v-deep .markdown-body {
-  font-size: 1.25rem !important;
-  line-height: 1.7;
+  font-size: 0.95rem !important;
+  line-height: 1.6;
+  color: #1e293b;
 
   p {
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
     &:last-child { margin-bottom: 0; }
-    font-size: 1.25rem;
   }
 
   strong {
     font-weight: 600;
-    color: #111;
+    color: #0f172a;
   }
 
   ul, ol {
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
     padding-left: 1.5rem;
   }
 
@@ -771,15 +1090,16 @@ export default {
   }
 
   code {
-    background-color: #f3f4f6;
+    background-color: #f1f5f9;
     padding: 0.2rem 0.4rem;
     border-radius: 0.25rem;
     font-family: monospace;
-    font-size: 0.875rem;
+    font-size: 0.85em;
+    color: #db2777;
   }
 
   pre {
-    background-color: #f3f4f6;
+    background-color: #0f172a;
     padding: 1rem;
     border-radius: 0.5rem;
     overflow-x: auto;
@@ -788,11 +1108,12 @@ export default {
     code {
       background-color: transparent;
       padding: 0;
+      color: #e2e8f0;
     }
   }
 
   .soma-name {
-     color: #007d53;
+     color: #008751;
      font-weight: 700;
   }
 }

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="">
     <!-- <pre>{{ groupLabelStates }}</pre> -->
     <multiselect
@@ -41,8 +41,8 @@
               >
                 {{
                   groupLabelStates[props.option.$groupLabel]
-                    ? 'Click to collapse ▲'
-                    : 'Click to expand ▼'
+                    ? 'Click to collapse Γû▓'
+                    : 'Click to expand Γû╝'
                 }}
               </span>
             </span>
@@ -120,10 +120,11 @@ export default {
         return false;
       }
       return this.options.some(
-        (option) => option
-          && typeof option === 'object'
-          && Object.prototype.hasOwnProperty.call(option, this.groupLabelKey)
-          && Array.isArray(option[this.groupValuesKey]),
+        (option) =>
+          option &&
+          typeof option === 'object' &&
+          Object.prototype.hasOwnProperty.call(option, this.groupLabelKey) &&
+          Array.isArray(option[this.groupValuesKey])
       );
     },
     effectiveMultiSelectProps() {
@@ -141,10 +142,10 @@ export default {
       },
       set(val) {
         if (
-          val
-          && typeof val === 'object'
-          && val.id !== undefined
-          && val.program_area !== undefined
+          val &&
+          typeof val === 'object' &&
+          val.id !== undefined &&
+          val.program_area !== undefined
         ) {
           this.selectedOption = val;
           // this.indicatorId = val.id;
@@ -161,10 +162,10 @@ export default {
           localStorage.setItem('indicatorSecondRelated', indicatorSecondRelated);
           this.SET_SELECTED_CONFIG(item);
         } else if (
-          val
-          && typeof val === 'object'
-          && val.id !== undefined
-          && val.methodology !== undefined
+          val &&
+          typeof val === 'object' &&
+          val.id !== undefined &&
+          val.methodology !== undefined
         ) {
           // this.saveDataSourceToStorage(val.id);
           const item = {
@@ -178,10 +179,10 @@ export default {
           };
           this.SET_ZONAL_DATASOURCE(item2);
         } else if (
-          val
-          && typeof val !== 'object'
-          && val.id === undefined
-          && val.created_at === undefined
+          val &&
+          typeof val !== 'object' &&
+          val.id === undefined &&
+          val.created_at === undefined
         ) {
           const item = {
             payload: val,
@@ -245,7 +246,7 @@ export default {
               const { name } = this.$route.params;
               if (name === 'Demographics') {
                 const newArr = this.options.filter(
-                  (year) => parseInt(year, 10) < new Date().getFullYear() + 1,
+                  (year) => parseInt(year, 10) < new Date().getFullYear() + 1
                 );
 
                 this.selected = this.value == null ? newArr[0] : this.value;
@@ -262,7 +263,7 @@ export default {
                 const date = new Date();
                 const year = date.getFullYear() - 1;
                 const newArr = newValue.filter(
-                  (item) => parseInt(item, 10) < new Date().getFullYear() + 1,
+                  (item) => parseInt(item, 10) < new Date().getFullYear() + 1
                 );
 
                 this.selected = this.value == null ? newArr[0] || year.toString() : this.value;

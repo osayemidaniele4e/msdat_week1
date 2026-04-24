@@ -7,6 +7,8 @@
       ref="main-modal"
       centered
       :size="size"
+      :no-close-on-backdrop="noCloseOnBackdrop"
+      :no-close-on-esc="noCloseOnEsc"
       v-on:hidden="hide"
       class="w-25 px-3"
     >
@@ -52,6 +54,14 @@ export default {
     header: {
       type: String,
       default: () => ('secondary'),
+    },
+    noCloseOnBackdrop: {
+      type: Boolean,
+      default: () => false,
+    },
+    noCloseOnEsc: {
+      type: Boolean,
+      default: () => false,
     },
   },
   watch: {

@@ -8,12 +8,7 @@
             <b-icon-chevron-left></b-icon-chevron-left>
             <div class="ml-2 d-none d-lg-inline">Back to Dashboard</div>
           </div>
-          <!-- <div class="search-input mt-5">
-           <button type="submit" class="btn search-icon p-1">
-             <i class="fa fa-search"></i>
-           </button>
-           <input type="text" class="" v-model="query" placeholder="Search">
-         </div> -->
+          <!-- Search field intentionally removed in favor of admin navigation shortcuts. -->
           <div class="mt-4">
             <p style="font-size: 17px">Admin Profile</p>
           </div>
@@ -44,13 +39,14 @@
               <span class="d-none d-lg-inline">Notifications</span>
             </a>
 
-            <a
-              href="#/tags"
-              class="item"
-              :class="{ active: isCurrentRoute('/tag-management') }"
-            >
+            <a href="#/tags" class="item" :class="{ active: isCurrentRoute('/tags') }">
               <b-icon-bell-fill></b-icon-bell-fill>&nbsp;&nbsp;
               <span class="d-none d-lg-inline">Indicator Tag Management</span>
+            </a>
+
+            <a href="#/whatsnew" class="item" :class="{ active: isCurrentRoute('/whatsnew') }">
+              <b-icon-bell-fill></b-icon-bell-fill>&nbsp;&nbsp;
+              <span class="d-none d-lg-inline">Whats New Management</span>
             </a>
           </div>
           <div class="my-5">
@@ -93,6 +89,7 @@ import Plugins from './plugins.vue';
 import Settings from './adminsettings.vue';
 import dashboardList from './dashboard/List.vue';
 import TagManagement from './tagManagement.vue';
+import WhatsNewPage from './whatsNewPage.vue';
 
 const routes = {
   '/': AdminDashboard,
@@ -103,6 +100,7 @@ const routes = {
   '/adminsettings': Settings,
   '/dashboard': dashboardList,
   '/tags': TagManagement,
+  '/whatsnew': WhatsNewPage,
 };
 
 const titles = {
@@ -113,6 +111,7 @@ const titles = {
   '/Plugins': 'Plugins',
   '/adminsettings': 'Admin Settings',
   '/tags': 'Tag Management',
+  '/whatsnew': 'Whats New Management',
 };
 
 export default {

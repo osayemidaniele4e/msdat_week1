@@ -137,7 +137,7 @@
         </a>
       </li>
     </ul>
-    <base-modal :showModal="socialModal" :size="'md'">
+    <base-modal :showModal="socialModal" :size="'xl'">
       <template #title><h6 class="mb-0 font-weight-bold work-sans">Share Dashboard</h6> </template>
       <Socials />
     </base-modal>

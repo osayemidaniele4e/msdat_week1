@@ -1,32 +1,24 @@
-<template>
+﻿<template>
   <base-overlay :show="loader" class="main">
     <base-sub-card
       showControls
       v-if="Object.keys(controlPanelProps).length"
       @dropdownTypeSelected="
         downLoadType($event, {
-          indicator: controlPanelProps.indicator.short_name,
+          indicator: indicatorLabel,
           datasource: '',
           year: '',
         })
       "
     >
       <template #title>
-        <div class="w-100 d-flex flex-column">
-          <p class="work-sans mb-0 line-height">
-            Distribution of
-            <span class="font-weight-bold">{{ controlPanelProps.indicator.full_name }} </span>across
-            <span class="font-weight-bold"> {{ controlPanelProps.location.name }}.</span> Source:
-            <span class="font-weight-bold"> {{ controlPanelProps.datasource.datasource }}</span>
-            {{ controlPanelProps.year }}
-          </p>
-          <!-- AI Confidence Score Placement -->
-          <ConfidenceScore
-            v-if="controlPanelProps.indicator"
-            :indicatorId="controlPanelProps.indicator.id"
-            :filters="controlPanelProps"
-          />
-        </div>
+        <p class="work-sans mb-0 line-height">
+          Distribution of
+          <span class="font-weight-bold">{{ indicatorLabel }} </span>across
+          <span class="font-weight-bold"> {{ locationLabel }}.</span> Source:
+          <span class="font-weight-bold"> {{ datasourceLabel }}</span>
+          {{ yearLabel }}
+        </p>
       </template>
       <BarChart ref="BaseChart" :title="title"  :categoryLabel="'Location'" :chartOptions="chart" class="barchart" />
     </base-sub-card>
@@ -38,7 +30,6 @@ import Highcharts from 'highcharts';
 import BarChart from '@/components/Barchart/BaseBarChart.vue';
 import formatter from '@/modules/msdat-dashboard/mixins/formatter';
 import ApiServices from '@/modules/data-layer/services/ApiServices';
-import ConfidenceScore from '@/components/ui-components/ConfidenceScore.vue';
 import chartDownload from '../../../mixins/chart_download';
 import { sortHighchartsDataInObjectFormat } from '../../../mixins/util';
 
@@ -58,7 +49,6 @@ export default {
   },
   components: {
     BarChart,
-    ConfidenceScore,
   },
   props: {
     mapSelectedState: {
@@ -74,7 +64,44 @@ export default {
     },
   },
 
+  computed: {
+    indicatorLabel() {
+      return this.resolveDisplayText(this.controlPanelProps?.indicator, [
+        'full_name',
+        'short_name',
+        'name',
+      ]);
+    },
+    locationLabel() {
+      return this.resolveDisplayText(this.controlPanelProps?.location, ['name']);
+    },
+    datasourceLabel() {
+      return this.resolveDisplayText(this.controlPanelProps?.datasource, [
+        'datasource',
+        'name',
+        'item',
+      ]);
+    },
+    yearLabel() {
+      return this.resolveDisplayText(this.controlPanelProps?.year);
+    },
+  },
+
   methods: {
+    resolveDisplayText(value, preferredKeys = []) {
+      if (value == null) return '';
+      if (typeof value === 'string' || typeof value === 'number') return String(value);
+      if (Array.isArray(value)) return '';
+      if (typeof value === 'object') {
+        for (let i = 0; i < preferredKeys.length; i += 1) {
+          const key = preferredKeys[i];
+          if (typeof value[key] === 'string' || typeof value[key] === 'number') {
+            return String(value[key]);
+          }
+        }
+      }
+      return '';
+    },
     /**
      * @method computeChartPlotLines is from the
      * @mixin formatter
@@ -410,7 +437,7 @@ export default {
   },
 
   mounted() {
-    this.title = ` Distribution of ${this.controlPanelProps.indicator.full_name} ccross the zones in the country. Source: ${this.controlPanelProps.datasource.datasource} ${this.controlPanelProps.year}`;
+    this.title = ` Distribution of ${this.indicatorLabel} across the zones in the country. Source: ${this.datasourceLabel} ${this.yearLabel}`;
   },
 };
 </script>

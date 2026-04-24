@@ -25,7 +25,7 @@
           <label class="">Get Contextual Data Right Away</label>
           <div class="form-control search-input">
             <input type="text" class="" v-model="query" placeholder="Enter Keywords or Url">
-            <button type="submit" class="btn search-icon p-2"><i class="fa fa-search"></i></button>
+            <button type="submit" class="btn search-icon p-2"><b-icon icon="search" aria-hidden="true"></b-icon></button>
 
           </div>
           </div>

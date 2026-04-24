@@ -3,7 +3,7 @@
     <div class="accessibility-header">
       <h3>Accessibility Settings</h3>
       <button class="close-btn" @click="setActiveComponent('main')" title="Close Accessibility Panel">
-        <i class="fas fa-times"></i>
+        <b-icon icon="x" aria-hidden="true"></b-icon>
       </button>
     </div>
 
@@ -29,11 +29,11 @@
         <label class="control-label">Font Size</label>
         <div class="font-size-controls">
           <button @click="decreaseFontSize" :disabled="fontSizeLevel <= 1" title="Decrease Font Size">
-            <i class="fas fa-minus"></i>
+            <b-icon icon="dash" aria-hidden="true"></b-icon>
           </button>
           <span class="font-size-display">{{ fontSizeLevel }}</span>
           <button @click="increaseFontSize" :disabled="fontSizeLevel >= 5" title="Increase Font Size">
-            <i class="fas fa-plus"></i>
+            <b-icon icon="plus" aria-hidden="true"></b-icon>
           </button>
         </div>
         <p class="control-description">
@@ -77,7 +77,7 @@
       <div class="control-group">
         <label class="control-label">Test Screen Reader</label>
         <button @click="testScreenReader" class="test-btn">
-          <i class="fas fa-volume-up"></i>
+          <b-icon icon="volume-up-fill" aria-hidden="true"></b-icon>
           Test Announcement
         </button>
         <p class="control-description">
@@ -88,7 +88,7 @@
       <!-- Reset Button -->
       <div class="control-group">
         <button @click="resetSettings" class="reset-btn">
-          <i class="fas fa-undo"></i>
+          <b-icon icon="arrow-counterclockwise" aria-hidden="true"></b-icon>
           Reset All Settings
         </button>
       </div>

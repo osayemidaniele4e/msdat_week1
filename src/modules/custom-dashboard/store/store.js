@@ -37,6 +37,7 @@ const store = {
     allSelected: false,
     step: 1,
     customDashboard: safeJSONParse(customDashboard, false),
+    dashboardMode: localStorage.getItem('dashboardMode') || 'standard',
     dashboardDetails: safeJSONParse(dashboardDetails, {}),
     rmnchs: [],
     masterData: safeJSONParse(composedData, []),

@@ -1,4 +1,4 @@
-const getters = {
+﻿const getters = {
   getConfigObject: (state) => state.configObject,
   getSelectedConfig: (state) => state.selectedConfigurations,
   getLoadingStatus: (state) => state.loading,
@@ -11,6 +11,7 @@ const getters = {
   getSelectedSection: (state) => state.selectedSection,
   getCustomDashboards: (state) => state.dashboards,
   getIDCDatasources: (state) => state.controlConfig[2].setup[1].options,
+  getFunFact: (state) => state.funFact,
 };
 
 export default getters;

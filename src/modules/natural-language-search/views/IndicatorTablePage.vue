@@ -24,7 +24,7 @@
           type="submit"
           :disabled="isLoading"
         >
-          <i class="fa fa-search"></i>
+          <b-icon icon="search" aria-hidden="true"></b-icon>
         </button>
       </form>
     </div>
@@ -180,7 +180,7 @@ export default {
 .form-control {
   width: 93%;
 }
-.fa {
+.b-icon {
   color: #cee4e9;
   font-size: 20px;
   font-weight: 700;

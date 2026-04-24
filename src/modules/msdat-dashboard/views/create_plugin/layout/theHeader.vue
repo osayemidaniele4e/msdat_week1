@@ -412,15 +412,16 @@ export default {
     isAuthor() {
       // retrieve all saved dashboards
       const customDashboardsList = JSON.parse(
-        localStorage.getItem('customDashboardsList') || JSON.stringify({}),
+        localStorage.getItem('customDashboardsList') || JSON.stringify({})
       );
       // retrieve dashboards belonging to current user
       const list = customDashboardsList[this.getUser.username];
       // find currently loaded dashboard in list
       const { name, description } = this.$store.getters.dashboardDetails;
       return list?.find(
-        (dashb) => dashb.config.dashboardDetails.name === name
-          && dashb.config.dashboardDetails.description === description
+        (dashb) =>
+          dashb.config.dashboardDetails.name === name &&
+          dashb.config.dashboardDetails.description === description
       );
     },
   },

@@ -49,8 +49,7 @@
 
             <p class="link-text mt-4 mb-4 ml-1">
               <router-link to="/" style="color: #007d53"
-                ><i style="padding-top: 2px" class="fas fa-angle-left" aria-hidden="true"></i>
-                <b-icon icon="chevron-left"></b-icon> Back to MSDAT</router-link
+                ><b-icon icon="chevron-left"></b-icon> Back to MSDAT</router-link
               >
             </p>
           </div>

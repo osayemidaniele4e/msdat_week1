@@ -1,4 +1,4 @@
-<!-- eslint-disable no-undef -->
+﻿<!-- eslint-disable no-undef -->
 <template>
   <div class="temp">
     <TroubleShootingModal style="z-index: 1500" v-if="showTroubleShootingModal" />
@@ -193,9 +193,7 @@
 
 <script>
 import { mapMutations, mapGetters } from 'vuex';
-import {
-  BasePanel, ControlBase, ControlPanel, SelectDropdown,
-} from '@/components/ControlPanel';
+import { BasePanel, ControlBase, ControlPanel, SelectDropdown } from '@/components/ControlPanel';
 // import BaseUpdate from '@/modules/msdat-dashboard/components/NewUpdate.vue';
 import config from '@/modules/dynamic_dashboard/config/dashboard_config';
 import apiServices from '@/modules/data-layer/services/ApiServices';
@@ -335,12 +333,12 @@ export default {
      * Update Site-Wide OG tags for crawlers
      */
     // eslint-disable-next-line camelcase
-    const indicator
+    const indicator =
       // eslint-disable-next-line camelcase
-      = this.getSelectedConfig().indicator?.full_name
+      this.getSelectedConfig().indicator?.full_name ||
       // eslint-disable-next-line camelcase
-      || this.dlIndicator.find((ind) => ind.id === this.initialIndicator?.full_name)
-      || 'Skilled attendance at delivery or birth';
+      this.dlIndicator.find((ind) => ind.id === this.initialIndicator?.full_name) ||
+      'Skilled attendance at delivery or birth';
     const pageDesc = `Take a look at '${indicator}' on the Multi-Source Data and Triangulation (MSDAT) platform`;
 
     const descEl = document.querySelector('head meta[property="og:description"]');
@@ -431,8 +429,8 @@ export default {
       // Condition to check if scrolling is required
       if (
         !(
-          (scrollPos === 0 || scrollPixels > 0)
-          && (element.clientWidth + scrollPos === element.scrollWidth || scrollPixels < 0)
+          (scrollPos === 0 || scrollPixels > 0) &&
+          (element.clientWidth + scrollPos === element.scrollWidth || scrollPixels < 0)
         )
       ) {
         // Get the start timestamp
@@ -505,6 +503,104 @@ export default {
         this.isMobile = false;
       }
     },
+    applyRoutePayloadValue(key, value) {
+      const sharedSections = key === 'datasource' ? [0, 1, 2, 5] : [0, 1, 2, 3, 5];
+
+      sharedSections.forEach((controlIndex) => {
+        this.SET_SECTION_PAYLOAD({
+          controlIndex,
+          key,
+          value,
+        });
+      });
+
+      if (key === 'datasource') {
+        this.SET_DATASET_DATASOURCE_PAYLOAD({
+          controlIndex: 3,
+          key,
+          value,
+        });
+        this.SET_MULTI_DATASOURCE_PAYLOAD({
+          controlIndex: 4,
+          key,
+          value,
+        });
+        return;
+      }
+
+      this.SET_MULTI_LOCATION_PAYLOAD({
+        controlIndex: 4,
+        key,
+        value,
+      });
+    },
+    async applyRouteSelections() {
+      const { datasource, location, section, indicator } = this.$route.query;
+
+      if (datasource) {
+        this.SET_URL_DATASOURCE(datasource);
+      }
+
+      if (location) {
+        this.SET_URL_LOCATION(location);
+      }
+
+      const [datasourceResponse, locationResponse] = await Promise.all([
+        datasource ? apiServices.getSingleDataSourceObj(datasource) : Promise.resolve(null),
+        location ? apiServices.getSingleLocationObj(location) : Promise.resolve(null),
+      ]);
+
+      if (datasourceResponse?.data) {
+        this.applyRoutePayloadValue('datasource', datasourceResponse.data);
+      }
+
+      if (locationResponse?.data) {
+        this.applyRoutePayloadValue('location', locationResponse.data);
+      }
+
+      if (section) {
+        this.SET_SECTION(section);
+      }
+
+      return indicator ? this.getRouteIndicatorRelatedIndicators() : [];
+    },
+    async initializeDashboardData(urlRequestedIndicator) {
+      const dashboardID = localStorage.getItem('activeDashboardID');
+
+      await this.$DL.init({
+        dashboardIndicators: this.indicators,
+        defaultIndicators:
+          urlRequestedIndicator.length > 0 ? urlRequestedIndicator : this.defaultIndicators,
+        dashboardDataSources: this.dataSources,
+        dashboardID,
+      });
+
+      this.loading = true;
+
+      this.$store.commit('MSDAT_STORE/SET_INITIAL', {
+        indicator: this.initialIndicator,
+        datasource: this.initialDataSource,
+        location: this.initialLocation,
+      });
+
+      await this.setDefaults();
+      await this.setUpControlPanelDropDown();
+    },
+    async finalizeDashboardSetup() {
+      this.defaultYearDropdown = await this.setYearDropdown();
+      if (this.defaultYearDropdown.length > 0) {
+        this.defaultYear = this.defaultYearDropdown[0];
+      }
+
+      this.cpIsLoading = true;
+      this.$nextTick(() => {
+        this.startScroll();
+      });
+    },
+    hidePrerenderModal() {
+      const bvModal = document.querySelector('#__BVID__13___BV_modal_outer_');
+      if (bvModal) bvModal.style.display = 'none';
+    },
     updateProgram(item, indicators, index2) {
       const filteredIndicator = indicators.filter((indicator) => indicator.program_area === item);
       const data = {
@@ -526,109 +622,25 @@ export default {
 
   async mounted() {
     this.loading = false;
-    if (this.$route.query.datasource) {
-      this.SET_URL_DATASOURCE(this.$route.query.datasource);
-      const { data } = await apiServices.getSingleDataSourceObj(this.$route.query.datasource);
 
-      const arr = [0, 1, 2, 3, 4, 5];
+    const urlRequestedIndicator = await this.applyRouteSelections();
 
-      arr.forEach((index) => {
-        const obj = {
-          controlIndex: index,
-          key: 'datasource',
-          value: data,
-        };
-
-        if ([0, 1, 2, 5].includes(index)) {
-          this.SET_SECTION_PAYLOAD(obj);
-        } else if (index === 3) {
-          this.SET_DATASET_DATASOURCE_PAYLOAD(obj);
-        } else if (index === 4) {
-          this.SET_MULTI_DATASOURCE_PAYLOAD(obj);
-        }
-      });
-    }
-
-    if (this.$route.query.location) {
-      this.SET_URL_LOCATION(this.$route.query.location);
-      const { data } = await apiServices.getSingleLocationObj(this.$route.query.location);
-
-      const arr = [0, 1, 2, 3, 4, 5];
-
-      arr.forEach((index) => {
-        const obj = {
-          controlIndex: index,
-          key: 'location',
-          value: data,
-        };
-
-        if ([0, 1, 2, 3, 5].includes(index)) {
-          this.SET_SECTION_PAYLOAD(obj);
-        } else if (index === 4) {
-          this.SET_MULTI_LOCATION_PAYLOAD(obj);
-        }
-      });
-    }
-
-    if (this.$route.query.section) {
-      this.SET_SECTION(this.$route.query.section);
-    }
-    // initializing data for dashboard
-    // console.trace(this.$route.query);
-    let urlRequestedIndicator = [];
-    if (this.$route.query.indicator) {
-      urlRequestedIndicator = this.getRouteIndicatorRelatedIndicators();
-    }
     setTimeout(() => {
       if (this.detect) {
         this.closeAlert();
       }
     }, 60000);
+
     try {
-      // The initializing the control panel
-      const dashboardID = localStorage.getItem('activeDashboardID');
-      // console.log('MSDAT@ 2');
-
-      await this.$DL.init({
-        dashboardIndicators: this.indicators,
-        defaultIndicators:
-          urlRequestedIndicator.length > 0 // Check if the url has an indicator exists then inits it
-            ? urlRequestedIndicator
-            : this.defaultIndicators,
-        dashboardDataSources: this.dataSources,
-        dashboardID,
-      });
-
-      this.loading = true;
-
-      this.$store.commit('MSDAT_STORE/SET_INITIAL', {
-        indicator: this.initialIndicator,
-        datasource: this.initialDataSource,
-        location: this.initialLocation,
-      });
-      // The initializing the control panel
-      await this.setDefaults();
-      await this.setUpControlPanelDropDown();
-
-      // pick one of the available years as the default years as opposed to the static 2016 year
-      this.defaultYearDropdown = await this.setYearDropdown();
-      if (this.defaultYearDropdown.length > 0) {
-        this.defaultYear = this.defaultYearDropdown[0];
-      }
-
-      this.cpIsLoading = true;
-      this.$nextTick(() => {
-        this.startScroll();
-      });
+      await this.initializeDashboardData(urlRequestedIndicator);
+      await this.finalizeDashboardSetup();
     } catch (error) {
-      // This means it a dexies error
       if (!error.isAxiosError) {
         this.showTroubleShootingModal = true;
       }
+    } finally {
+      this.hidePrerenderModal();
     }
-    // Hide Modal For Prerendered Pages
-    const bvModal = document.querySelector('#__BVID__13___BV_modal_outer_');
-    if (bvModal) bvModal.style.display = 'none';
   },
 };
 </script>

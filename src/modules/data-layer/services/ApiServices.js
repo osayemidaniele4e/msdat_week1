@@ -1,5 +1,38 @@
+﻿/* eslint-disable import/no-cycle */
 import axiosInstance, { noHeadersInstance, authInstance } from '@/plugins/axios';
 import apiEndpoints from '../config/endpoint';
+
+async function getAllPaginatedResults(apiEndpoint, maxPages = 20) {
+  const mergedResults = [];
+  const visited = new Set();
+  let nextUrl = `/${apiEndpoint}`;
+  let pageCount = 0;
+
+  while (nextUrl && pageCount < maxPages) {
+    if (visited.has(nextUrl)) {
+      break;
+    }
+
+    visited.add(nextUrl);
+
+    // eslint-disable-next-line no-await-in-loop
+    const response = await axiosInstance.get(nextUrl);
+    const { data } = response;
+
+    if (Array.isArray(data?.results)) {
+      mergedResults.push(...data.results);
+    }
+
+    nextUrl = data?.next || null;
+    pageCount += 1;
+  }
+
+  return {
+    data: {
+      results: mergedResults,
+    },
+  };
+}
 
 const getDashboard = async () => axiosInstance.get(apiEndpoints.getDashboard);
 const getDashboardById = async (id) => axiosInstance.get(apiEndpoints.getDashboardById + id);
@@ -38,6 +71,8 @@ const getNHMISDataObj = async (obj) => axiosInstance.get(
 );
 const getWhatsNew = async () => axiosInstance.get('news/updates/?size=1000');
 const saveWhatsNew = async (data) => authInstance.post('news/updates/', data);
+const updateWhatsNew = async (id, data) => authInstance.patch(`news/updates/${id}/`, data);
+const deleteWhatsNew = async (id) => authInstance.delete(`news/updates/${id}/`);
 const tagIndicator = async (data) => authInstance.post('tags/', data);
 const getTags = async () => axiosInstance.get('tags/');
 const saveCustomDashboard = async (data) => axiosInstance.post('custom-dashboard/', data);
@@ -45,7 +80,7 @@ const getSingleCustomDashboard = async (id) => axiosInstance.get(`custom-dashboa
 const getCustomDashboard = async () => axiosInstance.get('custom-dashboard/');
 const fetchAllDataSources = async () => axiosInstance.get('datasources/?size=100');
 const fetchAllCoverageLevels = async (id) => axiosInstance.get(`datasource_specific_indicator/${id}`);
-const fetchAllIndicators = async () => axiosInstance.get('indicators/?size=4000');
+const fetchAllIndicators = async () => getAllPaginatedResults(apiEndpoints.getIndicator);
 const fetchAllLocation = async () => axiosInstance.get('location/?size=1000');
 const getTriangulation = async (obj) => {
   const params = new URLSearchParams({
@@ -77,28 +112,50 @@ const getFunFact = async (payload) => {
     throw new Error(`Webhook error ${response.status}: ${text}`);
   }
 
-  const data = await response.json(); // ✅ await once
+  const data = await response.json(); // Γ£à await once
+
+  return data;
+};
+
+const getAiIndicatorsSuggestions = async (payload) => {
+  const response = await fetch(
+    'https://n8n.e4eweb.space/webhook/0bd06292-e8c8-433b-9c2d-89ba64006845',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Webhook error ${response.status}: ${text}`);
+  }
+
+  const data = await response.json(); // Γ£à await once
 
   return data;
 };
 
 const getDataWithPeriod = async (obj) => {
   const {
-    indicator, datasource, location, value_type, period,
+    indicator, datasource, location, value_type: valueType, period,
   } = obj || {};
 
   // only fire request if all required props are truthy and not just empty strings
   if (
-    [indicator, datasource, location, value_type, period].every(
+    [indicator, datasource, location, valueType, period].every(
       (val) => val !== undefined && val !== null && val.toString().trim() !== '',
     )
   ) {
     return axiosInstance.get(
-      `data/?size=3000&indicator=${indicator}&datasource=${datasource}&location=${location}&value_type=${value_type}&period=${period}`,
+      `data/?size=3000&indicator=${indicator}&datasource=${datasource}&location=${location}&value_type=${valueType}&period=${period}`,
     );
   }
 
-  // do nothing if validation fails
+  return null;
 };
 
 // const getDataWithPeriod = async (obj) =>
@@ -116,7 +173,7 @@ const getZonalData = async (obj) => {
     );
   }
 
-  // do nothing if validation fails
+  return null;
 };
 const getZonalData2 = async (obj) => axiosInstance.get(
   `data/?size=3000&indicator=${obj.indicator}&datasource=${obj.datasource}&period=${obj.period}&location=${obj.location}`,
@@ -134,7 +191,7 @@ const getPeriod = async (obj) => {
     );
   }
 
-  // do nothing if validation fails
+  return null;
 };
 
 // const getPeriod = async (obj) =>
@@ -169,7 +226,15 @@ const otherEndpoints = [
   apiEndpoints.getNhmisMonthly,
 ];
 
-const getOtherEndpoint = async () => Promise.all(otherEndpoints.map((endpoint) => getRequiredEndpoint(endpoint)));
+const getOtherEndpoint = async () => Promise.all(
+  otherEndpoints.map((endpoint) => {
+    if (endpoint === apiEndpoints.getIndicator) {
+      return getAllPaginatedResults(endpoint);
+    }
+
+    return getRequiredEndpoint(endpoint);
+  }),
+);
 const getDataWithValueType = async (obj) => axiosInstance.get(
   `data/?size=3000&indicator=${obj.indicator}&datasource=${obj.datasource}&location=1&value_type=${obj.value_type}`,
 );
@@ -231,6 +296,8 @@ export default {
   getAllNHMISData,
   getWhatsNew,
   saveWhatsNew,
+  updateWhatsNew,
+  deleteWhatsNew,
   saveCustomDashboard,
   getSingleCustomDashboard,
   getCustomDashboard,
@@ -257,16 +324,5 @@ export default {
   tagIndicator,
   getTags,
   getFunFact,
-  /**
-   * AI Confidence & Reliability Score for Indicators
-   * @param {string} id - Indicator ID
-   * @param {Object} params - Query parameters (location, datasource, year)
-   * @returns {Promise}
-   */
-  getIndicatorConfidence: async (id, params = {}) =>
-    // If we're in development and want to hit the local server, we might need a full URL if proxy isn't set
-    // But typically we use relative paths and let the proxy or environment variables handle it.
-    // For this implementation, we use the standard axios instance.
-    axiosInstance.get(`indicator/${id}/confidence`, { params }),
-
+  getAiIndicatorsSuggestions,
 };

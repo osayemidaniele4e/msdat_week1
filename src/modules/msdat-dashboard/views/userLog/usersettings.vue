@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <b-col class="p-lg-5 p-3">
     <b-col class="profile-info" >
       <h4>Profile Info</h4>
@@ -43,7 +43,7 @@
           <b-form-group id="input-group-7" class="form-group">
             <div class="input-label">
               <label for="new-password">New Password</label>
-              <i :class="passwordToggleIcon.newPassword" @click="togglePasswordVisibility('newPassword')" style="cursor: pointer;"></i>
+              <b-icon :icon="passwordToggleIcon.newPassword" @click="togglePasswordVisibility('newPassword')" style="cursor: pointer;"></b-icon>
             </div>
             <b-form-input id="new-password" :type="passwordFieldType.newPassword" v-model="newPassword" class="form-input" required></b-form-input>
             <b-progress :max="100" class="progress mt-2" :value="passwordStrength">
@@ -59,7 +59,7 @@
                 class="requirement-item"
                 :class="{ 'requirement-met': requirement.met, 'requirement-unmet': !requirement.met }"
               >
-                <i :class="requirement.met ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
+                <b-icon :icon="requirement.met ? 'check-circle-fill' : 'x-circle-fill'"></b-icon>
                 <span>{{ requirement.text }}</span>
               </div>
             </div>
@@ -67,7 +67,7 @@
           <b-form-group id="input-group-8" class="form-group">
             <div class="input-label">
               <label for="confirm-password">Confirm Password</label>
-              <i :class="passwordToggleIcon.confirmPassword" @click="togglePasswordVisibility('confirmPassword')" style="cursor: pointer;"></i>
+              <b-icon :icon="passwordToggleIcon.confirmPassword" @click="togglePasswordVisibility('confirmPassword')" style="cursor: pointer;"></b-icon>
             </div>
             <b-form-input id="confirm-password" :type="passwordFieldType.confirmPassword" v-model="confirmPassword" class="form-input" required></b-form-input>
             <span class="strength-text" v-if="passwordsMatch">MATCH</span>
@@ -202,8 +202,8 @@ export default {
         confirmPassword: 'password',
       },
       passwordToggleIcon: {
-        newPassword: 'fas fa-eye',
-        confirmPassword: 'fas fa-eye',
+        newPassword: 'eye-fill',
+        confirmPassword: 'eye-fill',
       },
       plugins: [
         {
@@ -312,6 +312,11 @@ export default {
   },
   methods: {
     ...mapActions('AUTH_STORE', ['SAVE_DASHBOARDS']),
+    async logoutAndRedirect(message = 'Please log in again') {
+      this.$swal('Session expired', message, 'error');
+      await this.$store.dispatch('AUTH_STORE/logout');
+      this.$router.push('/');
+    },
     async getProfile() {
       const baseUrl = process.env.VUE_APP_API_BASE_URL;
       const url = `${baseUrl}users/${this.getUser.id}/`;
@@ -347,7 +352,7 @@ export default {
               <p>Password must meet all the following requirements:</p>
               <ul style="list-style: none; padding-left: 0;">
                 ${this.passwordRequirements.map((req) => `<li style="color: ${req.met ? '#28a745' : '#dc3545'}; margin: 5px 0;">
-                    <i class="fas ${req.met ? 'fa-check-circle' : 'fa-times-circle'}"></i>
+                    <span aria-hidden="true">${req.met ? 'Γ£ö' : 'Γ£û'}</span>
                     ${req.text}
                   </li>`).join('')}
               </ul>
@@ -368,9 +373,7 @@ export default {
         // console.log('Token:', token);
 
         if (!token) {
-          this.$swal('Session expired', 'Please log in again', 'error');
-          this.$store.dispatch('AUTH_STORE/logout'); // Optional: Log out user if token is missing
-          this.$router.go();
+          await this.logoutAndRedirect();
           return;
         }
 
@@ -393,8 +396,7 @@ export default {
         const errorMessage = error.response?.data?.message || 'An error occurred';
 
         if (error.response?.data?.code === 'token_not_valid') {
-          this.$swal('Session expired', 'Please log in again', 'error');
-          this.$store.dispatch('logout'); // Optional: Handle token expiration
+          await this.logoutAndRedirect();
         } else {
           this.$swal('Failed to update password', errorMessage, 'error');
         }
@@ -404,10 +406,10 @@ export default {
     togglePasswordVisibility(field) {
       if (this.passwordFieldType[field] === 'password') {
         this.passwordFieldType[field] = 'text';
-        this.passwordToggleIcon[field] = 'fas fa-eye-slash';
+        this.passwordToggleIcon[field] = 'eye-slash-fill';
       } else {
         this.passwordFieldType[field] = 'password';
-        this.passwordToggleIcon[field] = 'fas fa-eye';
+        this.passwordToggleIcon[field] = 'eye-fill';
       }
     },
 
@@ -429,9 +431,7 @@ export default {
           const token = this.getUser.tokens.access_token;
 
           if (!token) {
-            this.$swal('Session expired', 'Please log in again', 'error');
-            this.$store.dispatch('AUTH_STORE/logout');
-            this.$router.go(); // Optional: Log out user if token is missing
+            await this.logoutAndRedirect();
             return;
           }
 
@@ -443,16 +443,14 @@ export default {
           });
 
           this.$swal('Account deactivated successfully!', '', 'success');
-          this.$store.dispatch('AUTH_STORE/logout'); // Log out the user after deactivation
-          this.$router.go();
+          await this.$store.dispatch('AUTH_STORE/logout');
+          this.$router.push('/');
         } catch (error) {
           console.error('Error deactivating account:', error.response?.data || error.message);
           const errorMessage = error.response?.data?.message || 'An error occurred';
 
           if (error.response?.data?.code === 'token_not_valid') {
-            this.$swal('Session expired', 'Please log in again', 'error');
-            this.$store.dispatch('AUTH_STORE/logout');
-            this.$router.go();
+            await this.logoutAndRedirect();
           } else {
             this.$swal('Failed to deactivate account', errorMessage, 'error');
           }
@@ -735,7 +733,7 @@ b-form-checkbox {
  .text-warning, .text-success {
   font-size: 12px;
  }
- .password-update .fas {
+ .password-update .b-icon {
   position: absolute;
   right: 10px;
   top: 38px;
@@ -758,7 +756,7 @@ b-form-checkbox {
   font-size: 12px;
  }
 
- .requirement-item i {
+ .requirement-item .b-icon {
   margin-right: 8px;
   font-size: 12px;
  }

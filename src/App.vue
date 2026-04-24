@@ -1,4 +1,4 @@
-<template>
+﻿<template>
  <div class="position-relative" id="app">
     <router-view />
     <feedback />
@@ -26,7 +26,7 @@
           d="M269.241,512h-26.483c-7.945,0-15.89-3.531-21.186-10.593l-18.538-24.717h105.931l-18.538,24.717C285.131,508.469,277.186,512,269.241,512"
         />
 
-        <!-- 💡 MAIN BULB (we'll target this) -->
+        <!-- ≡ƒÆí MAIN BULB (we'll target this) -->
         <path
           class="bulb-glow"
           style="fill: #f0ce49"
@@ -68,7 +68,7 @@
             </g>
           </svg>
         </button>
-        <button class="fun-fact-close" aria-label="Close fun fact" @click="closeFunFact">×</button>
+        <button class="fun-fact-close" aria-label="Close fun fact" @click="closeFunFact">├ù</button>
         <div class="fun-fact-glow"></div>
         <div class="fun-fact-icon">
           <!-- Light bulb SVG -->
@@ -91,7 +91,7 @@
           </div>
           <div class="fun-fact-divider"></div>
           <h1 class="fun-fact-text">
-            <span class="fun-fact-quote-mark">“</span>{{ nugget }}
+            <span class="fun-fact-quote-mark">ΓÇ£</span>{{ nugget }}
           </h1>
           <p class="fun-fact-caption">A concise signal surfaced for the dashboard you are exploring.</p>
         </div>
@@ -114,7 +114,7 @@
     </div> -->
      <transition name="fade-slide">
       <div v-if="showDisablePrompt" class="funfact-modal">
-        <div class="icon">💡</div>
+        <div class="icon">≡ƒÆí</div>
 
         <div class="content">
           <p class="title">Disable Fun Facts?</p>
@@ -525,7 +525,7 @@ export default {
 
         const result = await ApiServices.getFunFact(payload);
 
-        // ✅ Only show when webhook responds successfully
+        // Γ£à Only show when webhook responds successfully
         if (!result) return;
         this.SET_FUN_FACT(result.content);
 

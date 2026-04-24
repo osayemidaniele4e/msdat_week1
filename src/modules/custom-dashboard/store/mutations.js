@@ -99,6 +99,11 @@ export default {
     state.step = payload;
   },
 
+  setDashboardMode(state, payload) {
+    localStorage.setItem('dashboardMode', payload);
+    state.dashboardMode = payload;
+  },
+
   setUrlEmbed(state, payload) {
     state.embedUrl = payload;
   },

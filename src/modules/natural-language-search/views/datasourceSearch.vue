@@ -120,7 +120,7 @@ export default {
 .form-control {
   width: 93%;
 }
-.fa {
+.b-icon {
   color: #cee4e9;
   font-size: 20px;
   font-weight: 700;
