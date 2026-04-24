@@ -1,0 +1,185 @@
+diff a/src/App.vue b/src/App.vue	(rejected hunks)
+@@ -39 +38 @@
+-    
++
+@@ -43,3 +42,3 @@
+-      <button 
+-        class="global-chat-trigger" 
+-        @click="$refs.globalChatBot.toggleChat()" 
++      <button
++        class="global-chat-trigger"
++        @click="$refs.globalChatBot.toggleChat()"
+@@ -76 +75 @@ export default {
+- components: {
++  components: {
+@@ -97 +96 @@ export default {
+-   computed: {
++  computed: {
+@@ -103 +102 @@ export default {
+-     // eslint-disable-next-line no-unused-vars
++      // eslint-disable-next-line no-unused-vars
+@@ -116 +115 @@ export default {
+-     '$store.state.MSDAT_STORE.showShareSection': {
++    '$store.state.MSDAT_STORE.showShareSection': {
+@@ -123 +122 @@ export default {
+-     viewMode(newMode) {
++    viewMode(newMode) {
+@@ -134 +133 @@ export default {
+-   await this.getWhatsNew();
++    await this.getWhatsNew();
+@@ -136 +135 @@ export default {
+-   this.firstTimeExecution();
++    this.firstTimeExecution();
+@@ -138 +137 @@ export default {
+-   // Show immediately (optional)
++    // Show immediately (optional)
+@@ -146,2 +145 @@ export default {
+-
+-  // eslint-disable-next-line
++    // eslint-disable-next-line
+@@ -149,19 +146,0 @@ export default {
+-    
+-  this.pluginsImported.push('accessibilityPlugin')
+-  if (!localStorage.getItem('accessibilityPlugin')) {
+-    localStorage.setItem('accessibilityPlugin', 'false');
+-  }
+-
+-  if (localStorage.getItem('accessibilityPlugin') === 'true') {
+-    Vue.use(accessibilityPlugin);
+-  }
+-
+-
+-  this.pluginsImported.push('contextPlugin')
+-  if (!localStorage.getItem('contextPlugin')) {
+-    localStorage.setItem('contextPlugin', 'false');
+-  }
+-
+-  if (localStorage.getItem('contextPlugin') === 'true') {
+-    Vue.use(contextPlugin);
+-  }
+@@ -170,9 +153,3 @@ export default {
+-  this.pluginsImported.push('customReportBuilder')
+-  if (!localStorage.getItem('customReportBuilder')) {
+-    localStorage.setItem('customReportBuilder', 'false');
+-  }
+-
+-  if (localStorage.getItem('customReportBuilder') === 'true') {
+-    Vue.use(customReportBuilder);
+-  }
+-
++    if (localStorage.getItem('accessibilityPlugin') === 'true') {
++      Vue.use(accessibilityPlugin);
++    }
+@@ -180,4 +157,4 @@ export default {
+-  this.pluginsImported.push('indicatorPlugin')
+-  if (!localStorage.getItem('indicatorPlugin')) {
+-    localStorage.setItem('indicatorPlugin', 'false');
+-  }
++    this.pluginsImported.push('contextPlugin');
++    if (!localStorage.getItem('contextPlugin')) {
++      localStorage.setItem('contextPlugin', 'false');
++    }
+@@ -185,3 +162,3 @@ export default {
+-  if (localStorage.getItem('indicatorPlugin') === 'true') {
+-    Vue.use(indicatorPlugin);
+-  }
++    if (localStorage.getItem('contextPlugin') === 'true') {
++      Vue.use(contextPlugin);
++    }
+@@ -190,4 +171,3 @@ export default {
+-  this.pluginsImported.push('reviewPlugin')
+-  if (!localStorage.getItem('reviewPlugin')) {
+-    localStorage.setItem('reviewPlugin', 'false');
+-  }
++    if (localStorage.getItem('customReportBuilder') === 'true') {
++      Vue.use(customReportBuilder);
++    }
+@@ -195,3 +175,4 @@ export default {
+-  if (localStorage.getItem('reviewPlugin') === 'true') {
+-    Vue.use(reviewPlugin);
+-  }
++    this.pluginsImported.push('indicatorPlugin');
++    if (!localStorage.getItem('indicatorPlugin')) {
++      localStorage.setItem('indicatorPlugin', 'false');
++    }
+@@ -200,4 +184,4 @@ export default {
+-  this.pluginsImported.push('screenshotManager')
+-  if (!localStorage.getItem('screenshotManager')) {
+-    localStorage.setItem('screenshotManager', 'false');
+-  }
++    this.pluginsImported.push('reviewPlugin');
++    if (!localStorage.getItem('reviewPlugin')) {
++      localStorage.setItem('reviewPlugin', 'false');
++    }
+@@ -205,3 +189,3 @@ export default {
+-  if (localStorage.getItem('screenshotManager') === 'true') {
+-    Vue.use(screenshotManager);
+-  }
++    if (localStorage.getItem('reviewPlugin') === 'true') {
++      Vue.use(reviewPlugin);
++    }
+@@ -210,4 +198,3 @@ export default {
+-  this.pluginsImported.push('testonePlugin')
+-  if (!localStorage.getItem('testonePlugin')) {
+-    localStorage.setItem('testonePlugin', 'false');
+-  }
++    if (localStorage.getItem('screenshotManager') === 'true') {
++      Vue.use(screenshotManager);
++    }
+@@ -215,3 +202,4 @@ export default {
+-  if (localStorage.getItem('testonePlugin') === 'true') {
+-    Vue.use(testonePlugin);
+-  }
++    this.pluginsImported.push('testonePlugin');
++    if (!localStorage.getItem('testonePlugin')) {
++      localStorage.setItem('testonePlugin', 'false');
++    }
+@@ -220,4 +211,4 @@ export default {
+-  this.pluginsImported.push('testPlugin')
+-  if (!localStorage.getItem('testPlugin')) {
+-    localStorage.setItem('testPlugin', 'false');
+-  }
++    this.pluginsImported.push('testPlugin');
++    if (!localStorage.getItem('testPlugin')) {
++      localStorage.setItem('testPlugin', 'false');
++    }
+@@ -225,3 +216,3 @@ export default {
+-  if (localStorage.getItem('testPlugin') === 'true') {
+-    Vue.use(testPlugin);
+-  }
++    if (localStorage.getItem('testPlugin') === 'true') {
++      Vue.use(testPlugin);
++    }
+@@ -238 +229 @@ export default {
+-     async showFunFactTemporarily() {
++    async showFunFactTemporarily() {
+@@ -243 +234 @@ export default {
+-      const payload = {
++        const payload = {
+@@ -252 +242,0 @@ export default {
+-      
+@@ -319 +308 @@ export default {
+-    
++
+@@ -323,9 +312,9 @@ export default {
+-  accessibilityPlugin,
+-  contextPlugin,
+-  customReportBuilder,
+-  indicatorPlugin,
+-  reviewPlugin,
+-  screenshotManager,
+-  testonePlugin,
+-  testPlugin,
+-};
++        accessibilityPlugin,
++        contextPlugin,
++        customReportBuilder,
++        indicatorPlugin,
++        reviewPlugin,
++        screenshotManager,
++        testonePlugin,
++        testPlugin,
++      };
+@@ -359 +348 @@ export default {
+-   
++
