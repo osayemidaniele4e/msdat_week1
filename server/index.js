@@ -39,14 +39,35 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
 }));
 
-// CORS configuration
+// CORS configuration — CORS_EXTRA_ORIGINS (comma-separated) adds allowlist entries for
+// Render, previews, and other frontends. Example: https://msdat-xxx.onrender.com
+const defaultProdOrigins = [
+  'https://msdat.fmohconnect.gov.ng',
+  'https://www.msdat.fmohconnect.gov.ng',
+  'https://msdat2-staging.e4eweb.space',
+];
+const extraOrigins = (process.env.CORS_EXTRA_ORIGINS || '')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
+const renderPublicUrl = (process.env.RENDER_EXTERNAL_URL || '').trim();
+const productionOrigins = [
+  ...defaultProdOrigins,
+  ...extraOrigins,
+  ...(renderPublicUrl ? [renderPublicUrl] : []),
+];
+
 app.use(cors({
   origin: IS_PRODUCTION
-    ? [
-      'https://msdat.fmohconnect.gov.ng',
-      'https://www.msdat.fmohconnect.gov.ng',
-      'https://msdat2-staging.e4eweb.space',
-    ]
+    ? (origin, callback) => {
+      if (!origin) {
+        return callback(null, true);
+      }
+      if (productionOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(null, false);
+    }
     : true,
   credentials: true,
 }));
@@ -72,9 +93,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Indicator Metadata Endpoint (Mock DB Fetch)
 app.get('/api/indicator/:id/metadata', (req, res) => {
-  const id = req.params.id;
   // Fallback defaults / Mock DB result
   res.json({
+    id: req.params.id,
     name: 'Sample Indicator',
     definition: 'Total observed events as a proportion of the expected population.',
     formula: '(Numerator / Denominator) * 100',

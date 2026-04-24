@@ -1,0 +1,23 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+# In the Render dashboard, set the service root to this directory if the repo
+# is the monorepo root: msdat_week1/msdat
+#
+# CORS: the server also allows RENDER_EXTERNAL_URL (set automatically on Render).
+# Set CORS_EXTRA_ORIGINS for extra preview/custom domains, or to mirror your API URL.
+# VUE_APP_* must be set before build; change them in the dashboard then clear build cache
+# or trigger a rebuild so the SPA picks them up.
+
+services:
+  - type: web
+    name: msdat
+    runtime: node
+    plan: free
+    buildCommand: yarn install && NODE_OPTIONS=--openssl-legacy-provider yarn build
+    startCommand: node server/index.js
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "20.18.0"
+      - key: NODE_ENV
+        value: production

@@ -17,9 +17,10 @@
     "docs:build": "vuepress build docs",
     "docgen": "vue-docgen-cli",
     "dev": "set NODE_OPTIONS=--openssl-legacy-provider && vue-cli-service serve  --https true ",
-    "start": "serve -s dist",
+    "start": "node server/index.js",
+    "start:static": "serve -s dist",
     "server:dev": "node server/index.js",
-    "server:start": "set NODE_ENV=production && node server/index.js",
+    "server:start": "cross-env NODE_ENV=production node server/index.js",
     "build:server": "npm run build && npm run server:start"
   },
   "dependencies": {
@@ -93,6 +94,7 @@
     "@vue/test-utils": "^1.0.3",
     "babel-eslint": "^10.1.0",
     "comlink-loader": "^2.0.0",
+    "cross-env": "7.0.3",
     "cypress": "^9.7.0",
     "cz-conventional-changelog": "3.3.0",
     "eslint": "^6.7.2",

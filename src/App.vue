@@ -12,9 +12,6 @@
       <ShareSection />
     </div>
 
-    <!-- Global Modals -->
-    <IndicatorExplanationModal />
-
      <transition name="fun-fact-slide">
       <div v-if="showFunFact" class="fun-fact">
         <button class="fun-fact-close" aria-label="Close fun fact" @click="closeFunFact">×</button>
@@ -64,7 +61,6 @@ import feedback from './views/feedback.vue';
 import ShowDataSourcesList from './modules/dynamic_dashboard/components/ShowDataSourcesList.vue';
 import WhatsNew from './modules/dynamic_dashboard/components/WhatsNew.vue';
 import ShareSection from './modules/dynamic_dashboard/components/ShareSection.vue';// import ChatBot from './modules/msdat-dashboard/components/ChatBot.vue';
-import IndicatorExplanationModal from './components/ui-components/IndicatorExplanationModal.vue';
 import ApiServices from './modules/data-layer/services/ApiServices';
 import accessibilityPlugin from './modules/plugins/accessibilityPlugin';
 import contextPlugin from './modules/plugins/contextPlugin';
@@ -81,7 +77,6 @@ export default {
     ShowDataSourcesList,
     WhatsNew,
     ShareSection,
-    IndicatorExplanationModal,
     // ChatBot,
   },
   data() {
