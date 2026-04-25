@@ -12,7 +12,7 @@ services:
     name: msdat
     runtime: node
     plan: free
-    buildCommand: yarn install && NODE_OPTIONS=--openssl-legacy-provider yarn build
+    buildCommand: yarn install --ignore-engines && NODE_OPTIONS=--openssl-legacy-provider yarn build
     startCommand: node server/index.js
     healthCheckPath: /health
     autoDeploy: true
