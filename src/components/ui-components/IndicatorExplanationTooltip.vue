@@ -1,10 +1,19 @@
 <template>
-  <span class="indicator-tooltip-wrapper d-inline-block align-middle ml-1">
+  <span
+    class="indicator-tooltip-wrapper d-inline-block align-middle ml-1"
+    @mousedown.stop
+    @click.stop
+  >
     <b-icon-info-circle-fill
       class="indicator-info-icon"
+      role="button"
       tabindex="0"
-      @mousedown.stop.prevent="showModal"
-      @click.stop.prevent="showModal"
+      :aria-label="'Open details for indicator ' + indicatorId"
+      @mousedown.stop.prevent="openExplanation"
+      @click.stop.prevent="openExplanation"
+      @keydown.enter.prevent="openExplanation"
+      @keydown.space.prevent="openExplanation"
+      @touchstart.stop.prevent="openExplanation"
     />
   </span>
 </template>
@@ -19,10 +28,11 @@ export default {
     },
   },
   methods: {
-    showModal() {
-      // Emit a global event to open the detached modal
-      // preventing the dropdown from destroying our modal before it opens!
-      this.$root.$emit('open-indicator-explanation', this.indicatorId);
+    openExplanation() {
+      // Defer one tick so multiselect/dropdown can finish before the dialog opens.
+      this.$nextTick(() => {
+        this.$root.$emit('open-indicator-explanation', this.indicatorId);
+      });
     },
   },
 };

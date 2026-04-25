@@ -1,42 +1,62 @@
 <template>
-  <b-modal
-    id="indicator-explanation-modal-global"
-    size="lg"
-    hide-header
-    hide-footer
-    centered
-    body-class="p-0"
-    @hide="resetState"
+  <!-- Element UI dialog: append-to-body + explicit z-index avoids multiselect /
+       app stacking issues that often break b-modal on production builds. -->
+  <el-dialog
+    :visible.sync="dialogVisible"
+    :append-to-body="true"
+    :modal-append-to-body="true"
+    :close-on-click-modal="true"
+    :close-on-press-escape="true"
+    :lock-scroll="true"
+    :show-close="false"
+    :destroy-on-close="false"
+    :z-index="zIndex"
+    custom-class="indicator-explanation-dlg"
+    width="min(90vw, 700px)"
+    top="4vh"
+    @close="handleDialogClose"
   >
+    <div slot="title" class="d-flex justify-content-between align-items-center" style="padding-right: 0">
+      <h5
+        class="mb-0 text-uppercase"
+        style="font-size: 15px; letter-spacing: 0.2px; font-weight: 700; color: #1a1a1a"
+      >
+        {{ titleText }}
+      </h5>
+      <b-icon-x
+        class="cursor-pointer"
+        style="width: 25px; height: 25px; color: #333"
+        role="button"
+        tabindex="0"
+        @click="closeModal"
+        @keydown.enter.prevent="closeModal"
+      />
+    </div>
+
     <div v-if="loading" class="text-center py-5">
-      <b-spinner style="color: #348481;" label="Loading..."></b-spinner>
+      <b-spinner style="color: #348481" label="Loading..." />
     </div>
     <div v-else-if="metadata" class="meta-modal bg-white">
-      <div class="d-flex justify-content-between align-items-center" style="background-color: #f1f1f1; padding: 15px 24px; border-bottom: 1px solid #ddd;">
-        <h5 class="mb-0 text-uppercase" style="font-size: 15px; letter-spacing: 0.2px; font-weight: 700;">{{ metadata.name }}</h5>
-        <b-icon-x
-          class="cursor-pointer"
-          style="width: 25px; height: 25px; color: #333;"
-          @click="closeModal"
-        ></b-icon-x>
-      </div>
-
-      <div class="p-4 pt-2">
+      <div class="p-0 pt-1">
         <div class="text1">Description</div>
-      <div class="text2">{{ metadata.definition }}</div>
+        <div class="text2">{{ metadata.definition }}</div>
 
-      <div class="text1">Calculation Formula</div>
-      <div class="text2">{{ metadata.formula }}</div>
+        <div class="text1">Calculation Formula</div>
+        <div class="text2">{{ metadata.formula }}</div>
 
-      <div class="text1">Data Source</div>
-      <div class="text2">{{ metadata.source }}</div>
+        <div class="text1">Data Source</div>
+        <div class="text2">{{ metadata.source }}</div>
 
-      <div class="mt-4">
-        <b-button style="background-color: #d81b60; border-color: #d81b60; color: white;" size="m" @click="closeModal">CLOSE</b-button>
-      </div>
+        <div class="mt-4">
+          <b-button
+            style="background-color: #d81b60; border-color: #d81b60; color: white"
+            size="m"
+            @click="closeModal"
+          >CLOSE</b-button>
+        </div>
       </div>
     </div>
-  </b-modal>
+  </el-dialog>
 </template>
 
 <script>
@@ -47,9 +67,23 @@ export default {
   mixins: [mixin],
   data() {
     return {
+      dialogVisible: false,
       loading: false,
       metadata: null,
+      /** Stack above app overlays (e.g. multiselect, fixed panels). */
+      zIndex: 100000,
     };
+  },
+  computed: {
+    titleText() {
+      if (this.metadata && this.metadata.name) {
+        return this.metadata.name;
+      }
+      if (this.loading) {
+        return 'Loading…';
+      }
+      return 'Indicator';
+    },
   },
   mounted() {
     this.$root.$on('open-indicator-explanation', this.loadMetadata);
@@ -59,24 +93,26 @@ export default {
   },
   methods: {
     closeModal() {
-      this.$bvModal.hide('indicator-explanation-modal-global');
+      this.dialogVisible = false;
+    },
+    handleDialogClose() {
+      this.resetState();
     },
     resetState() {
       this.metadata = null;
+      this.loading = false;
     },
     async loadMetadata(indicatorId) {
-      if (!indicatorId) return;
-      this.loading = true;
+      if (indicatorId === undefined || indicatorId === null || indicatorId === '') {
+        return;
+      }
       this.metadata = null;
-
-      // Crucial: Fire the modal immediately from bootstrap registry
-      this.$bvModal.show('indicator-explanation-modal-global');
+      this.loading = true;
+      this.dialogVisible = true;
+      await this.$nextTick();
 
       try {
-        // Fetch indicator natively from Vuex
         const indicatorObj = this.dlGetIndicator(indicatorId);
-
-        // Fetch available data sources for this indicator
         const dsList = await this.getDataSourcesFromIndicator(indicatorId);
 
         let definition = 'No definition available for this indicator.';
@@ -84,11 +120,8 @@ export default {
         let sourceNames = 'Unavailable';
 
         if (dsList && dsList.length > 0) {
-          // List all mapped standard sources to format beautifully
           sourceNames = dsList.map((ds) => ds.datasource).join(', ');
 
-          // Use the primary/first data source to derive the standard definition
-          // (Since MS-DAT groups indicators generically, definitions across sources are essentially identical)
           const specificItems = this.dlGetDataSourceSpecificIndicator({
             indicator: indicatorId,
             datasource: dsList[0].id,
@@ -101,7 +134,10 @@ export default {
             const num = specific.measurement_numerator;
             const den = specific.measurement_denominator;
 
-            const isValid = (val) => val && val.trim().toLowerCase() !== 'n/a' && val.trim().toLowerCase() !== 'not applicable';
+            const isValid = (val) => val
+              && val.trim
+              && val.trim().toLowerCase() !== 'n/a'
+              && val.trim().toLowerCase() !== 'not applicable';
 
             let formedFormula = '';
             if (isValid(num)) formedFormula += `Numerator: ${num.trim()}\n`;
@@ -118,8 +154,8 @@ export default {
           source: sourceNames,
         };
       } catch (err) {
-        console.error('Failed to inject indicator metadata', err);
-        // Fallback safeguards
+        // eslint-disable-next-line no-console
+        console.error('Failed to load indicator metadata', err);
         this.metadata = {
           name: 'Indicator Explanation Details',
           definition: 'Data is currently resolving...',
@@ -151,12 +187,34 @@ export default {
   line-height: 1.6;
   white-space: pre-wrap;
 }
+
 .cursor-pointer {
   cursor: pointer;
   transition: all 0.2s;
 }
+
 .cursor-pointer:hover {
   color: #d81b60;
   transform: scale(1.1);
+}
+</style>
+
+<!-- Global: Element dialog is portaled; ensure high stacking in all themes -->
+<style lang="scss">
+.el-dialog.indicator-explanation-dlg {
+  z-index: 100000 !important;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0;
+}
+
+.el-dialog.indicator-explanation-dlg .el-dialog__body {
+  max-height: calc(90vh - 100px);
+  overflow-y: auto;
+  padding-top: 0;
+  padding-left: 20px;
+  padding-right: 20px;
 }
 </style>
