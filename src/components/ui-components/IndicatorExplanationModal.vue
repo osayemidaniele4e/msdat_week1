@@ -1,66 +1,73 @@
 <template>
-  <!-- Element UI dialog: append-to-body + explicit z-index avoids multiselect /
-       app stacking issues that often break b-modal on production builds. -->
-  <el-dialog
-    :visible.sync="dialogVisible"
-    :append-to-body="true"
-    :modal-append-to-body="true"
-    :close-on-click-modal="true"
-    :close-on-press-escape="true"
-    :lock-scroll="true"
-    :show-close="false"
-    :destroy-on-close="false"
-    :z-index="zIndex"
-    custom-class="indicator-explanation-dlg"
-    width="min(90vw, 700px)"
-    top="4vh"
-    @close="handleDialogClose"
-  >
-    <div slot="title" class="d-flex justify-content-between align-items-center" style="padding-right: 0">
-      <h5
-        class="mb-0 text-uppercase"
-        style="font-size: 15px; letter-spacing: 0.2px; font-weight: 700; color: #1a1a1a"
+  <!-- Plain fixed overlay (no Teleport: Vue2 has no <teleport>).
+       Sibling to router-view in App.vue so `position:fixed` is viewport-relative. -->
+  <div>
+    <transition name="ie-modal-fade">
+      <div
+        v-if="dialogVisible"
+        class="indicator-explain-overlay"
+        @click.self="closeModal"
       >
-        {{ titleText }}
-      </h5>
-      <b-icon-x
-        class="cursor-pointer"
-        style="width: 25px; height: 25px; color: #333"
-        role="button"
-        tabindex="0"
-        @click="closeModal"
-        @keydown.enter.prevent="closeModal"
-      />
-    </div>
+        <div
+          class="indicator-explain-panel"
+          role="dialog"
+          aria-modal="true"
+          tabindex="-1"
+          :aria-labelledby="'ind-exp-title-' + _uid"
+          @click.stop
+        >
+          <div class="indicator-explain-header d-flex justify-content-between align-items-center">
+            <h5
+              :id="'ind-exp-title-' + _uid"
+              class="mb-0 text-uppercase title-text"
+            >
+              {{ titleText }}
+            </h5>
+            <b-icon-x
+              class="cursor-pointer close-ic"
+              role="button"
+              tabindex="0"
+              aria-label="Close"
+              @click="closeModal"
+              @keydown.enter.prevent="closeModal"
+            />
+          </div>
 
-    <div v-if="loading" class="text-center py-5">
-      <b-spinner style="color: #348481" label="Loading..." />
-    </div>
-    <div v-else-if="metadata" class="meta-modal bg-white">
-      <div class="p-0 pt-1">
-        <div class="text1">Description</div>
-        <div class="text2">{{ metadata.definition }}</div>
+          <div class="indicator-explain-body">
+            <div v-if="loading" class="text-center py-5">
+              <b-spinner style="color: #348481" label="Loading..." />
+            </div>
+            <div v-else-if="metadata" class="bg-white content-inner">
+              <div class="text1">Description</div>
+              <div class="text2">{{ metadata.definition }}</div>
 
-        <div class="text1">Calculation Formula</div>
-        <div class="text2">{{ metadata.formula }}</div>
+              <div class="text1">Calculation Formula</div>
+              <div class="text2">{{ metadata.formula }}</div>
 
-        <div class="text1">Data Source</div>
-        <div class="text2">{{ metadata.source }}</div>
+              <div class="text1">Data Source</div>
+              <div class="text2">{{ metadata.source }}</div>
 
-        <div class="mt-4">
-          <b-button
-            style="background-color: #d81b60; border-color: #d81b60; color: white"
-            size="m"
-            @click="closeModal"
-          >CLOSE</b-button>
+              <div class="mt-4">
+                <b-button
+                  class="px-4"
+                  style="background-color: #d81b60; border-color: #d81b60; color: white"
+                  size="m"
+                  @click="closeModal"
+                >CLOSE</b-button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </el-dialog>
+    </transition>
+  </div>
 </template>
 
 <script>
+import { eventBus } from '@/main';
 import mixin from '@/modules/data-layer/mixin';
+
+const OPEN_EVENT = 'open-indicator-explanation';
 
 export default {
   name: 'IndicatorExplanationModal',
@@ -70,8 +77,6 @@ export default {
       dialogVisible: false,
       loading: false,
       metadata: null,
-      /** Stack above app overlays (e.g. multiselect, fixed panels). */
-      zIndex: 100000,
     };
   },
   computed: {
@@ -85,35 +90,88 @@ export default {
       return 'Indicator';
     },
   },
+  watch: {
+    dialogVisible(v) {
+      if (v) {
+        document.body.classList.add('indicator-explain-modal-open');
+        document.addEventListener('keydown', this.onKeydown);
+        this.$nextTick(() => {
+          const el = this.$el && this.$el.querySelector
+            ? this.$el.querySelector('.indicator-explain-panel')
+            : null;
+          if (el) el.focus();
+        });
+      } else {
+        document.body.classList.remove('indicator-explain-modal-open');
+        document.removeEventListener('keydown', this.onKeydown);
+      }
+    },
+  },
   mounted() {
-    this.$root.$on('open-indicator-explanation', this.loadMetadata);
+    eventBus.$on(OPEN_EVENT, this.onOpenRequest);
+    // Reparent to <body> so `position:fixed` is always viewport-anchored (Vue 2 has no <Teleport>).
+    this.$nextTick(() => {
+      if (this.$el && this.$el.parentNode) {
+        document.body.appendChild(this.$el);
+      }
+    });
   },
   beforeDestroy() {
-    this.$root.$off('open-indicator-explanation', this.loadMetadata);
+    eventBus.$off(OPEN_EVENT, this.onOpenRequest);
+    document.removeEventListener('keydown', this.onKeydown);
+    document.body.classList.remove('indicator-explain-modal-open');
+    if (this.$el && this.$el.parentNode === document.body) {
+      document.body.removeChild(this.$el);
+    }
   },
   methods: {
+    onKeydown(e) {
+      if (e.key === 'Escape' && this.dialogVisible) {
+        e.preventDefault();
+        this.closeModal();
+      }
+    },
+    onOpenRequest(id) {
+      this.loadMetadata(id);
+    },
     closeModal() {
       this.dialogVisible = false;
-    },
-    handleDialogClose() {
-      this.resetState();
+      this.$nextTick(() => this.resetState());
     },
     resetState() {
       this.metadata = null;
       this.loading = false;
     },
-    async loadMetadata(indicatorId) {
-      if (indicatorId === undefined || indicatorId === null || indicatorId === '') {
+    strTrim(val) {
+      if (val == null) return '';
+      return String(val).trim();
+    },
+    isDefValue(val) {
+      const s = this.strTrim(val);
+      if (!s) return false;
+      const low = s.toLowerCase();
+      return low !== 'n/a' && low !== 'not applicable';
+    },
+    async loadMetadata(rawId) {
+      if (rawId === null || rawId === undefined) {
         return;
       }
+      if (typeof rawId === 'string' && rawId === '') {
+        return;
+      }
+      const indicatorId = rawId;
       this.metadata = null;
       this.loading = true;
       this.dialogVisible = true;
       await this.$nextTick();
 
       try {
-        const indicatorObj = this.dlGetIndicator(indicatorId);
-        const dsList = await this.getDataSourcesFromIndicator(indicatorId);
+        const indicatorObj = typeof this.dlGetIndicator === 'function'
+          ? this.dlGetIndicator(indicatorId)
+          : null;
+        const dsList = typeof this.getDataSourcesFromIndicator === 'function'
+          ? await this.getDataSourcesFromIndicator(indicatorId)
+          : [];
 
         let definition = 'No definition available for this indicator.';
         let formula = 'Formula not explicitly defined.';
@@ -122,10 +180,12 @@ export default {
         if (dsList && dsList.length > 0) {
           sourceNames = dsList.map((ds) => ds.datasource).join(', ');
 
-          const specificItems = this.dlGetDataSourceSpecificIndicator({
-            indicator: indicatorId,
-            datasource: dsList[0].id,
-          });
+          const specificItems = typeof this.dlGetDataSourceSpecificIndicator === 'function'
+            ? this.dlGetDataSourceSpecificIndicator({
+              indicator: indicatorId,
+              datasource: dsList[0].id,
+            })
+            : [];
 
           if (specificItems && specificItems.length > 0) {
             const specific = specificItems[0];
@@ -134,21 +194,16 @@ export default {
             const num = specific.measurement_numerator;
             const den = specific.measurement_denominator;
 
-            const isValid = (val) => val
-              && val.trim
-              && val.trim().toLowerCase() !== 'n/a'
-              && val.trim().toLowerCase() !== 'not applicable';
-
             let formedFormula = '';
-            if (isValid(num)) formedFormula += `Numerator: ${num.trim()}\n`;
-            if (isValid(den)) formedFormula += `Denominator: ${den.trim()}`;
+            if (this.isDefValue(num)) formedFormula += `Numerator: ${this.strTrim(num)}\n`;
+            if (this.isDefValue(den)) formedFormula += `Denominator: ${this.strTrim(den)}`;
 
             formula = formedFormula.trim() || 'Formula not explicitly defined.';
           }
         }
 
         this.metadata = {
-          name: indicatorObj ? indicatorObj.full_name : 'Indicator Definition',
+          name: (indicatorObj && indicatorObj.full_name) ? indicatorObj.full_name : 'Indicator Definition',
           definition,
           formula,
           source: sourceNames,
@@ -171,6 +226,21 @@ export default {
 </script>
 
 <style scoped>
+.title-text {
+  font-size: 15px;
+  letter-spacing: 0.2px;
+  font-weight: 700;
+  color: #1a1a1a;
+  max-width: calc(100% - 2.5rem);
+}
+
+.close-ic {
+  width: 25px;
+  height: 25px;
+  color: #333;
+  flex-shrink: 0;
+}
+
 .text1 {
   font-weight: 700;
   border-bottom: 1.5px solid #2b5d5b;
@@ -199,22 +269,71 @@ export default {
 }
 </style>
 
-<!-- Global: Element dialog is portaled; ensure high stacking in all themes -->
 <style lang="scss">
-.el-dialog.indicator-explanation-dlg {
-  z-index: 100000 !important;
+/* Unscoped: overlay must break out of any parent stacking; max z-index for typical UIs */
+body.indicator-explain-modal-open {
+  overflow: hidden !important;
+  touch-action: none;
+}
+
+.ie-modal-fade-enter-active,
+.ie-modal-fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.ie-modal-fade-enter,
+.ie-modal-fade-leave-to {
+  opacity: 0;
+}
+
+.indicator-explain-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2147482000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(1px);
+  backdrop-filter: blur(1px);
+  pointer-events: auto;
+}
+
+.indicator-explain-panel {
+  position: relative;
+  background: #fff;
+  max-width: 700px;
+  width: 100%;
   max-height: 90vh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  margin-bottom: 0;
+  border-radius: 8px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.25);
+  outline: none;
 }
 
-.el-dialog.indicator-explanation-dlg .el-dialog__body {
-  max-height: calc(90vh - 100px);
-  overflow-y: auto;
-  padding-top: 0;
-  padding-left: 20px;
-  padding-right: 20px;
+.indicator-explain-header {
+  background-color: #f1f1f1;
+  padding: 15px 20px 15px 24px;
+  border-bottom: 1px solid #ddd;
+  flex-shrink: 0;
+}
+
+.indicator-explain-body {
+  padding: 0 20px 20px 20px;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  flex: 1;
+  min-height: 0;
+}
+
+.indicator-explain-panel .content-inner {
+  padding-top: 0.5rem;
 }
 </style>

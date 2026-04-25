@@ -19,6 +19,10 @@
 </template>
 
 <script>
+import { eventBus } from '@/main';
+
+const OPEN_EVENT = 'open-indicator-explanation';
+
 export default {
   name: 'IndicatorExplanationTooltip',
   props: {
@@ -29,10 +33,9 @@ export default {
   },
   methods: {
     openExplanation() {
-      // Defer one tick so multiselect/dropdown can finish before the dialog opens.
-      this.$nextTick(() => {
-        this.$root.$emit('open-indicator-explanation', this.indicatorId);
-      });
+      const id = this.indicatorId;
+      // Synchronous: ensures open runs even if nextTick is delayed; multiselect still gets .stop
+      eventBus.$emit(OPEN_EVENT, id);
     },
   },
 };
