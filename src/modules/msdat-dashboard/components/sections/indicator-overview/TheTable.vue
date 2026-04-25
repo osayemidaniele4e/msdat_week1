@@ -12,11 +12,20 @@
           <div
             class="w-100 d-flex justify-content-between align-items-center position-relative p-1"
           >
-            <p class="work-sans mb-0 line-height sub-title">
-              <b>{{ values.indicator.short_name }}</b>
-              <IndicatorExplanationTooltip v-if="values.indicator && values.indicator.id" :indicatorId="values.indicator.id" />
-              and related indicators (with year of latest values) across {{ values.location.name }}.
-            </p>
+            <!-- Use a div, not a <p>, so the (i) control is not inside a paragraph (invalid HTML + click hit-target bugs). -->
+            <div
+              class="work-sans mb-0 line-height sub-title d-flex flex-wrap align-items-center"
+            >
+              <b class="mr-1">{{ values.indicator.short_name }}</b>
+              <IndicatorExplanationTooltip
+                v-if="values.indicator && values.indicator.id"
+                :indicatorId="values.indicator.id"
+                class="flex-shrink-0"
+              />
+              <span class="pl-1">
+                and related indicators (with year of latest values) across {{ values.location.name }}.
+              </span>
+            </div>
 
             <div class="share-wrapper">
               <div class="analyze-btn"

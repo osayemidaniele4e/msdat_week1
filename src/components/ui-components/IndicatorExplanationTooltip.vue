@@ -45,6 +45,8 @@ export default {
 .indicator-tooltip-wrapper {
   display: inline-flex;
   align-items: center;
+  position: relative;
+  z-index: 1;
 }
 
 .indicator-info-icon {

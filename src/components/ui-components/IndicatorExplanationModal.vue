@@ -3,6 +3,7 @@
   <b-modal
     id="indicator-explanation-modal-global"
     ref="indicatorModal"
+    title="Indicator details"
     size="lg"
     hide-header
     hide-footer
@@ -99,36 +100,51 @@ export default {
     },
     /**
      * Like HeaderOption.showPluginModal: this.$bvModal.show('plugin-modal')
-     * Fallback: _base-modal style this.$refs['main-modal'].show()
+     * and _base-modal: this.$refs['main-modal'].show() — try ref first (synchronous), then $bvModal.
      */
     showByBootstrapVue() {
-      this.$nextTick(() => {
-        if (this.$bvModal && typeof this.$bvModal.show === 'function') {
-          try {
-            this.$bvModal.show(MODAL_ID);
-            // eslint-disable-next-line no-console
-            console.info('[IndicatorExplanationModal] $bvModal.show', MODAL_ID);
-            return;
-          } catch (e) {
-            reportFailure(this, '$bvModal.show() threw', e);
-          }
-        }
+      const tryOpen = (phase) => {
         if (this.$refs.indicatorModal && typeof this.$refs.indicatorModal.show === 'function') {
           try {
             this.$refs.indicatorModal.show();
             // eslint-disable-next-line no-console
-            console.info('[IndicatorExplanationModal] ref.show()');
-            return;
+            if (process.env.NODE_ENV !== 'production') {
+              // eslint-disable-next-line no-console
+              console.info('[IndicatorExplanationModal] ref.show()', phase);
+            }
+            return true;
           } catch (e) {
             reportFailure(this, 'ref.indicatorModal.show() threw', e);
-            return;
+            return false;
           }
         }
-        reportFailure(
-          this,
-          'Bootstrap-Vue modal API missing ($bvModal and ref)',
-          new Error('no modal show'),
-        );
+        if (this.$bvModal && typeof this.$bvModal.show === 'function') {
+          try {
+            this.$bvModal.show(MODAL_ID);
+            // eslint-disable-next-line no-console
+            if (process.env.NODE_ENV !== 'production') {
+              // eslint-disable-next-line no-console
+              console.info('[IndicatorExplanationModal] $bvModal.show', MODAL_ID, phase);
+            }
+            return true;
+          } catch (e) {
+            reportFailure(this, '$bvModal.show() threw', e);
+            return false;
+          }
+        }
+        return false;
+      };
+      if (tryOpen('sync')) return;
+      this.$nextTick(() => {
+        if (tryOpen('nextTick')) return;
+        this.$nextTick(() => {
+          if (tryOpen('nextTick+2')) return;
+          reportFailure(
+            this,
+            'Bootstrap-Vue modal API missing ($bvModal and ref) after retries',
+            new Error('no modal show'),
+          );
+        });
       });
     },
     closeModal() {
