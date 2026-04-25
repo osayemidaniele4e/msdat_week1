@@ -34,8 +34,8 @@ export default {
   methods: {
     openExplanation() {
       const id = this.indicatorId;
-      // Synchronous: ensures open runs even if nextTick is delayed; multiselect still gets .stop
       eventBus.$emit(OPEN_EVENT, id);
+      this.$root.$emit(OPEN_EVENT, id);
     },
   },
 };

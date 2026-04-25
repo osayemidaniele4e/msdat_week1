@@ -1,66 +1,59 @@
 <template>
-  <!-- Plain fixed overlay (no Teleport: Vue2 has no <teleport>).
-       Sibling to router-view in App.vue so `position:fixed` is viewport-relative. -->
-  <div>
-    <transition name="ie-modal-fade">
+  <!-- Same as HeaderOption plugin modal: b-modal with id + $bvModal.show('…') (see showPluginModal). -->
+  <b-modal
+    id="indicator-explanation-modal-global"
+    ref="indicatorModal"
+    size="lg"
+    hide-header
+    hide-footer
+    centered
+    body-class="p-0"
+    :lazy="false"
+    :no-enforce-focus="true"
+    modal-class="indicator-explain-bv-modal"
+    @hidden="onModalHidden"
+  >
+    <div v-if="loading" class="text-center py-5">
+      <b-spinner style="color: #348481" label="Loading..." />
+    </div>
+    <div v-else-if="metadata" class="meta-modal bg-white">
       <div
-        v-if="dialogVisible"
-        class="indicator-explain-overlay"
-        @click.self="closeModal"
+        class="d-flex justify-content-between align-items-center"
+        style="background-color: #f1f1f1; padding: 15px 24px; border-bottom: 1px solid #ddd"
       >
-        <div
-          class="indicator-explain-panel"
-          role="dialog"
-          aria-modal="true"
-          tabindex="-1"
-          :aria-labelledby="'ind-exp-title-' + _uid"
-          @click.stop
-        >
-          <div class="indicator-explain-header d-flex justify-content-between align-items-center">
-            <h5
-              :id="'ind-exp-title-' + _uid"
-              class="mb-0 text-uppercase title-text"
-            >
-              {{ titleText }}
-            </h5>
-            <b-icon-x
-              class="cursor-pointer close-ic"
-              role="button"
-              tabindex="0"
-              aria-label="Close"
-              @click="closeModal"
-              @keydown.enter.prevent="closeModal"
-            />
-          </div>
+        <h5
+          class="mb-0 text-uppercase"
+          style="font-size: 15px; letter-spacing: 0.2px; font-weight: 700"
+        >{{ metadata.name }}</h5>
+        <b-icon-x
+          class="cursor-pointer"
+          style="width: 25px; height: 25px; color: #333"
+          role="button"
+          aria-label="Close"
+          @click="closeModal"
+        />
+      </div>
 
-          <div class="indicator-explain-body">
-            <div v-if="loading" class="text-center py-5">
-              <b-spinner style="color: #348481" label="Loading..." />
-            </div>
-            <div v-else-if="metadata" class="bg-white content-inner">
-              <div class="text1">Description</div>
-              <div class="text2">{{ metadata.definition }}</div>
+      <div class="p-4 pt-2">
+        <div class="text1">Description</div>
+        <div class="text2">{{ metadata.definition }}</div>
 
-              <div class="text1">Calculation Formula</div>
-              <div class="text2">{{ metadata.formula }}</div>
+        <div class="text1">Calculation Formula</div>
+        <div class="text2">{{ metadata.formula }}</div>
 
-              <div class="text1">Data Source</div>
-              <div class="text2">{{ metadata.source }}</div>
+        <div class="text1">Data Source</div>
+        <div class="text2">{{ metadata.source }}</div>
 
-              <div class="mt-4">
-                <b-button
-                  class="px-4"
-                  style="background-color: #d81b60; border-color: #d81b60; color: white"
-                  size="m"
-                  @click="closeModal"
-                >CLOSE</b-button>
-              </div>
-            </div>
-          </div>
+        <div class="mt-4">
+          <b-button
+            style="background-color: #d81b60; border-color: #d81b60; color: white"
+            size="m"
+            @click="closeModal"
+          >CLOSE</b-button>
         </div>
       </div>
-    </transition>
-  </div>
+    </div>
+  </b-modal>
 </template>
 
 <script>
@@ -68,75 +61,89 @@ import { eventBus } from '@/main';
 import mixin from '@/modules/data-layer/mixin';
 
 const OPEN_EVENT = 'open-indicator-explanation';
+const MODAL_ID = 'indicator-explanation-modal-global';
+
+function reportFailure(vm, where, err) {
+  const detail = (err && err.message) || String(err) || 'unknown';
+  // eslint-disable-next-line no-console
+  console.error(`[IndicatorExplanationModal] ${where}:`, detail, err || '');
+  if (typeof vm.$swal === 'function') {
+    vm.$swal(
+      'Could not open indicator details',
+      `${where}\n\nIf this persists, open the browser console (F12) and look for [IndicatorExplanationModal].`,
+      'error',
+    );
+  }
+}
 
 export default {
   name: 'IndicatorExplanationModal',
   mixins: [mixin],
   data() {
     return {
-      dialogVisible: false,
       loading: false,
       metadata: null,
     };
   },
-  computed: {
-    titleText() {
-      if (this.metadata && this.metadata.name) {
-        return this.metadata.name;
-      }
-      if (this.loading) {
-        return 'Loading…';
-      }
-      return 'Indicator';
-    },
-  },
-  watch: {
-    dialogVisible(v) {
-      if (v) {
-        document.body.classList.add('indicator-explain-modal-open');
-        document.addEventListener('keydown', this.onKeydown);
-        this.$nextTick(() => {
-          const el = this.$el && this.$el.querySelector
-            ? this.$el.querySelector('.indicator-explain-panel')
-            : null;
-          if (el) el.focus();
-        });
-      } else {
-        document.body.classList.remove('indicator-explain-modal-open');
-        document.removeEventListener('keydown', this.onKeydown);
-      }
-    },
-  },
   mounted() {
     eventBus.$on(OPEN_EVENT, this.onOpenRequest);
-    // Reparent to <body> so `position:fixed` is always viewport-anchored (Vue 2 has no <Teleport>).
-    this.$nextTick(() => {
-      if (this.$el && this.$el.parentNode) {
-        document.body.appendChild(this.$el);
-      }
-    });
+    this.$root.$on(OPEN_EVENT, this.onOpenRequest);
   },
   beforeDestroy() {
     eventBus.$off(OPEN_EVENT, this.onOpenRequest);
-    document.removeEventListener('keydown', this.onKeydown);
-    document.body.classList.remove('indicator-explain-modal-open');
-    if (this.$el && this.$el.parentNode === document.body) {
-      document.body.removeChild(this.$el);
-    }
+    this.$root.$off(OPEN_EVENT, this.onOpenRequest);
   },
   methods: {
-    onKeydown(e) {
-      if (e.key === 'Escape' && this.dialogVisible) {
-        e.preventDefault();
-        this.closeModal();
-      }
-    },
     onOpenRequest(id) {
       this.loadMetadata(id);
     },
+    /**
+     * Like HeaderOption.showPluginModal: this.$bvModal.show('plugin-modal')
+     * Fallback: _base-modal style this.$refs['main-modal'].show()
+     */
+    showByBootstrapVue() {
+      this.$nextTick(() => {
+        if (this.$bvModal && typeof this.$bvModal.show === 'function') {
+          try {
+            this.$bvModal.show(MODAL_ID);
+            // eslint-disable-next-line no-console
+            console.info('[IndicatorExplanationModal] $bvModal.show', MODAL_ID);
+            return;
+          } catch (e) {
+            reportFailure(this, '$bvModal.show() threw', e);
+          }
+        }
+        if (this.$refs.indicatorModal && typeof this.$refs.indicatorModal.show === 'function') {
+          try {
+            this.$refs.indicatorModal.show();
+            // eslint-disable-next-line no-console
+            console.info('[IndicatorExplanationModal] ref.show()');
+            return;
+          } catch (e) {
+            reportFailure(this, 'ref.indicatorModal.show() threw', e);
+            return;
+          }
+        }
+        reportFailure(
+          this,
+          'Bootstrap-Vue modal API missing ($bvModal and ref)',
+          new Error('no modal show'),
+        );
+      });
+    },
     closeModal() {
-      this.dialogVisible = false;
-      this.$nextTick(() => this.resetState());
+      try {
+        this.$bvModal.hide(MODAL_ID);
+      } catch (e) {
+        if (this.$refs.indicatorModal && this.$refs.indicatorModal.hide) {
+          this.$refs.indicatorModal.hide();
+        } else {
+          reportFailure(this, 'closeModal', e);
+        }
+      }
+    },
+    onModalHidden() {
+      this.resetState();
     },
     resetState() {
       this.metadata = null;
@@ -154,16 +161,17 @@ export default {
     },
     async loadMetadata(rawId) {
       if (rawId === null || rawId === undefined) {
+        reportFailure(this, 'loadMetadata: missing indicator id', new Error('no id'));
         return;
       }
       if (typeof rawId === 'string' && rawId === '') {
         return;
       }
       const indicatorId = rawId;
+
       this.metadata = null;
       this.loading = true;
-      this.dialogVisible = true;
-      await this.$nextTick();
+      this.showByBootstrapVue();
 
       try {
         const indicatorObj = typeof this.dlGetIndicator === 'function'
@@ -209,8 +217,7 @@ export default {
           source: sourceNames,
         };
       } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error('Failed to load indicator metadata', err);
+        reportFailure(this, 'loadMetadata: data / API error', err);
         this.metadata = {
           name: 'Indicator Explanation Details',
           definition: 'Data is currently resolving...',
@@ -226,21 +233,6 @@ export default {
 </script>
 
 <style scoped>
-.title-text {
-  font-size: 15px;
-  letter-spacing: 0.2px;
-  font-weight: 700;
-  color: #1a1a1a;
-  max-width: calc(100% - 2.5rem);
-}
-
-.close-ic {
-  width: 25px;
-  height: 25px;
-  color: #333;
-  flex-shrink: 0;
-}
-
 .text1 {
   font-weight: 700;
   border-bottom: 1.5px solid #2b5d5b;
@@ -270,70 +262,7 @@ export default {
 </style>
 
 <style lang="scss">
-/* Unscoped: overlay must break out of any parent stacking; max z-index for typical UIs */
-body.indicator-explain-modal-open {
-  overflow: hidden !important;
-  touch-action: none;
-}
-
-.ie-modal-fade-enter-active,
-.ie-modal-fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.ie-modal-fade-enter,
-.ie-modal-fade-leave-to {
-  opacity: 0;
-}
-
-.indicator-explain-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 2147482000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  box-sizing: border-box;
-  background: rgba(0, 0, 0, 0.5);
-  -webkit-backdrop-filter: blur(1px);
-  backdrop-filter: blur(1px);
-  pointer-events: auto;
-}
-
-.indicator-explain-panel {
-  position: relative;
-  background: #fff;
-  max-width: 700px;
-  width: 100%;
-  max-height: 90vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  border-radius: 8px;
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.25);
-  outline: none;
-}
-
-.indicator-explain-header {
-  background-color: #f1f1f1;
-  padding: 15px 20px 15px 24px;
-  border-bottom: 1px solid #ddd;
-  flex-shrink: 0;
-}
-
-.indicator-explain-body {
-  padding: 0 20px 20px 20px;
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
-  flex: 1;
-  min-height: 0;
-}
-
-.indicator-explain-panel .content-inner {
-  padding-top: 0.5rem;
+.modal.indicator-explain-bv-modal {
+  z-index: 100000 !important;
 }
 </style>
