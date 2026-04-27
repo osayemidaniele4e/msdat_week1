@@ -21,12 +21,6 @@
             <span class="font-weight-bold">different sources </span>by
             <span class="font-weight-bold">states</span>
           </p>
-          <!-- AI Confidence Score Placement -->
-          <ConfidenceScore
-            v-if="values.indicator"
-            :indicatorId="values.indicator.id"
-            :filters="values"
-          />
         </div>
       </template>
       <transition name="fade">
@@ -96,7 +90,6 @@ import { mapMutations } from 'vuex';
 import { uniq } from 'lodash';
 import ControlPanelSetup from '@/modules/msdat-dashboard/mixins/control-panel-setup';
 import { isDataYearly } from '@/util/helper';
-import ConfidenceScore from '@/components/ui-components/ConfidenceScore.vue';
 import BaseChart from '../../../../../components/Barchart/BaseBarChart.vue';
 import defaultOptions from '../../../../../components/Barchart/defaultOption';
 import dataPipelineMixin from '../../../mixins/dataPipeline';
@@ -106,7 +99,6 @@ export default {
   mixins: [chartDownload, dataPipelineMixin, ControlPanelSetup],
   components: {
     BaseChart,
-    ConfidenceScore,
   },
   data() {
     return {

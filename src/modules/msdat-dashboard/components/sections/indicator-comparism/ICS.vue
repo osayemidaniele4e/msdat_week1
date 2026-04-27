@@ -53,23 +53,6 @@
                 Show indicator relationships
               </button>
             </div>
-            <!-- AI Confidence Score Placement -->
-            <div class="d-flex flex-wrap">
-              <template v-if="Array.isArray(values.indicator)">
-                <ConfidenceScore
-                  v-for="indicator in values.indicator"
-                  :key="indicator.id"
-                  :indicatorId="indicator.id"
-                  :filters="values"
-                  class="mr-3"
-                />
-              </template>
-              <ConfidenceScore
-                v-else-if="values.indicator"
-                :indicatorId="values.indicator.id"
-                :filters="values"
-              />
-            </div>
           </div>
         </template>
         <BarChart
@@ -117,7 +100,6 @@ import BarChart from '@/components/Barchart/BaseBarChart.vue';
 import defaultOptions from '@/components/Barchart/defaultOption';
 import apiServices from '@/modules/data-layer/services/ApiServices';
 import { groupIndicator } from '@/util/helper';
-import ConfidenceScore from '@/components/ui-components/ConfidenceScore.vue';
 import IndicatorRelationshipPopup from '../advanced/indicator-comparison-section/IndicatorRelationshipPopup.vue';
 import chartDownload from '../../../mixins/chart_download';
 
@@ -127,7 +109,6 @@ export default {
   components: {
     BarChart,
     IndicatorRelationshipPopup,
-    ConfidenceScore,
   },
   data() {
     return {

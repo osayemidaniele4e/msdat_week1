@@ -41,12 +41,6 @@
                 </div>
               </div>
             </div>
-            <!-- AI Confidence Score Placement -->
-            <ConfidenceScore
-              v-if="values.indicator"
-              :indicatorId="values.indicator.id"
-              :filters="values"
-            />
           </div>
         </template>
         <button
@@ -117,7 +111,6 @@ import { eventBus } from '@/main';
 import ApiServices from '@/modules/data-layer/services/ApiServices';
 import BaseMap from '@/components/maps/ZonalBaseMap.vue';
 import { validateDataValue } from '@/util/dataValidation';
-import ConfidenceScore from '@/components/ui-components/ConfidenceScore.vue';
 import chartDownload from '../../../mixins/chart_download';
 import NoSubNationalData from '../../NoData.vue';
 import NoAvailableData from '../../NoData2.vue';
@@ -131,7 +124,6 @@ export default {
     BaseMap,
     NoAvailableData,
     SmartNarrativeModal,
-    ConfidenceScore,
   },
   data() {
     return {

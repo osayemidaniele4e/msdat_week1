@@ -39,12 +39,6 @@
                 />
               </div>
             </div>
-            <!-- AI Confidence Score Placement -->
-            <ConfidenceScore
-              v-if="values.indicator"
-              :indicatorId="values.indicator.id"
-              :filters="values"
-            />
           </div>
         </template>
         <BarChart
@@ -94,12 +88,6 @@
                 />
               </div>
             </div>
-            <!-- AI Confidence Score Placement -->
-            <ConfidenceScore
-              v-if="values.indicator"
-              :indicatorId="values.indicator.id"
-              :filters="values"
-            />
           </div>
         </template>
 
@@ -144,7 +132,6 @@ import defaultOptions from '@/components/Barchart/defaultOption';
 import mixin from '@/modules/data-layer/mixin';
 import formatter from '@/modules/msdat-dashboard/mixins/formatter';
 import ApiServices from '@/modules/data-layer/services/ApiServices';
-import ConfidenceScore from '@/components/ui-components/ConfidenceScore.vue';
 
 import { validateDataValue } from '@/util/dataValidation';
 import chartDownload from '../../../mixins/chart_download';
@@ -156,7 +143,6 @@ export default {
   components: {
     BarChart,
     SmartNarrativeModal,
-    ConfidenceScore,
   },
   data() {
     return {
